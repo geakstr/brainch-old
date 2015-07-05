@@ -1,14 +1,5 @@
-<!DOCTYPE html>
-<html>
-<head>
-  <meta charset="utf-8">
-  <title>Brainch</title>
-  <link rel="stylesheet" href="/static/css/style.css">
-</head>
-<body>
+{% extends "layout/default.html" %}
 
-Hello
+{% block title %}Home{% endblock %}
 
-<script src="/static/bundles/bundle.js" async></script>
-</body>
-</html>
+{% block content %}This is home content{% endblock %}

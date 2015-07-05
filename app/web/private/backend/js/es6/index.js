@@ -1,17 +1,18 @@
 import express from 'express';
-import ejs from 'ejs';
+import nunjucks from 'nunjucks';
 import path from 'path';
 
 const app = express();
 
 app.use('/static', express.static(path.join(__dirname, '../../../../public')));
 
-app.engine('html', ejs.renderFile);
-app.set('view engine', 'html');
-app.set('views', path.join(__dirname, '../../views'));
+nunjucks.configure(path.join(__dirname, '../../views'), {
+  autoescape: true,
+  express: app
+});
 
 app.get('/', (req, res) => {
-  res.render('index');
+  res.render('index.html');
 });
 
 const server = app.listen(8000, () => {

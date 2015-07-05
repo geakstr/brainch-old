@@ -45,13 +45,14 @@ gulp.task('watch-web-backend', function() {
 });
 
 gulp.task('build-web', ['build-web-frontend', 'build-web-backend']);
-gulp.task('watch-web', ['watch-web-frontend', 'watch-web-frontend']);
+gulp.task('watch-web', ['watch-web-frontend', 'watch-web-backend']);
 
 gulp.task('run-web', ['watch-web', 'build-web'], function() {
   nodemon({
     script: path.join(__dirname, 'app/web/private/backend/js/es5/index.js'),
     watch: [
-      path.join(__dirname, 'app/web/private/backend/js/es5/**/*.js')
+      path.join(__dirname, 'app/web/private/backend/js/es5/**/*.js'),
+      path.join(__dirname, 'app/web/private/backend/views/*.html')
     ],
     ext: 'js html',
     nodeArgs: ['--harmony']
