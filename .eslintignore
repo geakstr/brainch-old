@@ -1,2 +1,3 @@
-app/web/public/bundles/*.js
-app/web/private/backend/js/es5/*.js
+node_modules/*
+app/web/public/bundles/*
+app/web/private/backend/js/es5/*
