@@ -1,0 +1,2 @@
+app/web/public/bundles/*.js
+app/web/private/backend/js/es5/*.js

@@ -4,12 +4,13 @@
   "version": "1.0.0",
   "author": "Dmitry Kharitonov",
   "license": "Brainch ©",
-  "main": "index.js",
   "scripts": {
-    "validate": "gulp validate"
+    "jscs": "gulp jscs",
+    "eslint": "eslint ./"
   },
   "pre-commit": [
-    "validate"
+    "jscs",
+    "eslint"
   ],
   "dependencies": {
     "ejs": "^2.3.1",

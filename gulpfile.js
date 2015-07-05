@@ -65,10 +65,7 @@ gulp.task('run-web', ['watch-web', 'build-web'], function() {
 gulp.task('jscs', function() {
   return gulp.src([
       path.join(__dirname, 'app/web/private/backend/js/es6/**/*.js'),
-      path.join(__dirname, 'app/web/private/frontend/js/**/*.js'),
+      path.join(__dirname, 'app/web/private/frontend/js/**/*.js')
     ])
     .pipe(jscs());
 });
-
-
-gulp.task('validate', ['jscs']);
