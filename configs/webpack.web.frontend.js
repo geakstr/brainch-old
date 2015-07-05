@@ -10,7 +10,11 @@ module.exports = {
     alias: {}
   },
   module: {
-    loaders: [],
+    loaders: [{
+      test: /\.jsx?$/,
+      exclude: /(node_modules|bower_components)/,
+      loader: 'babel'
+    }],
   },
   plugins: []
 };

@@ -1,8 +1,11 @@
 {
-	"folders":
-	[
-		{
-			"path": "."
-		}
-	]
+    "folders": [{
+        "path": ".",
+        "folder_exclude_patterns": ["node_modules", "app/web/private/backend/js/es5"],
+        "file_exclude_patterns": [".gitignore", "brainch.sublime-project"]
+    }],
+    "settings": {
+        "tab_size": 2,
+        "translate_tabs_to_spaces": true
+    }
 }
