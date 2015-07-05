@@ -1,8 +1,10 @@
+var path = require('path');
+
 module.exports = {
-  context: __dirname + '/../app/web/private/frontend/js',
-  entry: __dirname + '/../app/web/private/frontend/js/index.js',
+  context: path.join(__dirname, '/../app/web/private/frontend/js'),
+  entry: path.join(__dirname, '../app/web/private/frontend/js/index.js'),
   output: {
-    path: __dirname + '/../app/web/public/bundles',
+    path: path.join(__dirname, '/../app/web/public/bundles'),
     publicPath: '/static/bundles/',
     filename: 'bundle.js'
   },
@@ -14,7 +16,7 @@ module.exports = {
       test: /\.jsx?$/,
       exclude: /(node_modules|bower_components)/,
       loader: 'babel'
-    }],
+    }]
   },
   plugins: []
 };

@@ -1,13 +1,15 @@
 import express from 'express';
 import ejs from 'ejs';
+import path from 'path';
 
 const app = express();
 
-app.use('/static', express.static(__dirname + '/../../../public'));
+app.use('/static', express.static(path.join(__dirname, '/../../../public')));
+
 
 app.engine('html', ejs.renderFile);
 app.set('view engine', 'html');
-app.set('views', __dirname + '/../views')
+app.set('views', path.join(__dirname, '/../views'));
 
 
 app.get('/', (req, res) => {
