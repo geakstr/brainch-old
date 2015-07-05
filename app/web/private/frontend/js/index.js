@@ -1,5 +1,8 @@
-class ES6Today {
-  use() {
-    console.log('Hello from a JS class!');
-  }
+import {
+  Selection
 }
+from './Selection';
+
+window.onload = () => {
+  console.log(Selection.toString('ssd'));
+};
