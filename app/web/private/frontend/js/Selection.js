@@ -1,6 +1,6 @@
 export class Selection {
   static getInfo() {
-    var sel = window.getSelection();
+    const sel = window.getSelection();
 
     if (!sel.anchorNode || !sel.focusNode) {
       return null;
@@ -29,8 +29,8 @@ export class Selection {
       [anchorNode, focusNode] = [focusNode, anchorNode];
     }
 
-    var startPos = Selection.getPos(anchorNode).start;
-    var endPos = Selection.getPos(focusNode).end;
+    const startPos = Selection.getPos(anchorNode).start;
+    const endPos = Selection.getPos(focusNode).end;
 
     return {
       isRange: startIdx !== endIdx || startPos !== endPos,
@@ -42,35 +42,35 @@ export class Selection {
   }
 
   static getPos(el) {
-    var sel = el.ownerDocument.defaultView.getSelection();
-    var start = 0;
-    var end = 0;
+    const sel = el.ownerDocument.defaultView.getSelection();
+    const ret = {
+      start: 0,
+      end: 0
+    };
 
     if (sel.rangeCount > 0) {
-      var range = sel.getRangeAt(0);
-      var cloneRange = range.cloneRange();
+      const range = sel.getRangeAt(0);
 
-      cloneRange.selectNodeContents(el);
-      cloneRange.setStart(range.startContainer, range.startOffset);
-      start = el.textContent.length - cloneRange.toString().length;
+      let clonedRange = range.cloneRange();
+      clonedRange.selectNodeContents(el);
+      clonedRange.setStart(range.startContainer, range.startOffset);
+      ret.start = el.textContent.length - clonedRange.toString().length;
 
-      cloneRange = range.cloneRange();
-      cloneRange.selectNodeContents(el);
-      cloneRange.setEnd(range.endContainer, range.endOffset);
-      end = cloneRange.toString().length;
+      let clonedRange = range.cloneRange();
+      clonedRange.selectNodeContents(el);
+      clonedRange.setEnd(range.endContainer, range.endOffset);
+      ret.end = clonedRange.toString().length;
     }
 
-    return {
-      start: start,
-      end: end
-    };
+    return ret;
   }
 
   static setCaret(node, offset) {
-    var sel = window.getSelection();
+    const sel = window.getSelection();
 
-    var tw = document.createTreeWalker(node, NodeFilter.SHOW_TEXT, null, null);
-    var range = document.createRange();
+    const tw = document.createTreeWalker(node, NodeFilter.SHOW_TEXT, null, null);
+    const range = document.createRange();
+
     var curNode = null;
     var curOffset = 0;
     var wasRngSet = false;
@@ -93,13 +93,5 @@ export class Selection {
 
     sel.removeAllRanges();
     sel.addRange(range);
-  }
-
-  static toString(model) {
-    var selInfo = Selection.getInfo(model);
-
-    var ret = selInfo.isCaret + ' ' + selInfo.startIdx + ' ';
-    ret += selInfo.endIdx + ' ' + selInfo.startPos + ' ' + selInfo.endPos;
-    return ret;
   }
 }
