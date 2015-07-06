@@ -21,7 +21,7 @@ var paths = {
         backend: {
           js: {
             es6: path.join(process.cwd(), 'app/web/private/backend/js/es6'),
-            es5: path.join(process.cwd(), 'app/web/private/backend/js/es5'),
+            es5: path.join(process.cwd(), 'app/web/private/backend/js/es5')
           },
           views: path.join(process.cwd(), 'app/web/private/backend/views')
         },

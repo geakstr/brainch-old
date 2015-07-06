@@ -1,20 +1,21 @@
 export class Selection {
   static getInfo() {
     var sel = window.getSelection();
-    if (sel.anchorNode === null || sel.focusNode === null) {
+
+    if (!sel.anchorNode || !sel.focusNode) {
       return null;
     }
 
     var anchorNode = sel.anchorNode;
     var focusNode = sel.focusNode;
 
-    if (!anchorNode.classList.contains('edtr-blck')) {
-      anchorNode = anchorNode.parentNode;
-    }
+    // if (!anchorNode.classList.contains('edtr-blck')) {
+    //   anchorNode = anchorNode.parentNode;
+    // }
 
-    if (!focusNode.classList.contains('edtr-blck')) {
-      focusNode = focusNode.parentNode;
-    }
+    // if (!focusNode.classList.contains('edtr-blck')) {
+    //   focusNode = focusNode.parentNode;
+    // }
 
     var startIdx = anchorNode.dataset.idx;
     var endIdx = focusNode.dataset.idx;
@@ -31,10 +32,8 @@ export class Selection {
     var startPos = Selection.getPos(anchorNode).start;
     var endPos = Selection.getPos(focusNode).end;
 
-    var isRange = startIdx !== endIdx || startPos !== endPos;
-
     return {
-      isRange: isRange,
+      isRange: startIdx !== endIdx || startPos !== endPos,
       startPos: +startPos,
       endPos: +endPos,
       startIdx: +startIdx,
