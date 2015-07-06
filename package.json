@@ -6,7 +6,7 @@
   "license": "Brainch ©",
   "scripts": {
     "jscs": "gulp jscs",
-    "eslint": "eslint ./"
+    "eslint": "gulp eslint"
   },
   "pre-commit": [
     "jscs",
@@ -24,6 +24,7 @@
     "eslint": "^0.24.0",
     "gulp": "^3.9.0",
     "gulp-babel": "^5.1.0",
+    "gulp-eslint": "^0.15.0",
     "gulp-jscs": "^1.6.0",
     "node-libs-browser": "^0.5.2",
     "nodemon": "^1.3.7",
