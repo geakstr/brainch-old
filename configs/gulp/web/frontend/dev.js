@@ -7,21 +7,8 @@ var autoprefixer = require('gulp-autoprefixer');
 
 var common = require('../../../common');
 
-function onBundle(done) {
-  return function(err, stats) {
-    if (err) {
-      console.log('Error', err);
-    } else {
-      console.log(stats.toString());
-    }
-    if (done) {
-      done();
-    }
-  };
-}
-
 gulp.task('css-dev-web-frontend', function() {
-  gulp.src(path.join(common.paths.app.web.private.frontend.stylus, '/**/*.styl'))
+  return gulp.src(path.join(common.paths.app.web.private.frontend.stylus, '/**/*.styl'))
     .pipe(stylus({
       'include css': true,
       'use': [koutoSwiss()]
@@ -34,11 +21,22 @@ gulp.task('css-dev-web-frontend', function() {
 });
 
 gulp.task('webpack-dev-web-frontend', function(done) {
-  webpack(common.configs.webpack.web.frontend).run(onBundle(done));
+  webpack(common.configs.webpack.web.frontend).run((function() {
+    return function(err, stats) {
+      if (err) {
+        console.log('Error', err);
+      } else {
+        console.log(stats.toString());
+      }
+      if (done) {
+        done();
+      }
+    };
+  })());
 });
 
 gulp.task('watch-dev-web-frontend', function() {
-  webpack(common.configs.webpack.web.frontend).watch(100, onBundle());
+  gulp.watch(path.join(common.configs.webpack.web.frontend.context, '/**/*.js'), ['webpack-dev-web-frontend']);
   gulp.watch(path.join(common.paths.app.web.private.frontend.stylus, '/**/*.styl'), ['css-dev-web-frontend']);
 });
 

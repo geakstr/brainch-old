@@ -27,7 +27,6 @@
     "gulp-babel": "^5.1.0",
     "gulp-eslint": "^0.15.0",
     "gulp-jscs": "^1.6.0",
-    "gulp-namespace": "^1.0.2",
     "gulp-stylus": "^2.0.5",
     "kouto-swiss": "^0.11.13",
     "node-libs-browser": "^0.5.2",

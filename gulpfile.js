@@ -10,6 +10,8 @@ requireDir('./configs/gulp', {
   recurse: true
 });
 
+gulp.task('default', ['run-dev-web']);
+
 gulp.task('run-dev-web', ['run-dev-web-frontend', 'run-dev-web-backend']);
 
 gulp.task('jscs', function() {
