@@ -3,10 +3,10 @@ var gulp = require('gulp');
 var nodemon = require('nodemon');
 var babel = require('gulp-babel');
 
-var common = require('../../../common');
+var common = require('commonconfigs');
 
 gulp.task('js-dev-web-backend', function() {
-  return gulp.src(path.join(common.paths.app.web.private.backend.js.es6, '/**/*.js'))
+  return gulp.src([path.join(common.paths.app.web.private.backend.js.es6, '/**/*.js')])
     .pipe(babel())
     .pipe(gulp.dest(common.paths.app.web.private.backend.js.es5));
 });

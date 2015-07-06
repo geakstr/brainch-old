@@ -5,10 +5,10 @@ var stylus = require('gulp-stylus');
 var koutoSwiss = require('kouto-swiss');
 var autoprefixer = require('gulp-autoprefixer');
 
-var common = require('../../../common');
+var common = require('commonconfigs');
 
 gulp.task('css-dev-web-frontend', function() {
-  return gulp.src(path.join(common.paths.app.web.private.frontend.stylus, '/**/*.styl'))
+  return gulp.src(path.join(common.paths.app.web.private.frontend.stylus, '/style.styl'))
     .pipe(stylus({
       'include css': true,
       'use': [koutoSwiss()]

@@ -1,4 +1,5 @@
-export class Selection {
+export
+default class Selection {
   static getInfo() {
     const sel = window.getSelection();
 
@@ -6,47 +7,37 @@ export class Selection {
       return null;
     }
 
-    var anchorNode = sel.anchorNode;
-    var focusNode = sel.focusNode;
+    const info = Object.create(null);
 
-    // if (!anchorNode.classList.contains('edtr-blck')) {
-    //   anchorNode = anchorNode.parentNode;
-    // }
+    var anchorNode = sel.anchorNode.parentNode;
+    var focusNode = sel.focusNode.parentNode;
 
-    // if (!focusNode.classList.contains('edtr-blck')) {
-    //   focusNode = focusNode.parentNode;
-    // }
+    info.startI = +anchorNode.dataset.i;
+    info.endI = +focusNode.dataset.i;
 
-    var startIdx = anchorNode.dataset.idx;
-    var endIdx = focusNode.dataset.idx;
-
-    if (isNaN(startIdx) || isNaN(endIdx)) {
+    if (isNaN(info.startI) || isNaN(info.endI)) {
       return null;
     }
 
-    if (startIdx > endIdx) {
-      [startIdx, endIdx] = [endIdx, startIdx];
+    if (info.startI > info.endI) {
+      [info.startI, info.endI] = [info.endI, info.startI];
       [anchorNode, focusNode] = [focusNode, anchorNode];
     }
 
-    const startPos = Selection.getPos(anchorNode).start;
-    const endPos = Selection.getPos(focusNode).end;
+    info.startPos = +Selection.getPos(anchorNode).start;
+    info.endPos = +Selection.getPos(focusNode).end;
 
-    return {
-      isRange: startIdx !== endIdx || startPos !== endPos,
-      startPos: +startPos,
-      endPos: +endPos,
-      startIdx: +startIdx,
-      endIdx: +endIdx
-    };
+    info.isRange = info.startI !== info.endI || info.startPos !== info.endPos;
+
+    return info;
   }
 
   static getPos(el) {
     const sel = el.ownerDocument.defaultView.getSelection();
-    const ret = {
-      start: 0,
-      end: 0
-    };
+
+    const pos = Object.create(null);
+    pos.start = 0;
+    pos.end = 0;
 
     if (sel.rangeCount > 0) {
       const range = sel.getRangeAt(0);
@@ -54,15 +45,15 @@ export class Selection {
       let clonedRange = range.cloneRange();
       clonedRange.selectNodeContents(el);
       clonedRange.setStart(range.startContainer, range.startOffset);
-      ret.start = el.textContent.length - clonedRange.toString().length;
+      pos.start = el.textContent.length - clonedRange.toString().length;
 
       clonedRange = range.cloneRange();
       clonedRange.selectNodeContents(el);
       clonedRange.setEnd(range.endContainer, range.endOffset);
-      ret.end = clonedRange.toString().length;
+      pos.end = clonedRange.toString().length;
     }
 
-    return ret;
+    return pos;
   }
 
   static setCaret(node, offset) {

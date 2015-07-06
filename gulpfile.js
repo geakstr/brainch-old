@@ -4,7 +4,9 @@ var requireDir = require('require-dir');
 var jscs = require('gulp-jscs');
 var eslint = require('gulp-eslint');
 
-var common = require('./configs/common.js');
+require('node-named-modules')();
+
+var common = require('commonconfigs');
 
 requireDir('./configs/gulp', {
   recurse: true
