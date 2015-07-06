@@ -6,13 +6,11 @@
   "license": "Brainch ©",
   "scripts": {
     "jscs": "gulp jscs",
-    "eslint": "gulp eslint",
-    "build-web": "gulp build-web"
+    "eslint": "gulp eslint"
   },
   "pre-commit": [
     "jscs",
-    "eslint",
-    "build-web"
+    "eslint"
   ],
   "dependencies": {
     "express": "^4.13.0",

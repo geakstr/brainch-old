@@ -56,7 +56,7 @@ export class Selection {
       clonedRange.setStart(range.startContainer, range.startOffset);
       ret.start = el.textContent.length - clonedRange.toString().length;
 
-      let clonedRange = range.cloneRange();
+      clonedRange = range.cloneRange();
       clonedRange.selectNodeContents(el);
       clonedRange.setEnd(range.endContainer, range.endOffset);
       ret.end = clonedRange.toString().length;
