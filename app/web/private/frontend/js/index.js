@@ -4,5 +4,5 @@ import {
 from './Selection';
 
 window.onload = () => {
-  console.log(Selection.toString('ssd'));
+  console.log('test');
 };
