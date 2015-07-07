@@ -1,16 +1,28 @@
 export
 default class Selection {
-  static getInfo() {
-    const sel = window.getSelection();
+  static info() {
+    const selection = window.getSelection();
 
-    if (!sel.anchorNode || !sel.focusNode) {
+    if (!selection.anchorNode || !selection.focusNode) {
       return null;
     }
 
     const info = Object.create(null);
 
-    var anchorNode = sel.anchorNode.parentNode;
-    var focusNode = sel.focusNode.parentNode;
+    var anchorNode = selection.anchorNode;
+    var focusNode = selection.focusNode;
+
+    if (anchorNode.nodeType === 3) {
+      anchorNode = anchorNode.parentNode;
+    }
+
+    if (focusNode.nodeType === 3) {
+      focusNode = focusNode.parentNode;
+    }
+
+    if (!anchorNode.classList.contains('blck') || !focusNode.classList.contains('blck')) {
+      return null;
+    }
 
     info.startI = +anchorNode.dataset.i;
     info.endI = +focusNode.dataset.i;
@@ -24,40 +36,40 @@ default class Selection {
       [anchorNode, focusNode] = [focusNode, anchorNode];
     }
 
-    info.startPos = +Selection.getPos(anchorNode).start;
-    info.endPos = +Selection.getPos(focusNode).end;
+    info.startPos = +Selection.getSelectionRangeInNode(anchorNode).start;
+    info.endPos = +Selection.getSelectionRangeInNode(focusNode).end;
 
     info.isRange = info.startI !== info.endI || info.startPos !== info.endPos;
 
     return info;
   }
 
-  static getPos(el) {
-    const sel = el.ownerDocument.defaultView.getSelection();
+  static getSelectionRangeInNode(node) {
+    const selection = node.ownerDocument.defaultView.getSelection();
 
-    const pos = Object.create(null);
-    pos.start = 0;
-    pos.end = 0;
+    const position = Object.create(null);
+    position.start = 0;
+    position.end = 0;
 
-    if (sel.rangeCount > 0) {
-      const range = sel.getRangeAt(0);
+    if (selection.rangeCount > 0) {
+      const range = selection.getRangeAt(0);
 
       let clonedRange = range.cloneRange();
-      clonedRange.selectNodeContents(el);
+      clonedRange.selectNodeContents(node);
       clonedRange.setStart(range.startContainer, range.startOffset);
-      pos.start = el.textContent.length - clonedRange.toString().length;
+      position.start = node.textContent.length - clonedRange.toString().length;
 
       clonedRange = range.cloneRange();
-      clonedRange.selectNodeContents(el);
+      clonedRange.selectNodeContents(node);
       clonedRange.setEnd(range.endContainer, range.endOffset);
-      pos.end = clonedRange.toString().length;
+      position.end = clonedRange.toString().length;
     }
 
-    return pos;
+    return position;
   }
 
-  static setCaret(node, offset) {
-    const sel = window.getSelection();
+  static setCaretInNode(node, offset) {
+    const selection = window.getSelection();
 
     const tw = document.createTreeWalker(node, NodeFilter.SHOW_TEXT, null, null);
     const range = document.createRange();
@@ -82,7 +94,7 @@ default class Selection {
       range.collapse(false);
     }
 
-    sel.removeAllRanges();
-    sel.addRange(range);
+    selection.removeAllRanges();
+    selection.addRange(range);
   }
 }

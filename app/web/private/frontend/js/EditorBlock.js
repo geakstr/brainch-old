@@ -1,20 +1,21 @@
 export
 default class {
   constructor(text) {
-    this.dom = this.createDom(text);
+    this.dom = document.createElement('p');
+    this.dom.classList.add('blck');
     this.i = 0;
+    this.text = text;
   }
 
   set i(i) {
     this.dom.setAttribute('data-i', i);
   }
 
-  createDom(text) {
-    const dom = document.createElement('p');
+  set text(text) {
+    this.dom.innerHTML = text.length === 0 ? '<br>' : text;
+  }
 
-    dom.classList.add('blck');
-    dom.innerHTML = text.length === 0 ? '<br>' : text;
-
-    return dom;
+  get text() {
+    return this.dom.textContent;
   }
 }

@@ -15,5 +15,5 @@
   "disallowImplicitTypeConversion": ["string"],
   "safeContextKeyword": "_this",
 
-  "excludeFiles": []
+  "excludeFiles": ["node_modules/**"]
 }
