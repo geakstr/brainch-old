@@ -2,9 +2,21 @@ export
 default class {
   constructor(text) {
     this.dom = document.createElement('p');
-    this.dom.classList.add('blck');
-    this.i = 0;
     this.text = text;
+    this.type = this.text;
+    this.i = 0;
+
+    const _this = this;
+    this.observer = new MutationObserver(mutations => {
+      mutations.forEach(mutation => {
+        _this.type = _this.text;
+      });
+    });
+
+    this.observer.observe(this.dom, {
+      characterData: true,
+      subtree: true
+    });
   }
 
   set i(i) {
@@ -17,5 +29,19 @@ default class {
 
   get text() {
     return this.dom.textContent;
+  }
+
+  set type(text) {
+    this.dom.className = 'blck';
+
+    if (text.trim()[0] === '-') {
+      this.dom.classList.add('task');
+    } else {
+      this.dom.classList.add('note');
+    }
+  }
+
+  stopObserve() {
+    this.observer.disconnect();
   }
 }

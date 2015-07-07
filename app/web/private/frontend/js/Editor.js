@@ -8,7 +8,6 @@ default class {
     this.dom = dom;
     this.model = new Model(this.dom);
 
-    this.wasKeydown = false;
     this.preventDefault = false;
 
     this.eventsHandler();
@@ -27,17 +26,10 @@ default class {
   }
 
   onkeydown(event) {
+    this.preventDefault = false;
+
     var keyCode = event.keyCode;
     var keyChar = String.fromCharCode(keyCode).toLowerCase();
-
-    this.wasKeydown = [37, 38, 39, 40].indexOf(keyCode) === -1;
-    if (this.wasKeydown) {
-      this.wasKeydown = !event.metaKey;
-    }
-
-    if (!this.wasKeydown) {
-      return true;
-    }
 
     var selection = Selection.info();
     if (selection === null) {
@@ -45,21 +37,17 @@ default class {
       return false;
     }
 
-    this.preventDefault = false;
-
     if (keyCode === 13 || (keyChar === 'm' && event.ctrlKey)) {
       this.model.insertText(utils.cloneAssoc(selection));
 
       Selection.setCaretInNode(this.model.getBlock(selection.startI + 1).dom, 0);
 
-      this.wasKeydown = false;
       this.preventDefault = true;
     } else if (keyCode === 8 || keyCode === 46) {
       const caret = this.model.removeText(utils.cloneAssoc(selection), keyCode);
 
       Selection.setCaretInNode(this.model.getBlock(caret.blockIdx).dom, caret.offset);
 
-      this.wasKeydown = false;
       this.preventDefault = true;
     }
 

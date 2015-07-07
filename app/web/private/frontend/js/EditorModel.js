@@ -151,7 +151,10 @@ default class {
 
     if (typeof block === 'undefined') {
       ret = this.blocks.splice(i, n);
-      ret.forEach(x => this.parentDom.removeChild(x.dom), this);
+      ret.forEach(x => {
+        x.stopObserve();
+        this.parentDom.removeChild(x.dom);
+      }, this);
     } else {
       this.blocks.splice(i, n, block);
     }
