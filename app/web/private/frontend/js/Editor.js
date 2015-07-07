@@ -5,7 +5,7 @@ export
 default class {
   constructor(dom) {
     this.dom = dom;
-    this.model = new Model();
+    this.model = new Model(this.dom);
 
     this.eventsHandler();
   }
