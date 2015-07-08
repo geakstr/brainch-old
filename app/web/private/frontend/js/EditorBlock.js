@@ -6,8 +6,8 @@ module.exports = (function() {
 
     this.observer = new MutationObserver(function(mutations) {
       mutations.forEach(function(mutation) {
-        this.type = this.text;
-      }, this);
+        this.fireMutation();
+      }.bind(this));
     }.bind(this));
 
     this.observer.observe(this.dom, {
@@ -29,6 +29,8 @@ module.exports = (function() {
 
     set: function(text) {
       this.dom.innerHTML = text.length === 0 ? '<br>' : text;
+
+      this.fireMutation();
     }
   });
 
@@ -43,6 +45,10 @@ module.exports = (function() {
       }
     }
   });
+
+  EditorBlock.prototype.fireMutation = function editorBlockFireMutation() {
+    this.type = this.text;
+  };
 
   EditorBlock.prototype.stopObserve = function editorBlockStopObserve() {
     this.observer.disconnect();
