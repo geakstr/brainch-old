@@ -1,6 +1,6 @@
 {
   "preset": "airbnb",  
-  "esnext": true,
+  "esnext": false,
 
   "fileExtensions": [".js"],
   

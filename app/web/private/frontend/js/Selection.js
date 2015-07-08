@@ -1,13 +1,14 @@
-export
-default class Selection {
-  static info() {
-    const selection = window.getSelection();
+module.exports = (function() {
+  function Selection() {}
+
+  Selection.info = function selectionInfo() {
+    var selection = window.getSelection();
 
     if (!selection.anchorNode || !selection.focusNode) {
       return null;
     }
 
-    const info = Object.create(null);
+    var info = Object.create(null);
 
     var anchorNode = selection.anchorNode;
     var focusNode = selection.focusNode;
@@ -32,8 +33,8 @@ default class Selection {
     }
 
     if (info.startI > info.endI) {
-      [info.startI, info.endI] = [info.endI, info.startI];
-      [anchorNode, focusNode] = [focusNode, anchorNode];
+      info.endI = [info.startI, info.startI = info.endI][0];
+      focusNode = [anchorNode, anchorNode = focusNode][0];
     }
 
     info.startPos = +Selection.getSelectionRangeInNode(anchorNode).start;
@@ -42,19 +43,19 @@ default class Selection {
     info.isRange = info.startI !== info.endI || info.startPos !== info.endPos;
 
     return info;
-  }
+  };
 
-  static getSelectionRangeInNode(node) {
-    const selection = node.ownerDocument.defaultView.getSelection();
+  Selection.getSelectionRangeInNode = function selectionGetSelectionRangeInNode(node) {
+    var selection = node.ownerDocument.defaultView.getSelection();
 
-    const position = Object.create(null);
+    var position = Object.create(null);
     position.start = 0;
     position.end = 0;
 
     if (selection.rangeCount > 0) {
-      const range = selection.getRangeAt(0);
+      var range = selection.getRangeAt(0);
 
-      let clonedRange = range.cloneRange();
+      var clonedRange = range.cloneRange();
       clonedRange.selectNodeContents(node);
       clonedRange.setStart(range.startContainer, range.startOffset);
       position.start = node.textContent.length - clonedRange.toString().length;
@@ -66,13 +67,13 @@ default class Selection {
     }
 
     return position;
-  }
+  };
 
-  static setCaretInNode(node, offset) {
-    const selection = window.getSelection();
+  Selection.setCaretInNode = function selectionSetCaretInNode(node, offset) {
+    var selection = window.getSelection();
 
-    const tw = document.createTreeWalker(node, NodeFilter.SHOW_TEXT, null, null);
-    const range = document.createRange();
+    var tw = document.createTreeWalker(node, NodeFilter.SHOW_TEXT, null, null);
+    var range = document.createRange();
 
     var curNode = null;
     var curOffset = 0;
@@ -96,5 +97,7 @@ default class Selection {
 
     selection.removeAllRanges();
     selection.addRange(range);
-  }
-}
+  };
+
+  return Selection;
+})();

@@ -1,9 +1,7 @@
-export
-
-function cloneAssoc(o) {
-  const r = Object.create(null);
-  for (let p in o) {
+exports.cloneAssoc = function cloneAssoc(o) {
+  var r = Object.create(null);
+  for (var p in o) {
     r[p] = o[p];
   }
   return r;
-}
+};

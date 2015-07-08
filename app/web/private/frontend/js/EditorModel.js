@@ -1,8 +1,7 @@
-import Block from './EditorBlock';
+var Block = require('./EditorBlock');
 
-export
-default class {
-  constructor(parentDom) {
+module.exports = (function() {
+  function EditorModel(parentDom) {
     this.parentDom = parentDom;
 
     this.blocks = [];
@@ -11,15 +10,15 @@ default class {
     this.history = [];
   }
 
-  getBlock(i) {
+  EditorModel.prototype.getBlock = function editorModelGetBlock(i) {
     return this.blocks[i];
-  }
+  };
 
-  pushBlock(block) {
+  EditorModel.prototype.pushBlock = function editorModelPushBlock(block) {
     return this.insertBlockAt(this.parentDom.childNodes.length, block);
-  }
+  };
 
-  insertBlockAt(i, block) {
+  EditorModel.prototype.insertBlockAt = function editorModelInsertBlockAt(i, block) {
     if (typeof block === 'string') {
       block = new Block(block);
     } else if (typeof block === 'undefined') {
@@ -33,39 +32,43 @@ default class {
     this._updateBlockIndicesFrom(i + 1);
 
     return block;
-  }
+  };
 
-  removeBlock(idx) {
+  EditorModel.prototype.removeBlock = function editorModelRemoveBlock(idx) {
     this.removeBlocksRange(idx, idx);
-  }
+  };
 
-  removeBlocksRange(from, to) {
+  EditorModel.prototype.removeBlocksRange = function editorModelRemoveBlocksRange(from, to) {
     this._splice(from, to - from + 1);
     this._updateBlockIndicesFrom(from);
-  }
+  };
 
-  removeBlocksByIndices(indices) {
-    indices.sort((a, b) => a - b);
+  EditorModel.prototype.removeBlocksByIndices = function editorModelRemoveBlocksByIndices(indices) {
+    indices.sort(function(a, b) {
+      return a - b;
+    });
 
-    const from = indices[0];
+    var from = indices[0];
 
     if (indices.length === 2 && indices[1] - 1 === from) {
       this._splice(from, indices[1] - from + 1);
     } else {
-      indices.forEach((x, i) => this._splice(x - i, 1), this);
+      indices.forEach(function(x, i) {
+        this._splice(x - i, 1)
+      }, this);
     }
 
     this._updateBlockIndicesFrom(from);
 
     return this;
-  }
+  };
 
-  insertText(selection, text) {
-    const startBlock = this.blocks[selection.startI];
-    const endBlock = this.blocks[selection.endI];
+  EditorModel.prototype.insertText = function editorModelInsertText(selection, text) {
+    var startBlock = this.blocks[selection.startI];
+    var endBlock = this.blocks[selection.endI];
 
-    const startText = startBlock.text.substring(0, selection.startPos);
-    const endText = endBlock.text.substring(selection.endPos);
+    var startText = startBlock.text.substring(0, selection.startPos);
+    var endText = endBlock.text.substring(selection.endPos);
 
     startBlock.text = startText;
     if (selection.isRange) {
@@ -77,9 +80,9 @@ default class {
     } else {
       startBlock.text += text + endText;
     }
-  }
+  };
 
-  removeText(selection, keyCode) {
+  EditorModel.prototype.removeText = function editorModelRemoveText(selection, keyCode) {
     if (typeof keyCode === 'undefined') {
       keyCode = 8;
     }
@@ -138,20 +141,20 @@ default class {
     caret.offset += backspaceOffset;
 
     return caret;
-  }
+  };
 
-  saveActionToHistory(action) {
+  EditorModel.prototype.saveActionToHistory = function editorModelSaveActionToHistory(action) {
     this.history = this.history.slice(0, this.historyIdx + 1);
     this.history.push(action(history[this.historyIdx]));
     this.historyIdx++;
-  }
+  };
 
-  _splice(i, n, block) {
-    let ret = [];
+  EditorModel.prototype._splice = function editorModelSplice(i, n, block) {
+    var ret = [];
 
     if (typeof block === 'undefined') {
       ret = this.blocks.splice(i, n);
-      ret.forEach(x => {
+      ret.forEach(function(x) {
         x.stopObserve();
         this.parentDom.removeChild(x.dom);
       }, this);
@@ -160,11 +163,13 @@ default class {
     }
 
     return ret;
-  }
+  };
 
-  _updateBlockIndicesFrom(from) {
-    for (let i = from; i < this.blocks.length; i++) {
+  EditorModel.prototype._updateBlockIndicesFrom = function editorModelUpdateBlockIndicesFrom(from) {
+    for (var i = from; i < this.blocks.length; i++) {
       this.blocks[i].i = i;
     }
-  }
-}
+  };
+
+  return EditorModel;
+})();

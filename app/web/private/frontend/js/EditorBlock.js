@@ -1,17 +1,14 @@
-export
-default class {
-  constructor(text) {
+module.exports = (function() {
+  function EditorBlock(text) {
     this.dom = document.createElement('p');
     this.text = text;
     this.type = this.text;
-    this.i = 0;
 
-    const _this = this;
-    this.observer = new MutationObserver(mutations => {
-      mutations.forEach(mutation => {
-        _this.type = _this.text;
-      });
-    });
+    this.observer = new MutationObserver(function(mutations) {
+      mutations.forEach(function(mutation) {
+        this.type = this.text;
+      }, this);
+    }.bind(this));
 
     this.observer.observe(this.dom, {
       characterData: true,
@@ -19,29 +16,37 @@ default class {
     });
   }
 
-  set i(i) {
-    this.dom.setAttribute('data-i', i);
-  }
-
-  set text(text) {
-    this.dom.innerHTML = text.length === 0 ? '<br>' : text;
-  }
-
-  get text() {
-    return this.dom.textContent;
-  }
-
-  set type(text) {
-    this.dom.className = 'blck';
-
-    if (text.trim()[0] === '-') {
-      this.dom.classList.add('task');
-    } else {
-      this.dom.classList.add('note');
+  Object.defineProperty(EditorBlock.prototype, 'i', {
+    set: function(i) {
+      this.dom.setAttribute('data-i', i);
     }
-  }
+  });
 
-  stopObserve() {
+  Object.defineProperty(EditorBlock.prototype, 'text', {
+    get: function() {
+      return this.dom.textContent;
+    },
+
+    set: function(text) {
+      this.dom.innerHTML = text.length === 0 ? '<br>' : text;
+    }
+  });
+
+  Object.defineProperty(EditorBlock.prototype, 'type', {
+    set: function(text) {
+      this.dom.className = 'blck';
+
+      if (text.trim()[0] === '-') {
+        this.dom.classList.add('task');
+      } else {
+        this.dom.classList.add('note');
+      }
+    }
+  });
+
+  EditorBlock.prototype.stopObserve = function editorBlockStopObserve() {
     this.observer.disconnect();
-  }
-}
+  };
+
+  return EditorBlock;
+})();

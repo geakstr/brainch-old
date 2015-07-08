@@ -10,7 +10,7 @@ if (packageJson.namedModules) {
   require('node-named-modules')();
 }
 
-var common = require('commonconfigs');
+var configs = require('commonconfigs');
 
 requireDir('./configs/gulp', {
   recurse: true
@@ -22,7 +22,7 @@ gulp.task('common-watch-named-modules', function() {
       return packageJson.namedModules[key];
     });
 
-    gulp.watch(paths, ['build-dev-web-frontend', 'build-dev-web-backend']);
+    gulp.watch(paths, ['build-dev-web-frontend']);
   }
 });
 
@@ -32,8 +32,8 @@ gulp.task('run-dev-web', ['run-dev-web-frontend', 'run-dev-web-backend']);
 
 gulp.task('jscs', function() {
   return gulp.src([
-      path.join(common.paths.app.web.private.backend.js.es6, '/**/*.js'),
-      path.join(common.paths.app.web.private.frontend.js, '/**/*.js')
+      path.join(configs.paths.app.web.private.backend.js, '/**/*.js'),
+      path.join(configs.paths.app.web.private.frontend.js, '/**/*.js')
     ])
     .pipe(jscs());
 });

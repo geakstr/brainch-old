@@ -1,10 +1,9 @@
-import * as utils from 'utils';
-import Selection from './Selection';
-import Model from './EditorModel';
+var commonutils = require('commonutils');
+var Selection = require('./Selection');
+var Model = require('./EditorModel');
 
-export
-default class {
-  constructor(dom) {
+module.exports = (function() {
+  function Editor(dom) {
     this.dom = dom;
     this.model = new Model(this.dom);
 
@@ -13,19 +12,19 @@ default class {
     this.eventsHandler();
   }
 
-  onmousedown() {
+  Editor.prototype.onmousedown = function editorOnmousedown() {
     //console.log('onmousedown');
-  }
+  };
 
-  onmouseup() {
+  Editor.prototype.onmouseup = function editorOnmouseup() {
     //console.log('onmouseup');
-  }
+  };
 
-  onclick() {
+  Editor.prototype.onclick = function editorOnclick() {
     //console.log('onclick');
-  }
+  };
 
-  onkeydown(event) {
+  Editor.prototype.onkeydown = function editorOnkeydown(event) {
     this.preventDefault = false;
 
     var keyCode = event.keyCode;
@@ -38,13 +37,13 @@ default class {
     }
 
     if (keyCode === 13 || (keyChar === 'm' && event.ctrlKey)) {
-      this.model.insertText(utils.cloneAssoc(selection));
+      this.model.insertText(commonutils.cloneAssoc(selection));
 
       Selection.setCaretInNode(this.model.getBlock(selection.startI + 1).dom, 0);
 
       this.preventDefault = true;
     } else if (keyCode === 8 || keyCode === 46) {
-      const caret = this.model.removeText(utils.cloneAssoc(selection), keyCode);
+      var caret = this.model.removeText(commonutils.cloneAssoc(selection), keyCode);
 
       Selection.setCaretInNode(this.model.getBlock(caret.blockIdx).dom, caret.offset);
 
@@ -56,9 +55,9 @@ default class {
     }
 
     return !this.preventDefault;
-  }
+  };
 
-  onkeyup(event) {
+  Editor.prototype.onkeyup = function editorOnkeyup(event) {
     if (this.preventDefault) {
       this.preventDefault = false;
       event.preventDefault();
@@ -66,21 +65,21 @@ default class {
     }
 
     return true;
-  }
+  };
 
-  onkeypress() {
+  Editor.prototype.onkeypress = function editorOnkeypress() {
     //console.log('onkeypress');
-  }
+  };
 
-  onpaste() {
+  Editor.prototype.onpaste = function editorOnpaste() {
     //console.log('onpaste');
-  }
+  };
 
-  oncut() {
+  Editor.prototype.oncut = function editorOncut() {
     //console.log('oncut');
-  }
+  };
 
-  eventsHandler() {
+  Editor.prototype.eventsHandler = function editorEventsHandler() {
     this.dom.onmousedown = this.onmousedown.bind(this);
     this.dom.onmouseup = this.onmouseup.bind(this);
     this.dom.onclick = this.onclick.bind(this);
@@ -89,5 +88,7 @@ default class {
     this.dom.onkeypress = this.onkeypress.bind(this);
     this.dom.onpaste = this.onpaste.bind(this);
     this.dom.oncut = this.oncut.bind(this);
-  }
-}
+  };
+
+  return Editor;
+})();

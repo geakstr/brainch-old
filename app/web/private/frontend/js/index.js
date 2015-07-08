@@ -1,7 +1,7 @@
-import Editor from './Editor';
+var Editor = require('./Editor');
 
-window.onload = () => {
-  const edtr = new Editor(document.querySelector('#edtr'));
+window.onload = function() {
+  var edtr = new Editor(document.querySelector('#edtr'));
 
   edtr.model.pushBlock('this is the big big text');
   edtr.model.pushBlock('two');
