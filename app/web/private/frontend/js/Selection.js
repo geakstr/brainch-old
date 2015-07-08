@@ -9,9 +9,15 @@ module.exports = (function() {
     }
 
     var info = Object.create(null);
+    info.allBlocksSelected = false;
 
     var anchorNode = selection.anchorNode;
     var focusNode = selection.focusNode;
+
+    if (anchorNode.id === 'edtr' || focusNode.id === 'edtr') {
+      info.allBlocksSelected = true;
+      return info;
+    }
 
     if (anchorNode.nodeType === 3) {
       anchorNode = anchorNode.parentNode;

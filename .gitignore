@@ -108,5 +108,3 @@ app/web/public/bundles/
 app/web/public/css/style.css
 
 
-.jshintignore
-.jshintrc

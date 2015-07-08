@@ -5,3 +5,7 @@ exports.cloneAssoc = function cloneAssoc(o) {
   }
   return r;
 };
+
+exports.isFirefox = function isFirefox() {
+  return (navigator.userAgent.toLowerCase().indexOf('firefox') > -1);
+}

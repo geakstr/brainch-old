@@ -34,6 +34,12 @@ module.exports = (function() {
     if (selection === null) {
       event.preventDefault();
       return false;
+    } else if (selection.allBlocksSelected) {
+      selection.startI = 0;
+      selection.endI = this.model.blocks.length - 1;
+      selection.startPos = 0;
+      selection.endPos = this.model.blocks[selection.endI].text.length;
+      selection.isRange = true;
     }
 
     if (keyCode === 13 || (keyChar === 'm' && event.ctrlKey)) {
@@ -53,6 +59,8 @@ module.exports = (function() {
     if (this.preventDefault) {
       event.preventDefault();
     }
+
+    console.log(this.model.blocks.length);
 
     return !this.preventDefault;
   };
