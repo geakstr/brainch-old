@@ -20,7 +20,7 @@ module.exports = (function() {
 
   EditorModel.prototype.last = function editorModelLast() {
     return this.blocks[this.size() - 1];
-  }
+  };
 
   EditorModel.prototype.pushBlock = function editorModelPushBlock(block) {
     return this.insertBlockAt(this.parentDom.childNodes.length, block);

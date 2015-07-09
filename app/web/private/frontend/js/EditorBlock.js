@@ -24,7 +24,9 @@ module.exports = (function() {
 
     set: function(text) {
       var gag = commonutils.isFirefox() ? '\n' : '<br>';
-      this.dom.innerHTML = text.length === 0 ? gag : this.process(text);
+
+      text = this.process(text).replace('big', '<b>big</b>');
+      this.dom.innerHTML = text.length === 0 ? gag : text;
 
       this.type = this.text;
     }

@@ -108,10 +108,10 @@ module.exports = (function() {
 
     if (this.prevState.preventDefault) {
       event.preventDefault();
-    }
-
-    if (this.prevState.wasKeydown || this.prevState.wasKeypress) {
-      this.processInputChar(true, false, false);
+    } else {
+      if (this.prevState.wasKeydown || this.prevState.wasKeypress) {
+        this.processInputChar(true, false, false);
+      }
     }
 
     this.prevState.wasKeydown = true;

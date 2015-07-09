@@ -19,15 +19,15 @@ module.exports = (function() {
       return info;
     }
 
-    if (anchorNode.nodeType === 3) {
+    while (anchorNode.parentNode !== null && (anchorNode.nodeType !== 1 || !anchorNode.classList.contains('blck'))) {
       anchorNode = anchorNode.parentNode;
     }
 
-    if (focusNode.nodeType === 3) {
+    while (focusNode.parentNode !== null && (focusNode.nodeType !== 1 || !focusNode.classList.contains('blck'))) {
       focusNode = focusNode.parentNode;
     }
 
-    if (!anchorNode.classList.contains('blck') || !focusNode.classList.contains('blck')) {
+    if (anchorNode === null || focusNode === null) {
       return null;
     }
 
