@@ -51,6 +51,16 @@ module.exports = (function() {
     return info;
   };
 
+  Selection.buildInfo = function selectionBuildInfo(startI, endI, startPos, endPos) {
+    var info = Object.create(null);
+    info.startI = startI;
+    info.endI = endI;
+    info.startPos = startPos;
+    info.endPos = endPos;
+    info.isRange = startI !== endI || startPos !== endPos;
+    return info;
+  };
+
   Selection.getSelectionRangeInNode = function selectionGetSelectionRangeInNode(node) {
     var selection = node.ownerDocument.defaultView.getSelection();
 

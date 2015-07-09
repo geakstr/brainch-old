@@ -73,25 +73,21 @@ module.exports = (function() {
       this.prevState.preventDefault = true;
       return false;
     } else if (selection.allBlocksSelected) {
-      selection.startI = 0;
-      selection.endI = this.model.blocks.length - 1;
-      selection.startPos = 0;
-      selection.endPos = this.model.blocks[selection.endI].text.length;
-      selection.isRange = true;
+      selection = Selection.build(0, this.model.size() - 1, 0, this.model.block(this.model.size() - 1).text.length);
     }
 
     if (keyCode === Editor.handledKeys.enter || (keyChar === 'm' && event.ctrlKey)) {
       this.model.insertText(commonutils.cloneAssoc(selection));
-      Selection.setCaretInNode(this.model.getBlock(selection.startI + 1).dom, 0);
+      Selection.setCaretInNode(this.model.block(selection.startI + 1).dom, 0);
       this.prevState.preventDefault = true;
     } else if (keyCode === Editor.handledKeys.backspace || keyCode === Editor.handledKeys.delete) {
       caret = this.model.removeText(commonutils.cloneAssoc(selection), keyCode);
-      Selection.setCaretInNode(this.model.getBlock(caret.blockIdx).dom, caret.offset);
+      Selection.setCaretInNode(this.model.block(caret.blockIdx).dom, caret.offset);
       this.prevState.preventDefault = true;
     } else if (keyCode === Editor.handledKeys.tab) {
       if (!event.shiftKey) {
         this.model.insertText(commonutils.cloneAssoc(selection), '\t');
-        Selection.setCaretInNode(this.model.getBlock(selection.startI).dom, selection.startPos + 1);
+        Selection.setCaretInNode(this.model.block(selection.startI).dom, selection.startPos + 1);
       }
 
       this.prevState.preventDefault = true;
@@ -99,7 +95,7 @@ module.exports = (function() {
       // Input when selected several blocks
     } else if (selection.startI < selection.endI && this.isCharacterKeyPress(event)) {
       this.model.removeText(commonutils.cloneAssoc(selection));
-      Selection.setCaretInNode(this.model.getBlock(selection.startI).dom, selection.startPos);
+      Selection.setCaretInNode(this.model.block(selection.startI).dom, selection.startPos);
     } else if (this.handleExtendedActions &&
       !this.isCharacterKeyPress(event) &&
       !this.isNavigationKeyPress(event) &&
@@ -131,9 +127,11 @@ module.exports = (function() {
       var selection = Selection.info();
       if (selection === null) {
         return true;
+      } else if (selection.allBlocksSelected) {
+        selection = Selection.build(0, this.model.size() - 1, 0, this.model.block(this.model.size() - 1).text.length);
       }
 
-      var block = this.model.getBlock(selection.startI).normalize();
+      var block = this.model.block(selection.startI).normalize();
       Selection.setCaretInNode(block.dom, selection.startPos);
 
       block.text.substring(selection.startPos - 1, selection.startPos);
@@ -154,6 +152,8 @@ module.exports = (function() {
     var selection = Selection.info();
     if (selection === null) {
       return false;
+    } else if (selection.allBlocksSelected) {
+      selection = Selection.build(0, this.model.size() - 1, 0, this.model.block(this.model.size() - 1).text.length);
     }
 
     var i = 0;
@@ -162,8 +162,8 @@ module.exports = (function() {
     var blocksLen = blocks.length;
     var offset = selection.startPos + pasted.length;
 
-    var startBlock = this.model.getBlock(selection.startI);
-    var endBlock = this.model.getBlock(selection.endI);
+    var startBlock = this.model.block(selection.startI);
+    var endBlock = this.model.block(selection.endI);
 
     var startText = startBlock.text;
     var endText = endBlock.text;
@@ -182,7 +182,7 @@ module.exports = (function() {
 
         this.model.insertText(commonutils.cloneAssoc(selection), blocks[blocksLen - 1]);
       } else if (!selection.isRange && selection.endPos === endText.length &&
-        selection.endI === this.model.blocks.length - 1) {
+        selection.endI === this.model.size() - 1) {
         this.model.insertText(commonutils.cloneAssoc(selection), blocks[0]);
 
         for (i = 1; i < blocksLen; i++) {
@@ -209,7 +209,7 @@ module.exports = (function() {
       offset = blocks[blocksLen - 1].length;
     }
 
-    Selection.setCaretInNode(this.model.getBlock(selection.startI).dom, offset);
+    Selection.setCaretInNode(this.model.block(selection.startI).dom, offset);
 
     return false;
   };
@@ -221,25 +221,27 @@ module.exports = (function() {
     var selection = Selection.info();
     if (selection === null) {
       return false;
+    } else if (selection.allBlocksSelected) {
+      selection = Selection.build(0, this.model.size() - 1, 0, this.model.block(this.model.size() - 1).text.length);
     }
 
     var text = '';
     if (selection.startI === selection.endI) {
-      text = this.model.getBlock(selection.startI).text.substring(selection.startPos, selection.endPos);
+      text = this.model.block(selection.startI).text.substring(selection.startPos, selection.endPos);
     } else {
-      text = this.model.getBlock(selection.startI).text.substring(selection.startPos) + '\n';
+      text = this.model.block(selection.startI).text.substring(selection.startPos) + '\n';
 
       for (var i = selection.startI + 1; i <= selection.endI - 1; i++) {
-        text += this.model.getBlock(i).text + '\n';
+        text += this.model.block(i).text + '\n';
       }
 
-      text += this.model.getBlock(selection.endI).text.substring(0, selection.endPos);
+      text += this.model.block(selection.endI).text.substring(0, selection.endPos);
     }
 
     event.clipboardData.setData('text/plain', text);
 
     this.model.removeText(commonutils.cloneAssoc(selection));
-    Selection.setCaretInNode(this.model.getBlock(selection.startI).dom, selection.startPos);
+    Selection.setCaretInNode(this.model.block(selection.startI).dom, selection.startPos);
     return false;
   };
 
@@ -250,10 +252,12 @@ module.exports = (function() {
     var selection = Selection.info();
     if (selection === null) {
       return false;
+    } else if (selection.allBlocksSelected) {
+      selection = Selection.build(0, this.model.size() - 1, 0, this.model.block(this.model.size() - 1).text.length);
     }
 
-    var startBlock = this.model.getBlock(selection.startI);
-    var endBlock = this.model.getBlock(selection.endI);
+    var startBlock = this.model.block(selection.startI);
+    var endBlock = this.model.block(selection.endI);
 
     var startText = startBlock.text;
     var endText = endBlock.text;
@@ -264,7 +268,7 @@ module.exports = (function() {
     } else {
       text += startText.substring(selection.startPos) + '\n';
       for (var i = selection.startI + 1; i < selection.endI; i++) {
-        text += this.model.getBlock(i).text + '\n';
+        text += this.model.block(i).text + '\n';
       }
 
       text += endText.substring(0, selection.endPos);

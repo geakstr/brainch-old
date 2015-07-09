@@ -19,7 +19,7 @@ module.exports = (function() {
 
   Object.defineProperty(EditorBlock.prototype, 'text', {
     get: function() {
-      return this.dom.textContent;
+      return this.dom.textContent.replace(/(\r\n|\n|\r)/gm, '');
     },
 
     set: function(text) {

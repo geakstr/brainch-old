@@ -10,7 +10,11 @@ module.exports = (function() {
     this.history = [];
   }
 
-  EditorModel.prototype.getBlock = function editorModelGetBlock(i) {
+  EditorModel.prototype.size = function editorModelSize() {
+    return this.blocks.length;
+  };
+
+  EditorModel.prototype.block = function editorModelBlock(i) {
     return this.blocks[i];
   };
 
