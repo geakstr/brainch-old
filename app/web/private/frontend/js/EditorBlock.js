@@ -24,9 +24,7 @@ module.exports = (function() {
 
     set: function(text) {
       var gag = commonutils.isFirefox() ? '\n' : '<br>';
-
-      text = this.process(text).replace('big', '<b>big</b>');
-      this.dom.innerHTML = text.length === 0 ? gag : text;
+      this.dom.innerHTML = text.length === 0 ? gag : this.process(this.sanitize(text));
 
       this.type = this.text;
     }
@@ -66,8 +64,14 @@ module.exports = (function() {
     return document.createElement('p');
   };
 
+  EditorBlock.prototype.sanitize = function editorBlockSanitize(text) {
+    return commonutils.htmlEntities(text.replace(/(\r\n|\n|\r)/gm, ''));
+  };
+
   EditorBlock.prototype.process = function editorBlockProcess(text) {
-    return commonutils.htmlEntities(text);
+    text = text.replace(/big/g, '<span class="-date">big</span>');
+
+    return text;
   };
 
   EditorBlock.prototype.normalize = function editorBlockNormilize() {

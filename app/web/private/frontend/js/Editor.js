@@ -3,14 +3,14 @@ var Selection = require('./Selection');
 var Model = require('./EditorModel');
 
 module.exports = (function() {
-  function Editor(dom) {
+  function Editor(dom, handleExtendedActions) {
     this.dom = dom;
     this.dom.setAttribute('spellcheck', false);
     this.dom.setAttribute('contenteditable', true);
 
     this.model = new Model(this.dom);
 
-    this.prevState = {
+    this.state = {
       preventDefault: false,
       domInnerHTMLLength: this.dom.innerHTML.length,
       wasKeydown: false,
@@ -18,7 +18,7 @@ module.exports = (function() {
       wasKeyup: false
     };
 
-    this.handleExtendedActions = false;
+    this.handleExtendedActions = handleExtendedActions;
 
     this.eventsHandler();
   }
@@ -62,98 +62,12 @@ module.exports = (function() {
     scrolllock: 145
   };
 
-  Editor.prototype.onkeydown = function editorOnkeydown(event) {
-    //console.log('keydown');
-    this.prevState.preventDefault = false;
-
-    var keyCode = event.which;
-    var keyChar = String.fromCharCode(keyCode).toLowerCase();
-
-    var caret = null;
-    var selection = Selection.info();
-    if (selection === null) {
-      event.preventDefault();
-      this.prevState.preventDefault = true;
-      return false;
-    } else if (selection.allBlocksSelected) {
-      selection = Selection.build(0, this.model.size() - 1, 0, this.model.last().length);
-    }
-
-    if (keyCode === Editor.handledKeys.enter || (keyChar === 'm' && event.ctrlKey)) {
-      this.model.insertText(commonutils.cloneAssoc(selection));
-      Selection.setCaretInNode(this.model.block(selection.startI + 1).dom, 0);
-      this.prevState.preventDefault = true;
-    } else if (keyCode === Editor.handledKeys.backspace || keyCode === Editor.handledKeys.delete) {
-      caret = this.model.removeText(commonutils.cloneAssoc(selection), keyCode);
-      Selection.setCaretInNode(this.model.block(caret.blockIdx).dom, caret.offset);
-      this.prevState.preventDefault = true;
-    } else if (keyCode === Editor.handledKeys.tab) {
-      if (!event.shiftKey) {
-        this.model.insertText(commonutils.cloneAssoc(selection), '\t');
-        Selection.setCaretInNode(this.model.block(selection.startI).dom, selection.startPos + 1);
-      }
-
-      this.prevState.preventDefault = true;
-
-      // Input when selected several blocks
-    } else if (selection.startI < selection.endI && this.isCharacterKeyPress(event)) {
-      this.model.removeText(commonutils.cloneAssoc(selection));
-      Selection.setCaretInNode(this.model.block(selection.startI).dom, selection.startPos);
-    } else if (this.handleExtendedActions &&
-      !this.isCharacterKeyPress(event) &&
-      !this.isNavigationKeyPress(event) &&
-      !this.isEditingKeypress(event)) {
-      return false;
-    }
-
-    if (this.prevState.preventDefault) {
-      event.preventDefault();
-    } else {
-      if (this.prevState.wasKeydown || this.prevState.wasKeypress) {
-        this.processInputChar(true, false, false);
-      }
-    }
-
-    this.prevState.wasKeydown = true;
-    this.prevState.wasKeypress = false;
-    this.prevState.wasKeyup = false;
-    this.prevState.domInnerHTMLLength = this.dom.innerHTML.length;
-
-    return !this.prevState.preventDefault;
-  };
-
-  Editor.prototype.onkeypress = function editorOnkeypress(event) {
-    //console.log('keypress');
-    if (this.prevState.wasKeypress) {
-      this.processInputChar(false, true, false);
-    }
-
-    return true;
-  };
-
-  Editor.prototype.onkeyup = function editorOnkeyup(event) {
-    //console.log('keyup');
-    if (this.prevState.preventDefault) {
-      this.prevState.preventDefault = false;
-      event.preventDefault();
-      return false;
-    }
-
-    this.prevState.preventDefault = false;
-
-    if (this.prevState.wasKeydown || !this.prevState.wasKeypress) {
-      this.processInputChar(false, false, true);
-    }
-
-    return true;
-  };
-
   Editor.prototype.processInputChar = function editorProcessInputChar(wasKeydown, wasKeypress, wasKeyup) {
-    if (this.dom.innerHTML.length === this.prevState.domInnerHTMLLength) {
+    if (this.dom.innerHTML.length === this.state.domInnerHTMLLength) {
       return;
     }
 
-    this.prevState.domInnerHTMLLength = this.dom.innerHTML.length;
+    this.state.domInnerHTMLLength = this.dom.innerHTML.length;
 
     var selection = Selection.info();
     if (selection === null) {
@@ -169,8 +83,94 @@ module.exports = (function() {
     console.log(ch);
 
     this.wasKeydown = wasKeydown;
-    this.prevState.wasKeypress = wasKeypress;
-    this.prevState.wasKeyup = wasKeyup;
+    this.state.wasKeypress = wasKeypress;
+    this.state.wasKeyup = wasKeyup;
+  };
+
+  Editor.prototype.onkeydown = function editorOnkeydown(event) {
+    //console.log('keydown');
+    this.state.preventDefault = false;
+
+    var keyCode = event.which;
+    var keyChar = String.fromCharCode(keyCode).toLowerCase();
+
+    var caret = null;
+    var selection = Selection.info();
+    if (selection === null) {
+      event.preventDefault();
+      this.state.preventDefault = true;
+      return false;
+    } else if (selection.allBlocksSelected) {
+      selection = Selection.build(0, this.model.size() - 1, 0, this.model.last().length);
+    }
+
+    if (keyCode === Editor.handledKeys.enter || (keyChar === 'm' && event.ctrlKey)) {
+      this.model.insertText(commonutils.cloneAssoc(selection));
+      Selection.setCaretInNode(this.model.block(selection.startI + 1).dom, 0);
+      this.state.preventDefault = true;
+    } else if (keyCode === Editor.handledKeys.backspace || keyCode === Editor.handledKeys.delete) {
+      caret = this.model.removeText(commonutils.cloneAssoc(selection), keyCode);
+      Selection.setCaretInNode(this.model.block(caret.blockIdx).dom, caret.offset);
+      this.state.preventDefault = true;
+    } else if (keyCode === Editor.handledKeys.tab) {
+      if (!event.shiftKey) {
+        this.model.insertText(commonutils.cloneAssoc(selection), '\t');
+        Selection.setCaretInNode(this.model.block(selection.startI).dom, selection.startPos + 1);
+      }
+
+      this.state.preventDefault = true;
+
+      // Input when selected several blocks
+    } else if (selection.startI < selection.endI && this.isCharacterKeyPress(event)) {
+      this.model.removeText(commonutils.cloneAssoc(selection));
+      Selection.setCaretInNode(this.model.block(selection.startI).dom, selection.startPos);
+    } else if (this.handleExtendedActions &&
+      !this.isCharacterKeyPress(event) &&
+      !this.isNavigationKeyPress(event) &&
+      !this.isEditingKeypress(event)) {
+      return false;
+    }
+
+    if (this.state.preventDefault) {
+      event.preventDefault();
+    } else {
+      if (this.state.wasKeydown || this.state.wasKeypress) {
+        this.processInputChar(true, false, false);
+      }
+    }
+
+    this.state.wasKeydown = true;
+    this.state.wasKeypress = false;
+    this.state.wasKeyup = false;
+    this.state.domInnerHTMLLength = this.dom.innerHTML.length;
+
+    return !this.state.preventDefault;
+  };
+
+  Editor.prototype.onkeypress = function editorOnkeypress(event) {
+    //console.log('keypress');
+    if (this.state.wasKeypress) {
+      this.processInputChar(false, true, false);
+    }
+
+    return true;
+  };
+
+  Editor.prototype.onkeyup = function editorOnkeyup(event) {
+    //console.log('keyup');
+    if (this.state.preventDefault) {
+      this.state.preventDefault = false;
+      event.preventDefault();
+      return false;
+    }
+
+    this.state.preventDefault = false;
+
+    if (this.state.wasKeydown || !this.state.wasKeypress) {
+      this.processInputChar(false, false, true);
+    }
+
+    return true;
   };
 
   Editor.prototype.onpaste = function editorOnpaste(event) {

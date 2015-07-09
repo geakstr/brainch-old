@@ -1,27 +1,60 @@
-#edtr {
-  width: 640px;
-  margin: 44px auto;
-  padding: 22px;
-  outline: 1px solid #fafafa;
-  font-size: 1.125em;
-  line-height: 1.5;
+#edtr-wrapper {
+  display: table-cell;
+  width: 50%;
+  vertical-align: top;
 
-  .blck {
-    margin-bottom: 0.75em;
-    white-space: pre-wrap;
+  #edtr-menu {
+    position: relative;
+    height: 67px;
+    border-bottom: 3px solid #fbfbfb;
+    z-index: 200;
+
+    h1 {
+      padding: 21px 3% 19px 3%;
+      line-height: 24px;
+      font-size: 16px;
+      color: #555;
+      border-bottom: 3px solid #fbfbfb;
+      background: #fff;
+    }
+  }
+  #edtr {
+    box-sizing: content-box;
+    position: relative;
+    width: 100%;
+    height: 100%;
+    top: -67px;
+    padding-top: 78px;
+    overflow-x: visible;
+    overflow-y: auto;
+    outline: none;
     font-size: 1em;
     line-height: 1.5;
-    min-height: 1.5em;
-    color: #999;
+    z-index: 100;
 
-    &:last-child {
-      margin-bottom: 0;
-    }
-    &.note {
+    .blck {
+      position: relative;
+      padding: 11px 3% 11px 3%;
+      white-space: pre-wrap;
       color: #999;
-    }
-    &.task {
-      color: #333;
+      border-radius: 3px 0 0 3px;
+
+      &.note {
+        color: #888;
+      }
+      &.task {
+        color: #333;
+      }
+      .-date {
+        padding: 3px 5px;
+        background: #efefef;
+        border-radius: 3px;
+
+        &:hover {
+          background: #e0e0e0;
+          color: #777;
+        }
+      }
     }
   }
 }

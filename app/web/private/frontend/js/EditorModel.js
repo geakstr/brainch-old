@@ -151,7 +151,7 @@ module.exports = (function() {
     return caret;
   };
 
-  EditorModel.prototype.saveActionToHistory = function editorModelSaveActionToHistory(action) {
+  EditorModel.prototype.saveToHistory = function editorModelSaveToHistory(action) {
     this.history = this.history.slice(0, this.historyIdx + 1);
     this.history.push(action(history[this.historyIdx]));
     this.historyIdx++;
