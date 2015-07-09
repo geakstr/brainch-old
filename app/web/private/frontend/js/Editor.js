@@ -12,7 +12,10 @@ module.exports = (function() {
 
     this.prevState = {
       preventDefault: false,
-      domInnerHTMLLength: this.dom.innerHTML.length
+      domInnerHTMLLength: this.dom.innerHTML.length,
+      wasKeydown: false,
+      wasKeypress: false,
+      wasKeyup: false
     };
 
     this.handleExtendedActions = false;
@@ -60,7 +63,7 @@ module.exports = (function() {
   };
 
   Editor.prototype.onkeydown = function editorOnkeydown(event) {
-    // console.log('keydown');
+    //console.log('keydown');
     this.prevState.preventDefault = false;
 
     var keyCode = event.which;
@@ -73,7 +76,7 @@ module.exports = (function() {
       this.prevState.preventDefault = true;
       return false;
     } else if (selection.allBlocksSelected) {
-      selection = Selection.build(0, this.model.size() - 1, 0, this.model.block(this.model.size() - 1).text.length);
+      selection = Selection.build(0, this.model.size() - 1, 0, this.model.last().length);
     }
 
     if (keyCode === Editor.handledKeys.enter || (keyChar === 'm' && event.ctrlKey)) {
@@ -107,12 +110,29 @@ module.exports = (function() {
       event.preventDefault();
     }
 
+    if (this.prevState.wasKeydown || this.prevState.wasKeypress) {
+      this.processInputChar(true, false, false);
+    }
+
+    this.prevState.wasKeydown = true;
+    this.prevState.wasKeypress = false;
+    this.prevState.wasKeyup = false;
     this.prevState.domInnerHTMLLength = this.dom.innerHTML.length;
+
     return !this.prevState.preventDefault;
   };
 
+  Editor.prototype.onkeypress = function editorOnkeypress(event) {
+    //console.log('keypress');
+    if (this.prevState.wasKeypress) {
+      this.processInputChar(false, true, false);
+    }
+
+    return true;
+  };
+
   Editor.prototype.onkeyup = function editorOnkeyup(event) {
-    // console.log('keyup');
+    //console.log('keyup');
     if (this.prevState.preventDefault) {
       this.prevState.preventDefault = false;
       event.preventDefault();
@@ -121,28 +141,36 @@ module.exports = (function() {
 
     this.prevState.preventDefault = false;
 
-    if (this.dom.innerHTML.length !== this.prevState.domInnerHTMLLength) {
-      this.prevState.domInnerHTMLLength = this.dom.innerHTML.length;
-
-      var selection = Selection.info();
-      if (selection === null) {
-        return true;
-      } else if (selection.allBlocksSelected) {
-        selection = Selection.build(0, this.model.size() - 1, 0, this.model.block(this.model.size() - 1).text.length);
-      }
-
-      var block = this.model.block(selection.startI).normalize();
-      Selection.setCaretInNode(block.dom, selection.startPos);
-
-      block.text.substring(selection.startPos - 1, selection.startPos);
+    if (this.prevState.wasKeydown || !this.prevState.wasKeypress) {
+      this.processInputChar(false, false, true);
     }
 
     return true;
   };
 
-  Editor.prototype.onkeypress = function editorOnkeypress(event) {
-    // console.log('keypress');
-    return true;
+  Editor.prototype.processInputChar = function editorProcessInputChar(wasKeydown, wasKeypress, wasKeyup) {
+    if (this.dom.innerHTML.length === this.prevState.domInnerHTMLLength) {
+      return;
+    }
+
+    this.prevState.domInnerHTMLLength = this.dom.innerHTML.length;
+
+    var selection = Selection.info();
+    if (selection === null) {
+      return;
+    } else if (selection.allBlocksSelected) {
+      selection = Selection.build(0, this.model.size() - 1, 0, this.model.last().length);
+    }
+
+    var block = this.model.block(selection.startI).normalize();
+    Selection.setCaretInNode(block.dom, selection.startPos);
+
+    var ch = block.text.substring(selection.startPos - 1, selection.startPos);
+    console.log(ch);
+
+    this.wasKeydown = wasKeydown;
+    this.prevState.wasKeypress = wasKeypress;
+    this.prevState.wasKeyup = wasKeyup;
   };
 
   Editor.prototype.onpaste = function editorOnpaste(event) {
@@ -153,7 +181,7 @@ module.exports = (function() {
     if (selection === null) {
       return false;
     } else if (selection.allBlocksSelected) {
-      selection = Selection.build(0, this.model.size() - 1, 0, this.model.block(this.model.size() - 1).text.length);
+      selection = Selection.build(0, this.model.size() - 1, 0, this.model.last().length);
     }
 
     var i = 0;
@@ -222,7 +250,7 @@ module.exports = (function() {
     if (selection === null) {
       return false;
     } else if (selection.allBlocksSelected) {
-      selection = Selection.build(0, this.model.size() - 1, 0, this.model.block(this.model.size() - 1).text.length);
+      selection = Selection.build(0, this.model.size() - 1, 0, this.model.last().length);
     }
 
     var text = '';
@@ -253,7 +281,7 @@ module.exports = (function() {
     if (selection === null) {
       return false;
     } else if (selection.allBlocksSelected) {
-      selection = Selection.build(0, this.model.size() - 1, 0, this.model.block(this.model.size() - 1).text.length);
+      selection = Selection.build(0, this.model.size() - 1, 0, this.model.last().length);
     }
 
     var startBlock = this.model.block(selection.startI);
@@ -277,18 +305,6 @@ module.exports = (function() {
     event.clipboardData.setData('text/plain', text);
 
     return false;
-  };
-
-  Editor.prototype.onmousedown = function editorOnmousedown() {
-    //console.log('onmousedown');
-  };
-
-  Editor.prototype.onmouseup = function editorOnmouseup() {
-    //console.log('onmouseup');
-  };
-
-  Editor.prototype.onclick = function editorOnclick() {
-    //console.log('onclick');
   };
 
   Editor.prototype.isCharacterKeyPress = function editorIsCharacterKeyPress(event) {
@@ -329,9 +345,6 @@ module.exports = (function() {
   };
 
   Editor.prototype.eventsHandler = function editorEventsHandler() {
-    this.dom.onmousedown = this.onmousedown.bind(this);
-    this.dom.onmouseup = this.onmouseup.bind(this);
-    this.dom.onclick = this.onclick.bind(this);
     this.dom.onkeydown = this.onkeydown.bind(this);
     this.dom.onkeyup = this.onkeyup.bind(this);
     this.dom.onkeypress = this.onkeypress.bind(this);

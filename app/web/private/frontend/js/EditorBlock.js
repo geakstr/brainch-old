@@ -30,6 +30,12 @@ module.exports = (function() {
     }
   });
 
+  Object.defineProperty(EditorBlock.prototype, 'length', {
+    get: function() {
+      return this.text.length;
+    }
+  });
+
   Object.defineProperty(EditorBlock.prototype, 'type', {
     get: function() {
       if (this.dom.classList.contains('task')) {
