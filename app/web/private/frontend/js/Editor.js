@@ -7,10 +7,51 @@ module.exports = (function() {
     this.dom = dom;
     this.model = new Model(this.dom);
 
-    this.preventDefault = false;
+    this.prevState = {
+      preventDefault: false
+    };
 
     this.eventsHandler();
   }
+
+  Editor.handledKeys = {
+    backspace: 8,
+    tab: 9,
+    enter: 13,
+    shift: 16,
+    ctrl: 17,
+    alt: 18,
+    pausebreak: 19,
+    capslock: 20,
+    escape: 27,
+    pageup: 33,
+    pagedown: 34,
+    end: 35,
+    home: 36,
+    left: 37,
+    up: 38,
+    right: 39,
+    down: 40,
+    insert: 45,
+    delete: 46,
+    leftwindowkey: 91,
+    rightwindowkey: 92,
+    selectkey: 93,
+    f1: 112,
+    f2: 113,
+    f3: 114,
+    f4: 115,
+    f5: 116,
+    f6: 117,
+    f7: 118,
+    f8: 119,
+    f9: 120,
+    f10: 121,
+    f11: 122,
+    f12: 123,
+    numlock: 144,
+    scrolllock: 145
+  };
 
   Editor.prototype.onmousedown = function editorOnmousedown() {
     //console.log('onmousedown');
@@ -25,14 +66,17 @@ module.exports = (function() {
   };
 
   Editor.prototype.onkeydown = function editorOnkeydown(event) {
-    this.preventDefault = false;
+    // console.log('keydown');
+    this.prevState.preventDefault = false;
 
     var keyCode = event.keyCode;
     var keyChar = String.fromCharCode(keyCode).toLowerCase();
 
+    var caret = null;
     var selection = Selection.info();
     if (selection === null) {
       event.preventDefault();
+      this.prevState.preventDefault = true;
       return false;
     } else if (selection.allBlocksSelected) {
       selection.startI = 0;
@@ -42,41 +86,67 @@ module.exports = (function() {
       selection.isRange = true;
     }
 
-    if (keyCode === 13 || (keyChar === 'm' && event.ctrlKey)) {
+    if (keyCode === Editor.handledKeys.enter || (keyChar === 'm' && event.ctrlKey)) {
       this.model.insertText(commonutils.cloneAssoc(selection));
 
       Selection.setCaretInNode(this.model.getBlock(selection.startI + 1).dom, 0);
 
-      this.preventDefault = true;
-    } else if (keyCode === 8 || keyCode === 46) {
-      var caret = this.model.removeText(commonutils.cloneAssoc(selection), keyCode);
+      this.prevState.preventDefault = true;
+    } else if (keyCode === Editor.handledKeys.backspace || keyCode === Editor.handledKeys.delete) {
+      caret = this.model.removeText(commonutils.cloneAssoc(selection), keyCode);
 
       Selection.setCaretInNode(this.model.getBlock(caret.blockIdx).dom, caret.offset);
 
-      this.preventDefault = true;
+      this.prevState.preventDefault = true;
+    } else if (selection.startI < selection.endI && this.isCharacterKeyPress(event)) {
+      this.model.removeText(commonutils.cloneAssoc(selection));
+      Selection.setCaretInNode(this.model.getBlock(selection.startI).dom, selection.startPos);
     }
 
-    if (this.preventDefault) {
+    if (this.prevState.preventDefault) {
       event.preventDefault();
     }
 
-    console.log(this.model.blocks.length);
-
-    return !this.preventDefault;
+    return !this.prevState.preventDefault;
   };
 
-  Editor.prototype.onkeyup = function editorOnkeyup(event) {
-    if (this.preventDefault) {
-      this.preventDefault = false;
-      event.preventDefault();
-      return false;
+  Editor.prototype.isCharacterKeyPress = function editorIsCharacterKeyPress(event) {
+    var keyCode = event.which;
+    if (typeof keyCode === 'undefined') {
+      return true;
+    } else if (typeof keyCode === 'number' && keyCode > 0) {
+      return !event.ctrlKey && !event.metaKey && this.isHandledKey(keyCode);
+    }
+
+    return false;
+  };
+
+  Editor.prototype.isHandledKey = function editorIsHandledKey(keyCode) {
+    for (var key in Editor.handledKeys) {
+      if (keyCode === Editor.handledKeys[key]) {
+        return false;
+      }
     }
 
     return true;
   };
 
-  Editor.prototype.onkeypress = function editorOnkeypress() {
-    //console.log('onkeypress');
+  Editor.prototype.onkeyup = function editorOnkeyup(event) {
+    // console.log('keyup');
+    if (this.prevState.preventDefault) {
+      this.prevState.preventDefault = false;
+      event.preventDefault();
+      return false;
+    }
+
+    this.prevState.preventDefault = false;
+
+    return true;
+  };
+
+  Editor.prototype.onkeypress = function editorOnkeypress(event) {
+    // console.log('keypress');
+    return true;
   };
 
   Editor.prototype.onpaste = function editorOnpaste() {

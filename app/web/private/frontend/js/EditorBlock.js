@@ -1,21 +1,11 @@
 var commonutils = require('commonutils');
+var Selection = require('./Selection');
 
 module.exports = (function() {
-  function EditorBlock(text) {
+  function EditorBlock(text, blocks) {
     this.dom = this.createElement();
     this.text = text;
     this.type = this.text;
-
-    this.observer = new MutationObserver(function(mutations) {
-      mutations.forEach(function(mutation) {
-        this.processMutation();
-      }.bind(this));
-    }.bind(this));
-
-    this.observer.observe(this.dom, {
-      characterData: true,
-      subtree: true
-    });
   }
 
   Object.defineProperty(EditorBlock.prototype, 'i', {
@@ -34,10 +24,10 @@ module.exports = (function() {
     },
 
     set: function(text) {
-      var gag = commonutils.isFirefox() ? '\n' : '';
+      var gag = commonutils.isFirefox() ? '\n' : '<br>';
       this.dom.innerHTML = text.length === 0 ? gag : text;
 
-      this.processMutation();
+      this.type = this.text;
     }
   });
 
@@ -65,16 +55,14 @@ module.exports = (function() {
     }
   });
 
-  EditorBlock.prototype.createElement = function editorCreateElement() {
+  EditorBlock.prototype.createElement = function editorBlockCreateElement() {
     return document.createElement('p');
   };
 
-  EditorBlock.prototype.processMutation = function editorBlockProcessMutation() {
-    this.type = this.text;
-  };
+  EditorBlock.prototype.normalize = function editorBlockNormilize() {
+    this.text = this.text;
 
-  EditorBlock.prototype.stopObserve = function editorBlockStopObserve() {
-    this.observer.disconnect();
+    return this;
   };
 
   return EditorBlock;

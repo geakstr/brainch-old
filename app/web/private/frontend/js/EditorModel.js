@@ -20,9 +20,9 @@ module.exports = (function() {
 
   EditorModel.prototype.insertBlockAt = function editorModelInsertBlockAt(i, block) {
     if (typeof block === 'string') {
-      block = new Block(block);
+      block = new Block(block, this.blocks);
     } else if (typeof block === 'undefined') {
-      block = new Block('');
+      block = new Block('', this.blocks);
     }
 
     block.i = i;
@@ -54,7 +54,7 @@ module.exports = (function() {
       this._splice(from, indices[1] - from + 1);
     } else {
       indices.forEach(function(x, i) {
-        this._splice(x - i, 1)
+        this._splice(x - i, 1);
       }, this);
     }
 
@@ -155,8 +155,9 @@ module.exports = (function() {
     if (typeof block === 'undefined') {
       ret = this.blocks.splice(i, n);
       ret.forEach(function(x) {
-        x.stopObserve();
-        this.parentDom.removeChild(x.dom);
+        if (this.parentDom.contains(x.dom)) {
+          this.parentDom.removeChild(x.dom);
+        }
       }, this);
     } else {
       this.blocks.splice(i, n, block);
