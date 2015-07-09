@@ -1,5 +1,4 @@
 var commonutils = require('commonutils');
-var Selection = require('./Selection');
 
 module.exports = (function() {
   function EditorBlock(text, blocks) {
@@ -25,7 +24,7 @@ module.exports = (function() {
 
     set: function(text) {
       var gag = commonutils.isFirefox() ? '\n' : '<br>';
-      this.dom.innerHTML = text.length === 0 ? gag : text;
+      this.dom.innerHTML = text.length === 0 ? gag : this.process(text);
 
       this.type = this.text;
     }
@@ -57,6 +56,10 @@ module.exports = (function() {
 
   EditorBlock.prototype.createElement = function editorBlockCreateElement() {
     return document.createElement('p');
+  };
+
+  EditorBlock.prototype.process = function editorBlockProcess(text) {
+    return commonutils.htmlEntities(text);
   };
 
   EditorBlock.prototype.normalize = function editorBlockNormilize() {
