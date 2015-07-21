@@ -19,7 +19,7 @@ module.exports = (function() {
   };
 
   EditorModel.prototype.last = function editorModelLast() {
-    return this.blocks[this.size() - 1];
+    return this.block(this.size() - 1);
   };
 
   EditorModel.prototype.pushBlock = function editorModelPushBlock(block) {
@@ -72,8 +72,8 @@ module.exports = (function() {
   };
 
   EditorModel.prototype.insertText = function editorModelInsertText(selection, text) {
-    var startBlock = this.blocks[selection.startI];
-    var endBlock = this.blocks[selection.endI];
+    var startBlock = this.block(selection.startI);
+    var endBlock = this.block(selection.endI);
 
     var startText = startBlock.text.substring(0, selection.startPos);
     var endText = endBlock.text.substring(selection.endPos);
@@ -103,8 +103,8 @@ module.exports = (function() {
       offset: selection.startPos
     };
 
-    var startBlock = this.blocks[selection.startI];
-    var endBlock = this.blocks[selection.endI];
+    var startBlock = this.block(selection.startI);
+    var endBlock = this.block(selection.endI);
 
     var startText = startBlock.text;
     var endText = endBlock.text;
@@ -114,7 +114,7 @@ module.exports = (function() {
         return caret;
       }
 
-      startBlock = this.blocks[--selection.startI];
+      startBlock = this.block(--selection.startI);
       startText = startBlock.text;
 
       backspaceOffset = 0;
@@ -124,11 +124,11 @@ module.exports = (function() {
 
       this.removeBlock(selection.endI);
     } else if (!selection.isRange && keyCode === 46 && endText.length === selection.endPos) {
-      if (selection.endI === this.blocks.length - 1) {
+      if (selection.endI === this.size() - 1) {
         return caret;
       }
 
-      endBlock = this.blocks[++selection.endI];
+      endBlock = this.block(++selection.endI);
       endText = endBlock.text;
 
       this.removeBlock(selection.endI);
@@ -176,7 +176,7 @@ module.exports = (function() {
 
   EditorModel.prototype._updateBlockIndicesFrom = function editorModelUpdateBlockIndicesFrom(from) {
     for (var i = from; i < this.blocks.length; i++) {
-      this.blocks[i].i = i;
+      this.block(i).i = i;
     }
   };
 
