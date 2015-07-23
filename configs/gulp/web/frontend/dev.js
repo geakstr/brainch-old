@@ -8,11 +8,18 @@ var autoprefixer = require('gulp-autoprefixer');
 var configs = require('commonconfigs');
 
 gulp.task('css-dev-web-frontend', function() {
-  return gulp.src(path.join(configs.paths.app.web.private.frontend.stylus, '/style.styl'))
-    .pipe(stylus({
+  var stylusPipe = stylus({
       'include css': true,
       'use': [koutoSwiss()]
-    }))
+    });
+
+  stylusPipe.on('error',function(e) {
+    console.log(e);
+    stylusPipe.end();
+  });
+
+  return gulp.src(path.join(configs.paths.app.web.private.frontend.stylus, '/style.styl'))
+    .pipe(stylusPipe)
     .pipe(autoprefixer({
       browsers: ['last 2 versions'],
       cascade: true
