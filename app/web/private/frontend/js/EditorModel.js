@@ -1,4 +1,5 @@
 var Block = require('./EditorBlock');
+var Keys = require('./Keys');
 var commonutils = require('commonutils');
 
 module.exports = (function() {
@@ -72,7 +73,9 @@ module.exports = (function() {
     return this;
   };
 
-  EditorModel.prototype.insertText = function editorModelInsertText(selection, text) {
+  EditorModel.prototype.insertText = function editorModelInsertText(_selection, text) {
+    var selection = commonutils.cloneAssoc(_selection);
+
     var startBlock = this.block(selection.startI);
     var endBlock = this.block(selection.endI);
 
@@ -91,13 +94,15 @@ module.exports = (function() {
     }
   };
 
-  EditorModel.prototype.removeText = function editorModelRemoveText(selection, keyCode) {
+  EditorModel.prototype.removeText = function editorModelRemoveText(_selection, keyCode) {
+    var selection = commonutils.cloneAssoc(_selection);
+
     if (typeof keyCode === 'undefined') {
-      keyCode = 8;
+      keyCode = Keys.backspace;
     }
 
-    var backspaceOffset = (keyCode === 8) ? -1 : 0;
-    var deleteOffset = (keyCode === 46) ? 1 : 0;
+    var backspaceOffset = (keyCode === Keys.backspace) ? -1 : 0;
+    var deleteOffset = (keyCode === Keys.delete) ? 1 : 0;
 
     var caret = {
       blockIdx: selection.startI,
@@ -110,7 +115,7 @@ module.exports = (function() {
     var startText = startBlock.text;
     var endText = endBlock.text;
 
-    if (!selection.isRange && keyCode === 8 && selection.startPos === 0) {
+    if (!selection.isRange && keyCode === Keys.backspace && selection.startPos === 0) {
       if (selection.startI === 0) {
         return caret;
       }
@@ -124,7 +129,7 @@ module.exports = (function() {
       caret.offset = startText.length;
 
       this.removeBlock(selection.endI);
-    } else if (!selection.isRange && keyCode === 46 && endText.length === selection.endPos) {
+    } else if (!selection.isRange && keyCode === Keys.delete && endText.length === selection.endPos) {
       if (selection.endI === this.size() - 1) {
         return caret;
       }

@@ -1,7 +1,7 @@
 module.exports = (function() {
   function Selection() {}
 
-  Selection.info = function selectionInfo(endI, endPos) {
+  Selection.info = function selectionInfo(model) {
     var selection = window.getSelection();
 
     if (!selection.anchorNode || !selection.focusNode) {
@@ -13,6 +13,8 @@ module.exports = (function() {
 
     var startI = 0;
     var startPos = 0;
+    var endI = model.size() - 1;
+    var endPos = model.last().length;
     if (anchorNode.id === 'edtr' || focusNode.id === 'edtr') {
       return Selection.buildInfo(startI, endI, startPos, endPos);
     }
