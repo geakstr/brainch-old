@@ -4,16 +4,23 @@ var webpack = require('webpack');
 var stylus = require('gulp-stylus');
 var koutoSwiss = require('kouto-swiss');
 var autoprefixer = require('gulp-autoprefixer');
+var notifier = require('node-notifier');
 
 var configs = require('commonconfigs');
 
 gulp.task('css-dev-web-frontend', function() {
   var stylusPipe = stylus({
-      'include css': true,
-      'use': [koutoSwiss()]
-    });
+    'include css': true,
+    'use': [koutoSwiss()]
+  });
 
-  stylusPipe.on('error',function(e) {
+  stylusPipe.on('error', function(e) {
+    notifier.notify({
+      title: 'Gulp',
+      message: 'Stylus error',
+      sound: true,
+      wait: false
+    });
     console.log(e);
     stylusPipe.end();
   });
@@ -28,18 +35,26 @@ gulp.task('css-dev-web-frontend', function() {
 });
 
 gulp.task('webpack-dev-web-frontend', function(done) {
-  webpack(configs.configs.webpack.web.frontend).run((function() {
-    return function(err, stats) {
+  webpack(configs.configs.webpack.web.frontend,
+    function(err, stats) {
       if (err) {
         console.log('Error', err);
       } else {
-        console.log(stats.toString());
+        var o = stats.toString();
+        if (o.indexOf('ERROR in ') !== -1) {
+          notifier.notify({
+            title: 'Gulp',
+            message: 'Webpack build error',
+            sound: true,
+            wait: false
+          });
+        }
+        console.log(o);
       }
       if (done) {
         done();
       }
-    };
-  })());
+    });
 });
 
 gulp.task('watch-dev-web-frontend', function() {

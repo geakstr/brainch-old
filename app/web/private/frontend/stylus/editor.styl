@@ -9,8 +9,6 @@
     height: 100%;
     top: -67px;
     padding-top: 78px;
-    overflow-x: visible;
-    overflow-y: auto;
     outline: none;
     font-size: 1.0em;
     line-height: 1.5;
@@ -28,6 +26,14 @@
       }
       &.task {
         color: #333;
+
+        &:before {
+          display: block;
+          position: absolute;
+          left: 0;
+          width: 30px;
+          content: "";
+        }
       }
       .-date {
         padding: 3px 5px;
