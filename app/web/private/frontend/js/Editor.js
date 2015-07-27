@@ -107,8 +107,8 @@ module.exports = (function() {
     },
 
     handled: function editorIsUnputActionHandled(event) {
-      return this.handleExtendedActions && !this.isEvent.characterKeyPress(event) &&
-        !this.isEvent.navigationKeyPress(event) && !this.isEvent.editingKeypress(event);
+      return this.handleExtendedActions && !this.isEvent.characterKeyPress.call(this, event) &&
+        !this.isEvent.navigationKeyPress.call(this, event) && !this.isEvent.editingKeypress.call(this, event);
     }
   };
 
@@ -116,7 +116,7 @@ module.exports = (function() {
     characterKeyPress: function editorIsEventCharacterKeyPress(event) {
       var keyCode = event.which;
       if (typeof keyCode === 'number' && keyCode > 0) {
-        return !event.ctrlKey && !event.metaKey && this.isHandledKey(keyCode);
+        return !event.ctrlKey && !event.metaKey && this.isEvent.handledKey.call(this, keyCode);
       }
 
       return false;

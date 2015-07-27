@@ -7,6 +7,7 @@ var autoprefixer = require('gulp-autoprefixer');
 var notifier = require('node-notifier');
 
 var configs = require('commonconfigs');
+var sourcemaps = require('gulp-sourcemaps');
 
 gulp.task('css-dev-web-frontend', function() {
   var stylusPipe = stylus({
@@ -26,11 +27,13 @@ gulp.task('css-dev-web-frontend', function() {
   });
 
   return gulp.src(path.join(configs.paths.app.web.private.frontend.stylus, '/style.styl'))
+    .pipe(sourcemaps.init())
     .pipe(stylusPipe)
     .pipe(autoprefixer({
       browsers: ['last 2 versions'],
       cascade: true
     }))
+    .pipe(sourcemaps.write('.'))
     .pipe(gulp.dest(configs.paths.app.web.public.css));
 });
 
