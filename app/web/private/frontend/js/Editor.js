@@ -103,6 +103,7 @@ module.exports = (function() {
     if (this.debug.debug && this.debug.events) {
       console.log('keydown');
     }
+
     this.state.preventDefault = false;
 
     var keyCode = event.which;
@@ -165,6 +166,7 @@ module.exports = (function() {
     if (this.debug.debug && this.debug.events) {
       console.log('keypress');
     }
+
     if (this.state.wasKeypress) {
       this.processInputChar(false, true, false);
     }
@@ -176,6 +178,7 @@ module.exports = (function() {
     if (this.debug.debug && this.debug.events) {
       console.log('keyup');
     }
+
     if (this.state.preventDefault) {
       this.state.preventDefault = false;
       event.preventDefault();
@@ -195,6 +198,7 @@ module.exports = (function() {
     if (this.debug.debug && this.debug.events) {
       console.log('onpaste');
     }
+
     this.state.wasCopy = false;
     this.state.wasPaste = true;
     this.state.wasCut = false;
@@ -266,6 +270,7 @@ module.exports = (function() {
     if (this.debug.debug && this.debug.events) {
       console.log('oncut');
     }
+
     this.state.wasCopy = false;
     this.state.wasPaste = false;
     this.state.wasCut = true;
@@ -301,6 +306,7 @@ module.exports = (function() {
     if (this.debug.debug && this.debug.events) {
       console.log('oncopy');
     }
+
     this.state.wasCopy = true;
     this.state.wasPaste = false;
     this.state.wasCut = false;
