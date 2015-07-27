@@ -3,5 +3,8 @@ module.exports = {
     on: true,
     events: false,
     verbose: true
+  },
+  editor: {
+    handleExtendedActions: false
   }
 };

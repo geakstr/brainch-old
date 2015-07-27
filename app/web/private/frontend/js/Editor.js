@@ -5,7 +5,7 @@ var Keys = require('./Keys');
 var Config = require('./Config');
 
 module.exports = (function() {
-  function Editor(dom, handleExtendedActions) {
+  function Editor(dom) {
     this.dom = dom;
     this.dom.setAttribute('spellcheck', false);
     this.dom.setAttribute('contenteditable', true);
@@ -22,8 +22,6 @@ module.exports = (function() {
       wasPaste: false,
       wasCopy: false
     };
-
-    this.handleExtendedActions = handleExtendedActions;
 
     this.eventsHandler();
   }
@@ -107,7 +105,7 @@ module.exports = (function() {
     },
 
     handled: function editorIsUnputActionHandled(event) {
-      return this.handleExtendedActions && !this.isEvent.characterKeyPress.call(this, event) &&
+      return Config.editor.handleExtendedActions && !this.isEvent.characterKeyPress.call(this, event) &&
         !this.isEvent.navigationKeyPress.call(this, event) && !this.isEvent.editingKeypress.call(this, event);
     }
   };
