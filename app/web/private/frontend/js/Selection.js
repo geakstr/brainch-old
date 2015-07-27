@@ -1,29 +1,29 @@
 module.exports = (function() {
   function Selection() {}
 
-  Selection.info = function selectionInfo() {
+  Selection.info = function selectionInfo(endI, endPos) {
     var selection = window.getSelection();
 
     if (!selection.anchorNode || !selection.focusNode) {
       return null;
     }
 
-    var info = Object.create(null);
-    info.allBlocksSelected = false;
-
     var anchorNode = selection.anchorNode;
     var focusNode = selection.focusNode;
 
+    var startI = 0;
+    var startPos = 0;
     if (anchorNode.id === 'edtr' || focusNode.id === 'edtr') {
-      info.allBlocksSelected = true;
-      return info;
+      return Selection.buildInfo(startI, endI, startPos, endPos);
     }
 
-    while (anchorNode.parentNode !== null && (anchorNode.nodeType !== 1 || !anchorNode.classList.contains('blck'))) {
+    while (anchorNode.parentNode !== null &&
+      (anchorNode.nodeType !== 1 || !anchorNode.classList.contains('blck'))) {
       anchorNode = anchorNode.parentNode;
     }
 
-    while (focusNode.parentNode !== null && (focusNode.nodeType !== 1 || !focusNode.classList.contains('blck'))) {
+    while (focusNode.parentNode !== null &&
+      (focusNode.nodeType !== 1 || !focusNode.classList.contains('blck'))) {
       focusNode = focusNode.parentNode;
     }
 
@@ -31,24 +31,22 @@ module.exports = (function() {
       return null;
     }
 
-    info.startI = +anchorNode.dataset.i;
-    info.endI = +focusNode.dataset.i;
+    startI = +anchorNode.dataset.i;
+    endI = +focusNode.dataset.i;
 
-    if (isNaN(info.startI) || isNaN(info.endI)) {
+    if (isNaN(startI) || isNaN(endI)) {
       return null;
     }
 
-    if (info.startI > info.endI) {
-      info.endI = [info.startI, info.startI = info.endI][0];
+    if (startI > endI) {
+      endI = [startI, startI = endI][0];
       focusNode = [anchorNode, anchorNode = focusNode][0];
     }
 
-    info.startPos = +Selection.getSelectionRangeInNode(anchorNode).start;
-    info.endPos = +Selection.getSelectionRangeInNode(focusNode).end;
+    startPos = +Selection.getSelectionRangeInNode(anchorNode).start;
+    endPos = +Selection.getSelectionRangeInNode(focusNode).end;
 
-    info.isRange = info.startI !== info.endI || info.startPos !== info.endPos;
-
-    return info;
+    return Selection.buildInfo(startI, endI, startPos, endPos);
   };
 
   Selection.buildInfo = function selectionBuildInfo(startI, endI, startPos, endPos) {

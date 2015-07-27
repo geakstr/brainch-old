@@ -15,7 +15,15 @@ module.exports = (function() {
       domInnerHTMLLength: this.dom.innerHTML.length,
       wasKeydown: false,
       wasKeypress: false,
-      wasKeyup: false
+      wasKeyup: false,
+      wasCut: false,
+      wasPaste: false,
+      wasCopy: false
+    };
+
+    this.debug = {
+      debug: true,
+      events: false
     };
 
     this.handleExtendedActions = handleExtendedActions;
@@ -63,24 +71,28 @@ module.exports = (function() {
   };
 
   Editor.prototype.processInputChar = function editorProcessInputChar(wasKeydown, wasKeypress, wasKeyup) {
+    if (this.state.wasCut || this.state.wasCopy || this.state.wasPaste) {
+      return;
+    }
+
     if (this.dom.innerHTML.length === this.state.domInnerHTMLLength) {
       return;
     }
 
     this.state.domInnerHTMLLength = this.dom.innerHTML.length;
 
-    var selection = Selection.info();
+    var selection = Selection.info(this.model.size() - 1, this.model.last().length);
     if (selection === null) {
       return;
-    } else if (selection.allBlocksSelected) {
-      selection = Selection.build(0, this.model.size() - 1, 0, this.model.last().length);
     }
 
     var block = this.model.block(selection.startI).normalize();
     Selection.setCaretInNode(block.dom, selection.startPos);
 
     var ch = block.text.substring(selection.startPos - 1, selection.startPos);
-    console.log(ch);
+    if (this.debug.debug) {
+      console.log(ch);
+    }
 
     this.wasKeydown = wasKeydown;
     this.state.wasKeypress = wasKeypress;
@@ -88,27 +100,26 @@ module.exports = (function() {
   };
 
   Editor.prototype.onkeydown = function editorOnkeydown(event) {
-    //console.log('keydown');
+    if (this.debug.debug && this.debug.events) {
+      console.log('keydown');
+    }
     this.state.preventDefault = false;
 
     var keyCode = event.which;
-    var keyChar = String.fromCharCode(keyCode).toLowerCase();
 
     var caret = null;
-    var selection = Selection.info();
+    var selection = Selection.info(this.model.size() - 1, this.model.last().length);
     if (selection === null) {
       event.preventDefault();
       this.state.preventDefault = true;
       return false;
-    } else if (selection.allBlocksSelected) {
-      selection = Selection.build(0, this.model.size() - 1, 0, this.model.last().length);
     }
 
-    if (keyCode === Editor.handledKeys.enter || (keyChar === 'm' && event.ctrlKey)) {
+    if (this.isCarriageReturn(event)) {
       this.model.insertText(commonutils.cloneAssoc(selection));
       Selection.setCaretInNode(this.model.block(selection.startI + 1).dom, 0);
       this.state.preventDefault = true;
-    } else if (keyCode === Editor.handledKeys.backspace || keyCode === Editor.handledKeys.delete) {
+    } else if (this.isDeleteAction(event)) {
       caret = this.model.removeText(commonutils.cloneAssoc(selection), keyCode);
       Selection.setCaretInNode(this.model.block(caret.blockIdx).dom, caret.offset);
       this.state.preventDefault = true;
@@ -142,13 +153,18 @@ module.exports = (function() {
     this.state.wasKeydown = true;
     this.state.wasKeypress = false;
     this.state.wasKeyup = false;
+    this.state.wasCopy = false;
+    this.state.wasPaste = false;
+    this.state.wasCut = false;
     this.state.domInnerHTMLLength = this.dom.innerHTML.length;
 
     return !this.state.preventDefault;
   };
 
   Editor.prototype.onkeypress = function editorOnkeypress(event) {
-    //console.log('keypress');
+    if (this.debug.debug && this.debug.events) {
+      console.log('keypress');
+    }
     if (this.state.wasKeypress) {
       this.processInputChar(false, true, false);
     }
@@ -157,7 +173,9 @@ module.exports = (function() {
   };
 
   Editor.prototype.onkeyup = function editorOnkeyup(event) {
-    //console.log('keyup');
+    if (this.debug.debug && this.debug.events) {
+      console.log('keyup');
+    }
     if (this.state.preventDefault) {
       this.state.preventDefault = false;
       event.preventDefault();
@@ -174,17 +192,20 @@ module.exports = (function() {
   };
 
   Editor.prototype.onpaste = function editorOnpaste(event) {
-    //console.log('onpaste');
+    if (this.debug.debug && this.debug.events) {
+      console.log('onpaste');
+    }
+    this.state.wasCopy = false;
+    this.state.wasPaste = true;
+    this.state.wasCut = false;
+    this.state.preventDefault = true;
     event.preventDefault();
 
-    var selection = Selection.info();
+    var selection = Selection.info(this.model.size() - 1, this.model.last().length);
     if (selection === null) {
       return false;
-    } else if (selection.allBlocksSelected) {
-      selection = Selection.build(0, this.model.size() - 1, 0, this.model.last().length);
     }
 
-    var i = 0;
     var pasted = event.clipboardData.getData('text/plain');
     var blocks = pasted.split('\n');
     var blocksLen = blocks.length;
@@ -202,21 +223,20 @@ module.exports = (function() {
       this.model.insertText(commonutils.cloneAssoc(selection), blocks[0]);
     } else {
       if (!selection.isRange && selection.startPos === 0 && selection.startI === 0) {
-        for (i = 0; i < blocksLen - 1; i++) {
+        commonutils.range(blocksLen - 1, function(i) {
           this.model.insertBlockAt(selection.startI, blocks[i]);
           selection.startI++;
           selection.endI++;
-        }
+        }, this);
 
         this.model.insertText(commonutils.cloneAssoc(selection), blocks[blocksLen - 1]);
       } else if (!selection.isRange && selection.endPos === endText.length &&
         selection.endI === this.model.size() - 1) {
         this.model.insertText(commonutils.cloneAssoc(selection), blocks[0]);
 
-        for (i = 1; i < blocksLen; i++) {
+        commonutils.range(1, blocksLen, function(i) {
           this.model.insertBlockAt(++selection.startI, blocks[i]);
-        }
-
+        }, this);
       } else {
         startText = startText.substring(0, selection.startPos);
         endText = endText.substring(selection.endPos);
@@ -227,9 +247,9 @@ module.exports = (function() {
           this.model.removeBlocksRange(selection.startI + 1, selection.endI);
         }
 
-        for (i = 1; i < blocksLen - 1; i++) {
+        commonutils.range(1, blocksLen - 1, function(i) {
           this.model.insertBlockAt(++selection.startI, blocks[i]);
-        }
+        }, this);
 
         this.model.insertBlockAt(++selection.startI, blocks[blocksLen - 1] + endText);
       }
@@ -243,14 +263,18 @@ module.exports = (function() {
   };
 
   Editor.prototype.oncut = function editorOncut(event) {
-    //console.log('oncut');
+    if (this.debug.debug && this.debug.events) {
+      console.log('oncut');
+    }
+    this.state.wasCopy = false;
+    this.state.wasPaste = false;
+    this.state.wasCut = true;
+    this.state.preventDefault = true;
     event.preventDefault();
 
-    var selection = Selection.info();
+    var selection = Selection.info(this.model.size() - 1, this.model.last().length);
     if (selection === null) {
       return false;
-    } else if (selection.allBlocksSelected) {
-      selection = Selection.build(0, this.model.size() - 1, 0, this.model.last().length);
     }
 
     var text = '';
@@ -259,9 +283,9 @@ module.exports = (function() {
     } else {
       text = this.model.block(selection.startI).text.substring(selection.startPos) + '\n';
 
-      for (var i = selection.startI + 1; i <= selection.endI - 1; i++) {
+      commonutils.range(selection.startI + 1, selection.endI, function(i) {
         text += this.model.block(i).text + '\n';
-      }
+      }, this);
 
       text += this.model.block(selection.endI).text.substring(0, selection.endPos);
     }
@@ -274,14 +298,18 @@ module.exports = (function() {
   };
 
   Editor.prototype.oncopy = function editorOncopy(event) {
-    //console.log('oncopy');
+    if (this.debug.debug && this.debug.events) {
+      console.log('oncopy');
+    }
+    this.state.wasCopy = true;
+    this.state.wasPaste = false;
+    this.state.wasCut = false;
+    this.state.preventDefault = true;
     event.preventDefault();
 
-    var selection = Selection.info();
+    var selection = Selection.info(this.model.size() - 1, this.model.last().length);
     if (selection === null) {
       return false;
-    } else if (selection.allBlocksSelected) {
-      selection = Selection.build(0, this.model.size() - 1, 0, this.model.last().length);
     }
 
     var startBlock = this.model.block(selection.startI);
@@ -295,9 +323,10 @@ module.exports = (function() {
       text += startText.substring(selection.startPos, selection.endPos);
     } else {
       text += startText.substring(selection.startPos) + '\n';
-      for (var i = selection.startI + 1; i < selection.endI; i++) {
+
+      commonutils.range(selection.startI + 1, selection.endI, function(i) {
         text += this.model.block(i).text + '\n';
-      }
+      }, this);
 
       text += endText.substring(0, selection.endPos);
     }
@@ -342,6 +371,17 @@ module.exports = (function() {
     }
 
     return true;
+  };
+
+  Editor.prototype.isCarriageReturn = function editorIsCarriageReturn(event) {
+    var keyCode = event.which;
+    var keyChar = String.fromCharCode(keyCode).toLowerCase();
+    return keyCode === Editor.handledKeys.enter || (keyChar === 'm' && event.ctrlKey);
+  };
+
+  Editor.prototype.isDeleteAction = function editorIsDeleteAction(event) {
+    var keyCode = event.which;
+    return keyCode === Editor.handledKeys.backspace || keyCode === Editor.handledKeys.delete;
   };
 
   Editor.prototype.eventsHandler = function editorEventsHandler() {

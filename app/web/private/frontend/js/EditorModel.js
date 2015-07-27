@@ -1,4 +1,5 @@
 var Block = require('./EditorBlock');
+var commonutils = require('commonutils');
 
 module.exports = (function() {
   function EditorModel(parentDom) {
@@ -158,11 +159,8 @@ module.exports = (function() {
   };
 
   EditorModel.prototype._splice = function editorModelSplice(i, n, block) {
-    var ret = [];
-
     if (typeof block === 'undefined') {
-      ret = this.blocks.splice(i, n);
-      ret.forEach(function(x) {
+      this.blocks.splice(i, n).forEach(function(x) {
         if (this.parentDom.contains(x.dom)) {
           this.parentDom.removeChild(x.dom);
         }
@@ -170,14 +168,12 @@ module.exports = (function() {
     } else {
       this.blocks.splice(i, n, block);
     }
-
-    return ret;
   };
 
   EditorModel.prototype._updateBlockIndicesFrom = function editorModelUpdateBlockIndicesFrom(from) {
-    for (var i = from; i < this.blocks.length; i++) {
+    commonutils.range(from, this.size(), function(i) {
       this.block(i).i = i;
-    }
+    }, this);
   };
 
   return EditorModel;
