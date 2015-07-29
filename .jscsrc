@@ -5,6 +5,7 @@
   "fileExtensions": [".js"],
   
   "requireLineFeedAtFileEnd": null,
+  "requireCamelCaseOrUpperCaseIdentifiers": "ignoreProperties",
   "validateIndentation": 2,
   "maximumLineLength": 120,
   

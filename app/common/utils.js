@@ -6,12 +6,27 @@ exports.cloneAssoc = function utilsCloneAssoc(o) {
   return r;
 };
 
-exports.isFirefox = function utilsIsFirefox() {
-  return (navigator.userAgent.toLowerCase().indexOf('firefox') > -1);
+Function.prototype.method = function(name, f) {
+  this.prototype[name] = f;
+  return this;
 };
 
-exports.htmlEntities = function utilsHtmlEntities(str) {
-  return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+String.method('deentitify', function() {
+  return function() {
+    return this.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+  };
+}());
+
+exports.isBrowser = function() {
+  return window ? true : false;
+};
+
+exports.isNode = function() {
+  return process ? true : false;
+};
+
+exports.isFirefox = function utilsIsFirefox() {
+  return (navigator.userAgent.toLowerCase().indexOf('firefox') > -1);
 };
 
 exports.range = function utilsRange(start, stop, step, callback, context) {

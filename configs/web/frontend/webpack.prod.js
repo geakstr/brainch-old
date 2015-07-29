@@ -15,10 +15,14 @@ module.exports = {
   module: {
     loaders: []
   },
-  plugins: [new webpack.optimize.UglifyJsPlugin({
-    compress: {
-      warnings: true
-    }
-  })],
-  devtool: 'sourcemap'
+  plugins: [
+    new webpack.optimize.UglifyJsPlugin({
+      compress: {
+        warnings: true
+      },
+      sourceMap: false,
+      mangle: true
+    }),
+    new webpack.optimize.DedupePlugin()
+  ]
 };

@@ -1,5 +1,7 @@
 var path = require('path');
 
+var webpack = require('webpack');
+
 module.exports = {
   context: path.join(process.cwd(), 'app/web/private/frontend/js'),
   entry: path.join(process.cwd(), 'app/web/private/frontend/js/index.js'),
@@ -14,6 +16,8 @@ module.exports = {
   module: {
     loaders: []
   },
-  plugins: [],
+  plugins: [
+    new webpack.optimize.DedupePlugin()
+  ],
   devtool: 'sourcemap'
 };

@@ -1,5 +1,4 @@
-var Block = require('./EditorBlock');
-var History = require('./EditorHistory.js');
+var block = require('./editor/block').factory;
 var Keys = require('./Keys');
 var utils = require('utils');
 
@@ -25,24 +24,22 @@ module.exports = (function() {
     return this.block(this.size() - 1);
   };
 
-  EditorModel.prototype.pushBlock = function editorModelPushBlock(block) {
-    return this.insertBlockAt(this.parentDom.childNodes.length, block);
+  EditorModel.prototype.pushBlock = function editorModelPushBlock(b) {
+    return this.insertBlockAt(this.parentDom.childNodes.length, b);
   };
 
-  EditorModel.prototype.insertBlockAt = function editorModelInsertBlockAt(i, block) {
-    block = Block.build(block);
+  EditorModel.prototype.insertBlockAt = function editorModelInsertBlockAt(i, b) {
+    b.i = i;
 
-    block.i = i;
-
-    this._splice(i, 0, block);
-    this.parentDom.insertBefore(block.dom, this.parentDom.childNodes[i]);
+    this._splice(i, 0, b);
+    this.parentDom.insertBefore(b.dom, this.parentDom.childNodes[i]);
     this._updateBlockIndicesFrom(i + 1);
 
     return block;
   };
 
-  EditorModel.prototype.removeBlock = function editorModelRemoveBlock(idx) {
-    this.removeBlocksRange(idx, idx);
+  EditorModel.prototype.removeBlock = function editorModelRemoveBlock(i) {
+    this.removeBlocksRange(i, i);
   };
 
   EditorModel.prototype.removeBlocksRange = function editorModelRemoveBlocksRange(from, to) {
@@ -85,7 +82,9 @@ module.exports = (function() {
     }
 
     if (typeof text === 'undefined') { // this means was carriage return
-      this.insertBlockAt(selection.startI + 1, endText);
+      this.insertBlockAt(selection.startI + 1, block({
+        text: endText
+      }));
     } else {
       startBlock.text += text + endText;
     }
@@ -160,15 +159,15 @@ module.exports = (function() {
     this.historyIdx++;
   };
 
-  EditorModel.prototype._splice = function editorModelSplice(i, n, block) {
-    if (typeof block === 'undefined') {
+  EditorModel.prototype._splice = function editorModelSplice(i, n, b) {
+    if (typeof b === 'undefined') {
       this.blocks.splice(i, n).forEach(function(x) {
         if (this.parentDom.contains(x.dom)) {
           this.parentDom.removeChild(x.dom);
         }
       }, this);
     } else {
-      this.blocks.splice(i, n, block);
+      this.blocks.splice(i, n, b);
     }
   };
 

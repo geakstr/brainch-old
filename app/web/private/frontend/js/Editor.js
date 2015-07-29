@@ -1,6 +1,7 @@
 var utils = require('utils');
 var Selection = require('./Selection');
 var Model = require('./EditorModel');
+var block = require('./editor/block').factory;
 var Keys = require('./Keys');
 var Config = require('./Config');
 
@@ -68,9 +69,9 @@ module.exports = (function() {
         return;
       }
 
-      var block = this.model.block(selection.startI).normalize();
-      Selection.setCaretInNode(block.dom, selection.startPos);
-      var ch = block.text.substring(selection.startPos - 1, selection.startPos);
+      var b = this.model.block(selection.startI);
+      Selection.setCaretInNode(b.dom, selection.startPos);
+      var ch = b.text.substring(selection.startPos - 1, selection.startPos);
 
       if (Config.debug.on && Config.debug.verbose) {
         console.log(ch);
@@ -266,7 +267,9 @@ module.exports = (function() {
       } else {
         if (!selection.isRange && selection.startPos === 0 && selection.startI === 0) {
           utils.range(blocksLen - 1, function(i) {
-            this.model.insertBlockAt(selection.startI, blocks[i]);
+            this.model.insertBlockAt(selection.startI, block({
+              text: blocks[i]
+            }));
             selection.startI++;
             selection.endI++;
           }, this);
@@ -277,7 +280,9 @@ module.exports = (function() {
           this.model.insertText(selection, blocks[0]);
 
           utils.range(1, blocksLen, function(i) {
-            this.model.insertBlockAt(++selection.startI, blocks[i]);
+            this.model.insertBlockAt(++selection.startI, block({
+              text: blocks[i]
+            }));
           }, this);
         } else {
           startText = startText.substring(0, selection.startPos);
@@ -290,10 +295,14 @@ module.exports = (function() {
           }
 
           utils.range(1, blocksLen - 1, function(i) {
-            this.model.insertBlockAt(++selection.startI, blocks[i]);
+            this.model.insertBlockAt(++selection.startI, block({
+              text: blocks[i]
+            }));
           }, this);
 
-          this.model.insertBlockAt(++selection.startI, blocks[blocksLen - 1] + endText);
+          this.model.insertBlockAt(++selection.startI, block({
+            text: blocks[blocksLen - 1] + endText
+          }));
         }
 
         offset = blocks[blocksLen - 1].length;
