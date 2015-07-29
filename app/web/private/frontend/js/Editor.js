@@ -1,4 +1,4 @@
-var commonutils = require('commonutils');
+var utils = require('utils');
 var Selection = require('./Selection');
 var Model = require('./EditorModel');
 var Keys = require('./Keys');
@@ -265,7 +265,7 @@ module.exports = (function() {
         this.model.insertText(selection, blocks[0]);
       } else {
         if (!selection.isRange && selection.startPos === 0 && selection.startI === 0) {
-          commonutils.range(blocksLen - 1, function(i) {
+          utils.range(blocksLen - 1, function(i) {
             this.model.insertBlockAt(selection.startI, blocks[i]);
             selection.startI++;
             selection.endI++;
@@ -276,7 +276,7 @@ module.exports = (function() {
           selection.endI === this.model.size() - 1) {
           this.model.insertText(selection, blocks[0]);
 
-          commonutils.range(1, blocksLen, function(i) {
+          utils.range(1, blocksLen, function(i) {
             this.model.insertBlockAt(++selection.startI, blocks[i]);
           }, this);
         } else {
@@ -289,7 +289,7 @@ module.exports = (function() {
             this.model.removeBlocksRange(selection.startI + 1, selection.endI);
           }
 
-          commonutils.range(1, blocksLen - 1, function(i) {
+          utils.range(1, blocksLen - 1, function(i) {
             this.model.insertBlockAt(++selection.startI, blocks[i]);
           }, this);
 
@@ -332,7 +332,7 @@ module.exports = (function() {
       } else {
         text = startText.substring(selection.startPos) + '\n';
 
-        commonutils.range(selection.startI + 1, selection.endI, function(i) {
+        utils.range(selection.startI + 1, selection.endI, function(i) {
           text += this.model.block(i).text + '\n';
         }, this);
 
@@ -374,7 +374,7 @@ module.exports = (function() {
       } else {
         text += startText.substring(selection.startPos) + '\n';
 
-        commonutils.range(selection.startI + 1, selection.endI, function(i) {
+        utils.range(selection.startI + 1, selection.endI, function(i) {
           text += this.model.block(i).text + '\n';
         }, this);
 

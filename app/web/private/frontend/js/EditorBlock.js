@@ -1,11 +1,21 @@
-var commonutils = require('commonutils');
+var utils = require('utils');
 
 module.exports = (function() {
-  function EditorBlock(text, blocks) {
+  function EditorBlock(text) {
     this.dom = this.createElement();
     this.text = text;
     this.type = this.text;
   }
+
+  EditorBlock.build = function editorBlockBuild(block) {
+    if (typeof block === 'string') {
+      block = new EditorBlock(block);
+    } else if (typeof block === 'undefined') {
+      block = new EditorBlock('');
+    }
+
+    return block;
+  };
 
   Object.defineProperty(EditorBlock.prototype, 'i', {
     get: function() {
@@ -23,7 +33,7 @@ module.exports = (function() {
     },
 
     set: function(text) {
-      var gag = commonutils.isFirefox() ? '\n' : '<br>';
+      var gag = utils.isFirefox() ? '\n' : '<br>';
       this.dom.innerHTML = text.length === 0 ? gag : this.process(this.sanitize(text));
 
       this.type = this.text;
@@ -65,7 +75,7 @@ module.exports = (function() {
   };
 
   EditorBlock.prototype.sanitize = function editorBlockSanitize(text) {
-    return commonutils.htmlEntities(text.replace(/(\r\n|\n|\r)/gm, ''));
+    return utils.htmlEntities(text.replace(/(\r\n|\n|\r)/gm, ''));
   };
 
   EditorBlock.prototype.process = function editorBlockProcess(text) {

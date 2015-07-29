@@ -1,20 +1,19 @@
-var path = require('path');
-var gulp = require('gulp');
-var requireDir = require('require-dir');
-var jscs = require('gulp-jscs');
-var eslint = require('gulp-eslint');
-
 var packageJson = require('./package.json');
-
 if (packageJson.namedModules) {
   require('node-named-modules')();
 }
 
-var configs = require('commonconfigs');
+var path = require('path');
+var gulp = require('gulp');
+var jscs = require('gulp-jscs');
+var eslint = require('gulp-eslint');
 
-requireDir('./configs/gulp', {
-  recurse: true
-});
+require('./configs/web/backend/gulp.dev.tasks.js');
+require('./configs/web/frontend/gulp.dev.tasks.js');
+require('./configs/web/frontend/gulp.dev.test.tasks.js');
+
+var pathes = require('pathes');
+
 
 gulp.task('common-watch-named-modules', function() {
   if (packageJson.namedModules) {
@@ -32,8 +31,8 @@ gulp.task('run-dev-web', ['run-dev-web-frontend', 'run-dev-web-backend']);
 
 gulp.task('jscs', function() {
   return gulp.src([
-      path.join(configs.paths.app.web.private.backend.js, '/**/*.js'),
-      path.join(configs.paths.app.web.private.frontend.js, '/**/*.js')
+      path.join(pathes.app.web.private.backend.js, '/**/*.js'),
+      path.join(pathes.app.web.private.frontend.js, '/**/*.js')
     ])
     .pipe(jscs());
 });

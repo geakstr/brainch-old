@@ -103,6 +103,8 @@ sftp-config.json
 
 
 
+.vagrant
+
 app/web/private/backend/js/es5
 app/web/public/bundles/
 app/web/public/css/style.css

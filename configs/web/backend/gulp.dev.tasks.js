@@ -3,14 +3,14 @@ var gulp = require('gulp');
 var nodemon = require('nodemon');
 var notifier = require('node-notifier');
 
-var configs = require('commonconfigs');
+var pathes = require('pathes');
 
 gulp.task('run-dev-web-backend', function() {
   nodemon({
-    script: path.join(configs.paths.app.web.private.backend.js, '/index.js'),
+    script: path.join(pathes.app.web.private.backend.js, '/index.js'),
     watch: [
-      path.join(configs.paths.app.web.private.backend.js, '/**/*.js'),
-      path.join(configs.paths.app.web.private.backend.views, '/**/*.html')
+      path.join(pathes.app.web.private.backend.js, '/**/*.js'),
+      path.join(pathes.app.web.private.backend.views, '/**/*.html')
     ],
     ext: 'js html',
     nodeArgs: ['--harmony']

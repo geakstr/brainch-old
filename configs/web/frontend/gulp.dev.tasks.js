@@ -6,7 +6,7 @@ var koutoSwiss = require('kouto-swiss');
 var autoprefixer = require('gulp-autoprefixer');
 var notifier = require('node-notifier');
 
-var configs = require('commonconfigs');
+var pathes = require('pathes');
 var sourcemaps = require('gulp-sourcemaps');
 
 gulp.task('css-dev-web-frontend', function() {
@@ -26,7 +26,7 @@ gulp.task('css-dev-web-frontend', function() {
     stylusPipe.end();
   });
 
-  return gulp.src(path.join(configs.paths.app.web.private.frontend.stylus, '/style.styl'))
+  return gulp.src(path.join(pathes.app.web.private.frontend.stylus, '/style.styl'))
     .pipe(sourcemaps.init())
     .pipe(stylusPipe)
     .pipe(autoprefixer({
@@ -34,11 +34,11 @@ gulp.task('css-dev-web-frontend', function() {
       cascade: true
     }))
     .pipe(sourcemaps.write('.'))
-    .pipe(gulp.dest(configs.paths.app.web.public.css));
+    .pipe(gulp.dest(pathes.app.web.public.css));
 });
 
 gulp.task('webpack-dev-web-frontend', function(done) {
-  webpack(configs.configs.webpack.web.frontend,
+  webpack(pathes.configs.web.frontend.dev.webpack,
     function(err, stats) {
       if (err) {
         console.log('Error', err);
@@ -61,8 +61,8 @@ gulp.task('webpack-dev-web-frontend', function(done) {
 });
 
 gulp.task('watch-dev-web-frontend', function() {
-  gulp.watch(path.join(configs.configs.webpack.web.frontend.context, '/**/*.js'), ['webpack-dev-web-frontend']);
-  gulp.watch(path.join(configs.paths.app.web.private.frontend.stylus, '/**/*.styl'), ['css-dev-web-frontend']);
+  gulp.watch(path.join(pathes.configs.web.frontend.dev.webpack.context, '/**/*.js'), ['webpack-dev-web-frontend']);
+  gulp.watch(path.join(pathes.app.web.private.frontend.stylus, '/**/*.styl'), ['css-dev-web-frontend']);
 });
 
 gulp.task('build-dev-web-frontend', ['webpack-dev-web-frontend', 'css-dev-web-frontend']);

@@ -1,4 +1,5 @@
 var Editor = require('./Editor');
+var Promise = require('promise/lib/es6-extensions');
 
 window.onload = function() {
   var edtr = new Editor(document.querySelector('#edtr'));

@@ -1,6 +1,7 @@
 var Block = require('./EditorBlock');
+var History = require('./EditorHistory.js');
 var Keys = require('./Keys');
-var commonutils = require('commonutils');
+var utils = require('utils');
 
 module.exports = (function() {
   function EditorModel(parentDom) {
@@ -29,11 +30,7 @@ module.exports = (function() {
   };
 
   EditorModel.prototype.insertBlockAt = function editorModelInsertBlockAt(i, block) {
-    if (typeof block === 'string') {
-      block = new Block(block, this.blocks);
-    } else if (typeof block === 'undefined') {
-      block = new Block('', this.blocks);
-    }
+    block = Block.build(block);
 
     block.i = i;
 
@@ -74,7 +71,7 @@ module.exports = (function() {
   };
 
   EditorModel.prototype.insertText = function editorModelInsertText(_selection, text) {
-    var selection = commonutils.cloneAssoc(_selection);
+    var selection = utils.cloneAssoc(_selection);
 
     var startBlock = this.block(selection.startI);
     var endBlock = this.block(selection.endI);
@@ -95,7 +92,7 @@ module.exports = (function() {
   };
 
   EditorModel.prototype.removeText = function editorModelRemoveText(_selection, keyCode) {
-    var selection = commonutils.cloneAssoc(_selection);
+    var selection = utils.cloneAssoc(_selection);
 
     if (typeof keyCode === 'undefined') {
       keyCode = Keys.backspace;
@@ -176,7 +173,7 @@ module.exports = (function() {
   };
 
   EditorModel.prototype._updateBlockIndicesFrom = function editorModelUpdateBlockIndicesFrom(from) {
-    commonutils.range(from, this.size(), function(i) {
+    utils.range(from, this.size(), function(i) {
       this.block(i).i = i;
     }, this);
   };
