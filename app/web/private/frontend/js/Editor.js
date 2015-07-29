@@ -1,7 +1,7 @@
 var utils = require('utils');
 var Selection = require('./Selection');
 var Model = require('./EditorModel');
-var block = require('./editor/block').factory;
+var block = require('./editor/block').instance;
 var Keys = require('./Keys');
 var Config = require('./Config');
 
@@ -30,27 +30,27 @@ module.exports = (function() {
   Editor.prototype.inputActions = {
     carriageReturn: function editorInputActionsCarriageReturn(selection) {
       this.model.insertText(selection, undefined);
-      Selection.setCaretInNode(this.model.block(selection.startI + 1).dom, 0);
+      Selection.setCaretInNode(this.model.block(selection.startI + 1).container, 0);
     },
 
     delete: function editorInputActionsDelete(selection) {
       var caret = this.model.removeText(selection, Keys.delete);
-      Selection.setCaretInNode(this.model.block(caret.blockIdx).dom, caret.offset);
+      Selection.setCaretInNode(this.model.block(caret.blockIdx).container, caret.offset);
     },
 
     backspace: function editorInputActionsBackspace(selection) {
       var caret = this.model.removeText(selection, Keys.backspace);
-      Selection.setCaretInNode(this.model.block(caret.blockIdx).dom, caret.offset);
+      Selection.setCaretInNode(this.model.block(caret.blockIdx).container, caret.offset);
     },
 
     tab: function editorInputActionsTab(selection) {
       this.model.insertText(selection, '\t');
-      Selection.setCaretInNode(this.model.block(selection.startI).dom, selection.startPos + 1);
+      Selection.setCaretInNode(this.model.block(selection.startI).container, selection.startPos + 1);
     },
 
     charUnderSelection: function editorInputActionsCharUnderSelection(selection) {
       this.model.removeText(selection);
-      Selection.setCaretInNode(this.model.block(selection.startI).dom, selection.startPos);
+      Selection.setCaretInNode(this.model.block(selection.startI).container, selection.startPos);
     },
 
     justChar: function editorInputActionsJustChar(wasKeydown, wasKeypress, wasKeyup) {
@@ -70,7 +70,7 @@ module.exports = (function() {
       }
 
       var b = this.model.block(selection.startI);
-      Selection.setCaretInNode(b.dom, selection.startPos);
+      Selection.setCaretInNode(b.container, selection.startPos);
       var ch = b.text.substring(selection.startPos - 1, selection.startPos);
 
       if (Config.debug.on && Config.debug.verbose) {
@@ -267,9 +267,7 @@ module.exports = (function() {
       } else {
         if (!selection.isRange && selection.startPos === 0 && selection.startI === 0) {
           utils.range(blocksLen - 1, function(i) {
-            this.model.insertBlockAt(selection.startI, block({
-              text: blocks[i]
-            }));
+            this.model.insertBlockAt(selection.startI, block(blocks[i]));
             selection.startI++;
             selection.endI++;
           }, this);
@@ -280,9 +278,7 @@ module.exports = (function() {
           this.model.insertText(selection, blocks[0]);
 
           utils.range(1, blocksLen, function(i) {
-            this.model.insertBlockAt(++selection.startI, block({
-              text: blocks[i]
-            }));
+            this.model.insertBlockAt(++selection.startI, block(blocks[i]));
           }, this);
         } else {
           startText = startText.substring(0, selection.startPos);
@@ -295,20 +291,16 @@ module.exports = (function() {
           }
 
           utils.range(1, blocksLen - 1, function(i) {
-            this.model.insertBlockAt(++selection.startI, block({
-              text: blocks[i]
-            }));
+            this.model.insertBlockAt(++selection.startI, block(blocks[i]));
           }, this);
 
-          this.model.insertBlockAt(++selection.startI, block({
-            text: blocks[blocksLen - 1] + endText
-          }));
+          this.model.insertBlockAt(++selection.startI, block(blocks[blocksLen - 1] + endText));
         }
 
         offset = blocks[blocksLen - 1].length;
       }
 
-      Selection.setCaretInNode(this.model.block(selection.startI).dom, offset);
+      Selection.setCaretInNode(this.model.block(selection.startI).container, offset);
 
       return false;
     },
@@ -351,7 +343,7 @@ module.exports = (function() {
       event.clipboardData.setData('text/plain', text);
 
       this.model.removeText(selection);
-      Selection.setCaretInNode(startBlock.dom, selection.startPos);
+      Selection.setCaretInNode(startBlock.container, selection.startPos);
       return false;
     },
 

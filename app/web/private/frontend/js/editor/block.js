@@ -8,66 +8,108 @@ var sanitize = exports.sanitize = function(text) {
   return text.deentitify();
 };
 
-var process = exports.process = function(text) {
+var decorate = exports.decorate = function(text) {
   return text.replace(/big/g, '<span class="-date">big</span>');
 };
 
-exports.factory = function(spec) {
-  var dom = document.createElement('p');
+var detect_type = exports.detect_type = function(text) {
+  if (text.trim()[0] === '-') {
+    return 'task';
+  } else if (text.length === 0) {
+    return 'empty';
+  }
 
-  var typify = function(text) {
-    dom.className = 'blck';
+  return 'note';
+};
 
-    if (text.trim()[0] === '-') {
-      dom.classList.add('task');
-    } else if (text.length === 0) {
-      dom.classList.add('empty');
-    } else {
-      dom.classList.add('note');
-    }
-  };
+var dom_block = exports.dom = function(text) {
+  var container = document.createElement('p');
 
   var that = {
-    get dom() {
-      return dom;
+    get container() {
+      return container;
     },
 
     get text() {
-      return dom.textContent;
+      return container.textContent || '';
     },
 
     set text(value) {
       var gag = utils.isFirefox() ? '\n' : '<br>';
-      dom.innerHTML = value.length === 0 ? gag : process(normalize(sanitize(value)));
+      container.innerHTML = value.length === 0 ? gag : decorate(normalize(sanitize(value)));
 
-      this.type = typify(this.text);
+      that.type = detect_type(that.text);
     },
 
     get i() {
-      return dom.getAttribute('data-i') || 0;
+      return container.getAttribute('data-i') || 0;
     },
 
     set i(value) {
-      dom.setAttribute('data-i', value);
+      container.setAttribute('data-i', value);
     },
 
     get type() {
-      if (dom.classList.contains('task')) {
+      if (container.classList.contains('task')) {
         return 'task';
-      } else if (dom.classList.contains('empty')) {
+      } else if (container.classList.contains('empty')) {
         return 'empty';
-      } else {
-        return 'note';
       }
+
+      return 'note';
     },
 
-    get length() {
-      return this.text.lenght;
+    set type(type) {
+      container.className = 'blck';
+      container.classList.add(type);
     }
   };
 
-  that.text = spec.text || '';
-  that.i = spec.i || 0;
+  that.text = text || '';
 
   return that;
+};
+
+var node_block = exports.node = function(text) {
+  var container = {};
+
+  var that = {
+    get container() {
+      return container;
+    },
+
+    get text() {
+      return container.text || '';
+    },
+
+    set text(value) {
+      container.html = value.length === 0 ? '\n' : decorate(normalize(sanitize(value)));
+
+      that.type = detect_type(that.text);
+    },
+
+    get i() {
+      return container.i || 0;
+    },
+
+    set i(value) {
+      container.i = value;
+    },
+
+    get type() {
+      return container.type || 'note';
+    },
+
+    set type(type) {
+      container.type = type;
+    }
+  };
+
+  that.text = text || '';
+
+  return that;
+};
+
+exports.instance = function(text) {
+  return utils.isBrowser() ? dom_block(text) : node_block(text);
 };

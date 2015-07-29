@@ -1,4 +1,4 @@
-var block = require('./editor/block').factory;
+var block = require('./editor/block').instance;
 var Keys = require('./Keys');
 var utils = require('utils');
 
@@ -32,7 +32,7 @@ module.exports = (function() {
     b.i = i;
 
     this._splice(i, 0, b);
-    this.parentDom.insertBefore(b.dom, this.parentDom.childNodes[i]);
+    this.parentDom.insertBefore(b.container, this.parentDom.childNodes[i]);
     this._updateBlockIndicesFrom(i + 1);
 
     return block;
@@ -82,9 +82,7 @@ module.exports = (function() {
     }
 
     if (typeof text === 'undefined') { // this means was carriage return
-      this.insertBlockAt(selection.startI + 1, block({
-        text: endText
-      }));
+      this.insertBlockAt(selection.startI + 1, block(endText));
     } else {
       startBlock.text += text + endText;
     }
@@ -162,8 +160,8 @@ module.exports = (function() {
   EditorModel.prototype._splice = function editorModelSplice(i, n, b) {
     if (typeof b === 'undefined') {
       this.blocks.splice(i, n).forEach(function(x) {
-        if (this.parentDom.contains(x.dom)) {
-          this.parentDom.removeChild(x.dom);
+        if (this.parentDom.contains(x.container)) {
+          this.parentDom.removeChild(x.container);
         }
       }, this);
     } else {

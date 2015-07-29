@@ -16,6 +16,7 @@
     "no-unused-vars": [2, {"vars": "all", "args": "none"}],
     "new-cap": [2, { "capIsNewExceptions": ["List", "Map"] }],
     "no-extend-native": [0],
-    "camelcase": [0]
+    "camelcase": [0],
+    "no-shadow": [0]
   }
 }
