@@ -9,6 +9,10 @@ module.exports = {
     publicPath: '/static/bundles/',
     filename: 'bundle.js'
   },
+  node: {
+    process: false,
+    global: false
+  },
   resolve: {
     alias: {}
   },

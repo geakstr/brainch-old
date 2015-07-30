@@ -6,11 +6,17 @@ module.exports = {
       frontend: {
         dev: {
           webpack: require('./web/frontend/webpack.dev.js')
+        },
+        prod: {
+          webpack: require('./web/frontend/webpack.prod.js')
         }
       }
     }
   },
   app: {
+    common: {
+      js: path.join(process.cwd(), 'app/common/js')
+    },
     web: {
       private: {
         backend: {

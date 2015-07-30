@@ -14,7 +14,9 @@
   ],
   "namedModules": {
     "pathes": "configs/pathes.js",
-    "utils": "app/common/utils.js"
+    "common": "app/common/js",
+    "frontend": "app/web/private/frontend/js/",
+    "backend": "app/web/private/backend/js/"
   },
   "dependencies": {
     "express": "^4.13.0",

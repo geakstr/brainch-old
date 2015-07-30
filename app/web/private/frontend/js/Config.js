@@ -5,6 +5,6 @@ module.exports = {
     verbose: true
   },
   editor: {
-    handleExtendedActions: false
+    handle_extended_actions: false
   }
 };

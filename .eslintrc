@@ -17,6 +17,7 @@
     "new-cap": [2, { "capIsNewExceptions": ["List", "Map"] }],
     "no-extend-native": [0],
     "camelcase": [0],
-    "no-shadow": [0]
+    "no-shadow": [0],
+    "no-use-before-define": [0, "nofunc"]
   }
 }
