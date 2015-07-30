@@ -127,7 +127,10 @@ module.exports = function(dom) {
           return insert_text(args[0], args[1]);
         }
       }
-      throw utils.exceptions['function signature not supported'];
+
+      utils.exceptions.log(utils.exceptions['function signature not supported']());
+
+      return null;
     },
 
     remove: function() {
@@ -209,7 +212,10 @@ module.exports = function(dom) {
           return remove_text(args[0], args[1]);
         }
       }
-      throw utils.exceptions['function signature not supported'];
+
+      utils.exceptions.log(utils.exceptions['function signature not supported']());
+
+      return null;
     },
 
     saveToHistory: function(action) {

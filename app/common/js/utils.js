@@ -194,7 +194,9 @@ exports.clone = {
   assoc: function(o) {
     var r = Object.create(null);
     for (var p in o) {
-      r[p] = o[p];
+      if (!o.hasOwnProperty || o.hasOwnProperty(p)) {
+        r[p] = o[p];
+      }
     }
     return r;
   }
@@ -274,9 +276,20 @@ exports.event = function(event) {
 };
 
 exports.exceptions = {
-  'function signature not supported': {
-    name: 'TypeError',
-    message: 'This function signature not supported'
+  log: function(e) {
+    console.log(e.name + ' : ' + e.message);
+  },
+  'function signature not supported': function() {
+    return {
+      name: 'TypeError',
+      message: 'This function signature not supported'
+    };
+  },
+  'editor selection error': function() {
+    return {
+      name: 'EditorError',
+      message: 'Something wrong with selection'
+    };
   }
 };
 

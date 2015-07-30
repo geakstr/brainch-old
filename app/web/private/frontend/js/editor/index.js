@@ -70,9 +70,13 @@ module.exports = function(dom) {
 
         state.dom.html.length = dom.innerHTML.length;
 
-        var s = selection.get(model);
-        if (s === null) {
-          return;
+        try {
+          var s = selection.get(model);
+        } catch (e) {
+          if (e.name === 'EditorError') {
+            utils.exceptions.log(e);
+            return;
+          }
         }
 
         var b = model.get(s.start.i).normalize();
@@ -128,7 +132,7 @@ module.exports = function(dom) {
     events: {
       char_keypress: function(event) {
         var e = utils.event(event);
-        if (typeof e.key === 'number' && e.key > 0) {
+        if (utils.is.num(e.key) && e.key > 0) {
           return !e.ctrl && !e.meta && this.handled_key(e.key);
         }
 
@@ -173,7 +177,15 @@ module.exports = function(dom) {
 
       state.events.prevents.default = false;
 
-      var s = selection.get(model);
+      try {
+        var s = selection.get(model);
+      } catch (e) {
+        if (e.name === 'EditorError') {
+          utils.exceptions.log(e);
+          return false;
+        }
+      }
+
       if (s !== null) {
         state.events.prevents.default = true;
 
@@ -260,9 +272,13 @@ module.exports = function(dom) {
       state.events.prevents.default = true;
       e.prevent();
 
-      var s = selection.get(model);
-      if (s === null) {
-        return false;
+      try {
+        var s = selection.get(model);
+      } catch (e) {
+        if (e.name === 'EditorError') {
+          utils.exceptions.log(e);
+          return false;
+        }
       }
 
       var pasted = e.clipboard.get.text();
@@ -327,9 +343,13 @@ module.exports = function(dom) {
       state.events.prevents.default = true;
       e.prevent();
 
-      var s = selection.get(model);
-      if (s === null) {
-        return false;
+      try {
+        var s = selection.get(model);
+      } catch (e) {
+        if (e.name === 'EditorError') {
+          utils.exceptions.log(e);
+          return false;
+        }
       }
 
       var text = '';
@@ -365,8 +385,10 @@ module.exports = function(dom) {
       state.events.prevents.default = true;
       e.prevent();
 
-      var s = selection.get(model);
-      if (s === null) {
+      try {
+        var s = selection.get(model);
+      } catch (e) {
+        utils.exceptions.log(e);
         return false;
       }
 

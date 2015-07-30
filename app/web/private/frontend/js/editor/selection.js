@@ -1,10 +1,11 @@
 var selection = require('common/editor/selection');
+var utils = require('common/utils');
 
 exports.get = function(model) {
   var s = window.getSelection();
 
   if (!s.anchorNode || !s.focusNode) {
-    return null;
+    throw utils.exceptions['editor selection error']();
   }
 
   var anchor = s.anchorNode;
@@ -24,14 +25,14 @@ exports.get = function(model) {
     }
 
     if (anchor === null || focus === null) {
-      return null;
+      throw utils.exceptions['editor selection error']();
     }
 
     info.start.i = +anchor.getAttribute('data-i');
     info.end.i = +focus.getAttribute('data-i');
 
     if (Number.isNaN(info.start.i) || Number.isNaN(info.end.i)) {
-      return null;
+      throw utils.exceptions['editor selection error']();
     }
 
     if (info.start.i > info.end.i) {
