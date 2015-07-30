@@ -7,6 +7,7 @@ var path = require('path');
 var gulp = require('gulp');
 var jscs = require('gulp-jscs');
 var eslint = require('gulp-eslint');
+var exec = require('child_process').exec;
 
 require('./configs/web/backend/gulp.dev.tasks.js');
 require('./configs/web/frontend/gulp.dev.tasks.js');
@@ -42,4 +43,22 @@ gulp.task('eslint', function() {
     .pipe(eslint())
     .pipe(eslint.format())
     .pipe(eslint.failOnError());
+});
+
+gulp.task('jsdoc', function(cb) {
+  var bin = ' ./node_modules/.bin/jsdoc --verbose -r ';
+  var output = ' -d ./docs ';
+  var template = ' -t ./node_modules/ink-docstrap/template ';
+  var config = ' -c ./jsdoc.json ';
+  var scripts = ' app/common/js/editor/model.js ';
+  var cmd = bin + output + config + template + scripts;
+  exec(cmd, function(err, stdout, stderr) {
+    if (stdout) {
+      console.log(stdout.trim());
+    }
+    if (stderr) {
+      console.log(stderr.trim());
+    }
+    cb(err);
+  });
 });

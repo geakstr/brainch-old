@@ -1,8 +1,28 @@
+'use strict';
+
+/** @module common/editor/model */
+
 var utils = require('common/utils');
 var block = require('common/editor/block').factory;
 var keys = require('common/keys_map');
 
+/**
+ * Model represent document and working with it
+ *
+ * @alias module:common/editor/model
+ *
+ * @param  {Node} dom Node in DOM where model applied
+ *
+ * @return {model}    Model object
+ */
 module.exports = function(dom) {
+  /**
+   * Store blocks
+   *
+   * @private
+   *
+   * @type {Array}
+   */
   var blocks = [];
   var history = {
     i: 0,
@@ -10,33 +30,44 @@ module.exports = function(dom) {
   };
 
   /**
-   * Override default array splice method.
-   * This also remove node elements in array from DOM.
-   * And accept only one element for insert
+   * Override default array splice method for 'blocks' variable
+   * This also remove associated node elements in array from DOM.
+   * Accept only one element (block) for insert
    *
-   * @param  {number} i start
-   * @param  {number} n delete count
-   * @param  {object} b item
-   * @return {array}    deleted items
+   * @private
+   *
+   * @param  {Number} i Start index (inclusive)
+   * @param  {Number} n Delete count
+   * @param  {Object} b Block object
+   *
+   * @return {Array}    Removed items
    */
   blocks.splice = function(i, n, b) {
     if (!utils.is.undef(b)) {
       return Array.prototype.splice.call(this, i, n, b);
     }
 
-    var ret = Array.prototype.splice.call(this, i, n);
+    var removed = Array.prototype.splice.call(this, i, n);
 
     if (dom && utils.is.browser()) {
-      ret.forEach(function(x) {
+      removed.forEach(function(x) {
         if (dom.contains(x.container)) {
           dom.removeChild(x.container);
         }
       });
     }
 
-    return ret;
+    return removed;
   };
 
+  /**
+   * Update indices of blocks in 'blocks' variable
+   *
+   * @private
+   *
+   * @param  {Number} start Start from index (inclusive)
+   * @param  {Number} stop  Go to this index (inclusive)
+   */
   blocks.update_indices = function(start, stop) {
     start = start || 0;
     stop = stop || (blocks.length - 1);
@@ -46,9 +77,14 @@ module.exports = function(dom) {
   };
 
   var that = {
+    /** @lends module:common/editor/model.model */
+
     /**
-     * Get array of blocks
-     * @return {array} array of blocks
+     * Get all blocks
+     *
+     * @function blocks
+     *
+     * @return {Array} Blocks objects in array
      */
     get blocks() {
       return blocks;
@@ -56,7 +92,10 @@ module.exports = function(dom) {
 
     /**
      * Get number of blocks
-     * @return {number} number of blocks
+     *
+     * @function size
+     *
+     * @return {Number} Number of blocks
      */
     size: function() {
       return that.blocks.length;
@@ -64,30 +103,72 @@ module.exports = function(dom) {
 
     /**
      * Get block by index
-     * @param  {number} i block index
-     * @return {block}    block object
+     *
+     * @function get
+     *
+     * @param  {Number} i Index of block
+     *
+     * @return {block}    Block object
      */
     get: function(i) {
       return that.blocks[i];
     },
 
+    /**
+     * Get first block in array
+     *
+     * @function first
+     *
+     * @return {block} Block object
+     */
     first: function() {
       return that.get(0);
     },
 
     /**
      * Get last block in array
-     * @return {block} block object
+     *
+     * @function last
+     *
+     * @return {block} Block object
      */
     last: function() {
       return that.get(that.size() - 1);
     },
 
+    /**
+     * Add block to tail of array
+     *
+     * @function push
+     *
+     * @param  {block}  b  Block for insert
+     *
+     * @return {block}     Pushed block
+     */
     push: function(b) {
       return that.insert(this.size(), b);
     },
 
-    insert: function(i, b) {
+    /**
+     * Insert text or block to model<br>
+     *
+     * @example {@lang javascript}
+     * // Insert text under selection
+     * model.insert(selection_object, text);
+     * // Insert block on index
+     * model.insert(index, block);
+     *
+     * @function insert
+     *
+     * @param  {Object|Number}   x {Object} Selection object when insert text<br>
+     *                             {Number} Position (index) when insert block
+     * @param  {String|block}    y {String} Text when insert text<br>
+     *                             {block}  Block when insert block
+     *
+     * @return {undefined|block}   {undefined} When insert text<br>
+     *                             {block} When insert block
+     */
+    insert: function() {
       var args = utils.get.args(arguments);
 
       var insert_block = function(i, b) {
@@ -133,6 +214,36 @@ module.exports = function(dom) {
       return null;
     },
 
+    /**
+     * Remove text or block from model<br>
+     *
+     * @example {@lang javascript}
+     * // Remove blocks from index (inclusive) to index (inclusive)
+     * model.remove(from_idx, to_idx);
+     * // Remove block by index
+     * model.remove(index)
+     * // Remove text under selection with key code (backspace or delete)
+     * model.remove(selection_object, key_code)
+     *
+     * @function remove
+     *
+     * @param {Number|Object}   x {Number} When this is single arg this is<br>
+     *                            index of block for remove<br>
+     *                            {Number} When has number in second arg<br>
+     *                            this is 'from' idx in range for remove blocks<br>
+     *                            {Object} This is selection object for remove<br>
+     *                            text
+     *
+     * @param {Number}          y When first arg is number this is 'to' idx in<br>
+     *                            range for remove blocks. Otherwise when first<br>
+     *                            arg is selection object this is<br>
+     *                            key code (backspace or delete)
+     *
+     * @return {Array|Object}     {Array} When remove blocks this is array<br>
+     *                            with removed items<br>
+     *                            {Object} When remove text this is object<br>
+     *                            with information about new caret position
+     */
     remove: function() {
       var args = utils.get.args(arguments);
 

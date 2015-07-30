@@ -36,13 +36,13 @@ Number.isNaN = Number.isNaN || function(value) {
  * arr.loop(callback);
  *
  * Procedure can be called with variable args set
- * @param {number}    start       Iterate from this index (inclusive)
- * @param {number}    stop        Iterate to this index (inclusive)
- * @param {number}    step        Iteration step (positive or negative)
- * @param {function}  callback    Callback function which call with
+ * @param {Number}    start       Iterate from this index (inclusive)
+ * @param {Number}    stop        Iterate to this index (inclusive)
+ * @param {Number}    step        Iteration step (positive or negative)
+ * @param {Function}  callback    Callback function which call with
  *                                cur element and index params on each iteration
- * @param {object}    context     Context object for callback function
- * @param {function}  checker     Check function which call with
+ * @param {Object}    context     Context object for callback function
+ * @param {Function}  checker     Check function which call with
  *                                start, stop and step params on each iteration
  * @return {void}
  */
