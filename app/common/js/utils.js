@@ -1,3 +1,5 @@
+'use strict';
+
 Function.prototype.method = function(name, f) {
   this.prototype[name] = f;
   return this;

@@ -1,3 +1,5 @@
+'use strict';
+
 var utils = require('common/utils');
 var dom_block = require('frontend/editor/block');
 var node_block = require('backend/editor/block');

@@ -1,3 +1,5 @@
+'use strict';
+
 var selection = require('common/editor/selection');
 var utils = require('common/utils');
 

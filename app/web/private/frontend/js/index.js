@@ -1,3 +1,5 @@
+'use strict';
+
 var block = require('common/editor/block').factory;
 
 window.onload = function() {

@@ -1,3 +1,5 @@
+'use strict';
+
 var utils = require('common/utils');
 var block = require('common/editor/block');
 

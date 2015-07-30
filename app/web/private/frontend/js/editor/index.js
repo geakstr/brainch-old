@@ -1,8 +1,10 @@
+'use strict';
+
 var utils = require('common/utils');
 var block = require('common/editor/block').factory;
 var keys = require('common/keys_map');
 
-var config = require('frontend/config');
+var config = require('frontend/configs');
 var selection = require('frontend/editor/selection');
 
 module.exports = function(dom) {

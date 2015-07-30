@@ -1,3 +1,5 @@
+'use strict';
+
 module.exports = {
   backspace: 8,
   tab: 9,

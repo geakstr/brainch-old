@@ -1,3 +1,5 @@
+'use strict';
+
 exports.build = function(model) {
   var info = Object.create(null);
 
