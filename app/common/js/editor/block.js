@@ -20,14 +20,20 @@ exports.build = function(x, gag) {
   return x.length === 0 ? gag : exports.decorate(exports.sanitize(exports.normalize(x)));
 };
 
+var Types = exports.Types = {
+  TASK: 'task',
+  EMPTY: 'empty',
+  NOTE: 'note'
+};
+
 exports.detect_type = function(x) {
   if (x.trim()[0] === '-') {
-    return 'task';
+    return Types.TASK;
   } else if (x.length === 0) {
-    return 'empty';
+    return Types.EMPTY;
   }
 
-  return 'note';
+  return Types.NOTE;
 };
 
 exports.factory = function(text) {

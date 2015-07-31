@@ -3,8 +3,19 @@
     "allowUnknownTags": true
   },
   "source": {
+    "include": [
+      "app/common/js",
+      "app/web/private/backend/js",
+      "app/web/private/frontend/js"
+    ],
     "includePattern": ".+\\.js(doc)?$",
     "excludePattern": "(^|\\/|\\\\)_"
+  },
+  "opts": {
+    "template": "./node_modules/ink-docstrap/template",
+    "encoding": "utf8",
+    "destination": "./docs/",
+    "recurse": true
   },
   "plugins": [],
   "templates": {

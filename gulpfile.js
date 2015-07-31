@@ -46,12 +46,7 @@ gulp.task('eslint', function() {
 });
 
 gulp.task('jsdoc', function(cb) {
-  var bin = ' ./node_modules/.bin/jsdoc --verbose -r ';
-  var output = ' -d ./docs ';
-  var template = ' -t ./node_modules/ink-docstrap/template ';
-  var config = ' -c ./jsdoc.json ';
-  var scripts = ' app/common/js/editor/model.js ';
-  var cmd = bin + output + config + template + scripts;
+  var cmd = './node_modules/.bin/jsdoc --verbose -c ./jsdoc.json';
   exec(cmd, function(err, stdout, stderr) {
     if (stdout) {
       console.log(stdout.trim());

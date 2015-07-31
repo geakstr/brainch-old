@@ -27,7 +27,7 @@
 			<li class="dropdown">
 				<a href="modules.list.html" class="dropdown-toggle" data-toggle="dropdown">Modules<b class="caret"></b></a>
 				<ul class="dropdown-menu ">
-					<li><a href="module-common_editor_model.html">common/editor/model</a></li>
+					<li><a href="module-backend_editor_block.html">backend/editor/block</a></li><li><a href="module-common_editor_block.html">common/editor/block</a></li><li><a href="module-common_editor_model.html">common/editor/model</a></li>
 				</ul>
 			</li>
 			
@@ -228,32 +228,34 @@
     
 
     
-
-    
-        <h3 class="subsection-title">Methods</h3>
+        <h3 class="subsection-title">Members</h3>
 
         <dl>
             
-<dt>
-    <h4 class="name" id="~blocks"><span class="type-signature">&lt;inner> </span>blocks<span class="signature">()</span><span class="type-signature"> &rarr; {Array}</span></h4>
-    
+<dt class="name" id="~blocks">
+    <h4><span class="type-signature">&lt;inner> </span>blocks<span class="type-signature"> :Array.&lt;block></span></h4>
+
     
 </dt>
 <dd>
     
-    
     <div class="description">
-        Get all blocks
+        Array of blocks
     </div>
     
 
     
+        <h5>Type:</h5>
+        <ul>
+            <li>
+                
+<span class="param-type">Array.&lt;block></span>
 
+
+            </li>
+        </ul>
     
-    
-    
-    
-    
+
     
 <dl class="details">
 	
@@ -293,46 +295,17 @@
 	
 </dl>
 
-    
-    
 
-    
-
-    
-
-    
-    
-    
-    
-    
-    <h5>Returns:</h5>
-    
-            
-<div class="param-desc">
-    Blocks objects in array
-</div>
-
-
-
-<dl>
-	<dt>
-		Type
-	</dt>
-	<dd>
-		
-<span class="param-type">Array</span>
-
-
-	</dd>
-</dl>
-
-
-        
-    
     
 </dd>
 
-        
+        </dl>
+    
+
+    
+        <h3 class="subsection-title">Methods</h3>
+
+        <dl>
             
 <dt>
     <h4 class="name" id="~first"><span class="type-signature">&lt;inner> </span>first<span class="signature">()</span><span class="type-signature"> &rarr; {block}</span></h4>
@@ -584,7 +557,7 @@
         
             
 <dt>
-    <h4 class="name" id="~insert"><span class="type-signature">&lt;inner> </span>insert<span class="signature">(x, y)</span><span class="type-signature"> &rarr; {undefined|block}</span></h4>
+    <h4 class="name" id="~insert"><span class="type-signature">&lt;inner> </span>insert<span class="signature">(x, y)</span><span class="type-signature"> &rarr; {Object|undefined|block}</span></h4>
     
     
 </dt>
@@ -592,7 +565,7 @@
     
     
     <div class="description">
-        Insert text or block to model<br>
+        Insert text or block to model
     </div>
     
 
@@ -633,6 +606,9 @@
             <td class="type">
             
                 
+<span class="param-type">undefined</span>
+|
+
 <span class="param-type">Object</span>
 |
 
@@ -646,8 +622,9 @@
 
             
 
-            <td class="description last">{Object} Selection object when insert text<br>
-                            {Number} Position (index) when insert block</td>
+            <td class="description last">{undefined} When want to get manual choice of action<br>
+                                      {Object}    Selection object when insert text<br>
+                                      {Number}    Position (index) when insert block</td>
         </tr>
 
 	
@@ -660,6 +637,9 @@
             <td class="type">
             
                 
+<span class="param-type">undefined</span>
+|
+
 <span class="param-type">String</span>
 |
 
@@ -673,8 +653,9 @@
 
             
 
-            <td class="description last">{String} Text when insert text<br>
-                            {block}  Block when insert block</td>
+            <td class="description last">{undefined} When want to get manual choice of action<br>
+                                      {String}    Text when insert text<br>
+                                      {block}     Block when insert block</td>
         </tr>
 
 	
@@ -738,8 +719,9 @@
     
             
 <div class="param-desc">
-    {undefined} When insert text<br>
-                            {block} When insert block
+    {Object}    Actions when want to get manual choice of action<br>
+                                      {undefined} When insert text<br>
+                                      {block}     Inserted block when insert block
 </div>
 
 
@@ -750,6 +732,9 @@
 	</dt>
 	<dd>
 		
+<span class="param-type">Object</span>
+|
+
 <span class="param-type">undefined</span>
 |
 
@@ -768,8 +753,22 @@
     <pre class="sunlight-highlight-javascript">
 // Insert text under selection
 model.insert(selection_object, text);
+
 // Insert block on index
-model.insert(index, block);</pre>
+model.insert(index, block);
+
+
+// Get object with actions
+var insert = model.insert();
+var insert_text = insert.text;
+var insert_block = insert.block;
+
+insert_text(selection_object, text);
+insert_block(index, block);
+
+// Or compact
+model.insert().text(selection_object, text);
+model.insert().block(index, block);</pre>
 
 
     
@@ -1027,7 +1026,7 @@ model.insert(index, block);</pre>
         
             
 <dt>
-    <h4 class="name" id="~remove"><span class="type-signature">&lt;inner> </span>remove<span class="signature">(x, y)</span><span class="type-signature"> &rarr; {Array|Object}</span></h4>
+    <h4 class="name" id="~remove"><span class="type-signature">&lt;inner> </span>remove<span class="signature">(x, y)</span><span class="type-signature"> &rarr; {Array.&lt;block>|Object}</span></h4>
     
     
 </dt>
@@ -1035,7 +1034,7 @@ model.insert(index, block);</pre>
     
     
     <div class="description">
-        Remove text or block from model<br>
+        Remove text or block from model
     </div>
     
 
@@ -1076,6 +1075,9 @@ model.insert(index, block);</pre>
             <td class="type">
             
                 
+<span class="param-type">undefined</span>
+|
+
 <span class="param-type">Number</span>
 |
 
@@ -1089,12 +1091,11 @@ model.insert(index, block);</pre>
 
             
 
-            <td class="description last">{Number} When this is single arg this is<br>
-                           index of block for remove<br>
-                           {Number} When has number in second arg<br>
-                           this is 'from' idx in range for remove blocks<br>
-                           {Object} This is selection object for remove<br>
-                           text</td>
+            <td class="description last">{undefined} When want to get manual choice of action<br>
+                                     {Number} When this is single arg this is index of block for remove<br>
+                                     {Number} When has number in second arg this is 'from' idx in range
+                                     for remove blocks<br>
+                                     {Object} This is selection object for remove text</td>
         </tr>
 
 	
@@ -1107,6 +1108,9 @@ model.insert(index, block);</pre>
             <td class="type">
             
                 
+<span class="param-type">undefined</span>
+|
+
 <span class="param-type">Number</span>
 
 
@@ -1117,10 +1121,10 @@ model.insert(index, block);</pre>
 
             
 
-            <td class="description last">When first arg is number this is 'to' idx in<br>
-                           range for remove blocks. Otherwise when first<br>
-                           arg is selection object this is<br>
-                           key code (backspace or delete)</td>
+            <td class="description last">{undefined} When want to get manual choice of action<br>
+                                     {Number} When first arg is number this is 'to' idx in range for remove
+                                     blocks. Otherwise when first arg is selection object this is key code
+                                     (backspace or delete) for remove text</td>
         </tr>
 
 	
@@ -1184,10 +1188,10 @@ model.insert(index, block);</pre>
     
             
 <div class="param-desc">
-    {Array} When remove blocks this is array<br>
-                           with removed items<br>
-                           {Object} When remove text this is object<br>
-                           with information about new caret position
+    {Object} Actions when want to get manual choice of action<br>
+                                     {block[]} When remove blocks this is array with removed items<br>
+                                     {Object} When remove text this is object
+                                     with information about new caret position
 </div>
 
 
@@ -1198,7 +1202,7 @@ model.insert(index, block);</pre>
 	</dt>
 	<dd>
 		
-<span class="param-type">Array</span>
+<span class="param-type">Array.&lt;block></span>
 |
 
 <span class="param-type">Object</span>
@@ -1216,10 +1220,28 @@ model.insert(index, block);</pre>
     <pre class="sunlight-highlight-javascript">
 // Remove blocks from index (inclusive) to index (inclusive)
 model.remove(from_idx, to_idx);
+
 // Remove block by index
 model.remove(index)
+
 // Remove text under selection with key code (backspace or delete)
-model.remove(selection_object, key_code)</pre>
+model.remove(selection_object, key_code)
+
+
+// Get object with actions
+var remove = model.remove();
+var remove_blocks = remove.blocks;
+var remove_block = remove.block;
+var remove_text = remove.text;
+
+remove_blocks(from_idx, to_idx);
+remove_block(index);
+remove_text(selection_object, key_code);
+
+// Or compact
+model.remove().blocks(from_idx, to_idx);
+model.remove().block(index);
+model.remove().text(selection_object, key_code);</pre>
 
 
     
@@ -1363,7 +1385,7 @@ model.remove(selection_object, key_code)</pre>
 
 <span class="jsdoc-message">
 	Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.3.2</a>
-	on 2015-07-31T01:54:30+03:00 using the <a
+	on 2015-07-31T13:21:58+03:00 using the <a
 	href="https://github.com/terryweiss/docstrap">DocStrap template</a>.
 </span>
 </footer>

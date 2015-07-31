@@ -242,12 +242,21 @@ exports.is = {
   }
 };
 
-exports.get = {
+exports.wrap = {
   args: function(x) {
-    return Array.prototype.slice.apply(x);
-  },
-  arity: function(x) {
-    return x.length;
+    var args = Array.prototype.slice.apply(x);
+    var arity = args.length;
+    return {
+      i: function(i) {
+        return args[i];
+      },
+      get arity() {
+        return arity;
+      },
+      get raw() {
+        return args;
+      }
+    };
   }
 };
 
