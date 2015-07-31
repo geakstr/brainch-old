@@ -1,7 +1,7 @@
 'use strict';
 
 var utils = require('common/utils');
-var block = require('common/editor/block').factory;
+var block = require('common/editor/model/block').factory;
 var keys = require('common/keys_map');
 
 var config = require('frontend/configs');

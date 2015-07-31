@@ -1,6 +1,6 @@
 'use strict';
 
-var block = require('common/editor/block');
+var block = require('common/editor/model/block');
 
 module.exports = function(text) {
   var container = {};
@@ -15,8 +15,8 @@ module.exports = function(text) {
     },
 
     set text(x) {
-      container.html = block.build(x, '\n');
-      that.type = block.detect_type(that.text);
+      container.html = block.utils.compose(x, '\n');
+      that.type = block.utils.type.detect(that.text);
     },
 
     get i() {

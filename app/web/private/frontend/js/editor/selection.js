@@ -1,7 +1,7 @@
 'use strict';
 
-var selection = require('common/editor/selection');
 var utils = require('common/utils');
+var selection = require('common/editor/selection');
 
 exports.get = function(model) {
   var s = window.getSelection();

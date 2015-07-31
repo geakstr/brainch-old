@@ -1,7 +1,7 @@
 'use strict';
 
 var utils = require('common/utils');
-var block = require('common/editor/block');
+var block = require('common/editor/model/block');
 
 module.exports = function() {
   var container = document.createElement('p');
@@ -20,8 +20,9 @@ module.exports = function() {
     },
 
     set text(x) {
-      container.innerHTML = block.build(x, utils.is.firefox() ? '\n' : '<br>');
-      that.type = block.detect_type(that.text);
+      var gag = utils.is.firefox() ? '\n' : '<br>';
+      container.innerHTML = block.utils.compose(x, gag);
+      that.type = block.utils.type.detect(that.text);
     },
 
     get i() {

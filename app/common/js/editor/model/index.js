@@ -1,45 +1,22 @@
 'use strict';
 
 var utils = require('common/utils');
-var block = require('common/editor/block').factory;
 var keys = require('common/keys_map');
 
+var block = require('./block');
+
 module.exports = function(dom) {
-  var blocks = [];
-  var history = {
-    i: 0,
-    store: []
-  };
+  var blocks = block.utils.storage(dom);
 
-  blocks.splice = function(i, n, b) {
-    if (!utils.is.undef(b)) {
-      return Array.prototype.splice.call(this, i, n, b);
-    }
-
-    var removed = Array.prototype.splice.call(this, i, n);
-
-    if (dom && utils.is.browser()) {
-      removed.forEach(function(x) {
-        if (dom.contains(x.container)) {
-          dom.removeChild(x.container);
-        }
-      });
-    }
-
-    return removed;
-  };
-
-  blocks.update_indices = function(start, stop) {
-    start = start || 0;
-    stop = stop || (blocks.length - 1);
-    blocks.loop(start, stop, function(x, i) {
-      x.i = i;
-    });
-  };
+  var history = require('./history')();
 
   var that = {
     get blocks() {
       return blocks;
+    },
+
+    get history() {
+      return history;
     },
 
     size: function() {
@@ -63,19 +40,9 @@ module.exports = function(dom) {
     },
 
     insert: function() {
-      var args = utils.wrap.args(arguments);
-
       var opts = {
         block: function(i, b) {
-          b.i = i;
-
           blocks.splice(i, 0, b);
-          if (dom && utils.is.browser()) {
-            dom.insertBefore(b.container, dom.childNodes[i]);
-          }
-          blocks.update_indices(i + 1);
-
-          return b;
         },
 
         text: function(_s, text) {
@@ -88,15 +55,14 @@ module.exports = function(dom) {
 
           s.end.text = s.end.text.substring(s.end.pos);
           if (text === '\n') {
-            that.insert(s.start.i + 1, block(s.end.text));
+            that.insert(s.start.i + 1, block.factory(s.end.text));
           } else {
             s.start.block.text += text + s.end.text;
           }
-
-          return;
         }
       };
 
+      var args = utils.wrap.args(arguments);
       switch (args.arity) {
         case 0:
           return opts;
@@ -115,13 +81,9 @@ module.exports = function(dom) {
     },
 
     remove: function() {
-      var args = utils.wrap.args(arguments);
-
       var opts = {
         blocks: function(from, to) {
-          var ret = blocks.splice(from, to - from + 1);
-          blocks.update_indices(from);
-          return ret;
+          return blocks.splice(from, to - from + 1);
         },
 
         block: function(i) {
@@ -131,9 +93,14 @@ module.exports = function(dom) {
         text: function(_s, key) {
           var s = utils.clone.assoc(_s);
 
-          var offset = {
-            backspace: (key === keys.backspace) ? -1 : 0,
-            delete: (key === keys.delete) ? 1 : 0
+          var shift = {
+            back: key === keys.backspace ? -1 : 0,
+            forward: key === keys.delete ? 1 : 0
+          };
+
+          var pos = {
+            start: s.is.caret && s.start.pos === 0,
+            end: s.is.caret && s.end.text.length === s.end.pos
           };
 
           var caret = {
@@ -141,7 +108,7 @@ module.exports = function(dom) {
             pos: s.start.pos
           };
 
-          if (s.is.caret && key === keys.backspace && s.start.pos === 0) {
+          if (pos.start && key === keys.backspace) {
             if (s.start.i === 0) {
               return caret;
             }
@@ -149,13 +116,13 @@ module.exports = function(dom) {
             s.start.block = that.get(--s.start.i);
             s.start.text = s.start.block.text;
 
-            offset.backspace = 0;
+            shift.back = 0;
 
             caret.i = s.start.i;
             caret.pos = s.start.text.length;
 
             that.remove(s.end.i);
-          } else if (s.is.caret && key === keys.delete && s.end.text.length === s.end.pos) {
+          } else if (pos.end && key === keys.delete) {
             if (s.end.i === that.size() - 1) {
               return caret;
             }
@@ -166,24 +133,24 @@ module.exports = function(dom) {
             that.remove(s.end.i);
           } else {
             if (s.is.range) {
-              offset.backspace = 0;
-              offset.delete = 0;
-
+              shift.back = 0;
+              shift.forward = 0;
               that.remove(s.start.i + 1, s.end.i);
             }
 
-            s.start.text = s.start.text.substring(0, s.start.pos + offset.backspace);
-            s.end.text = s.end.text.substring(s.end.pos + offset.delete);
+            s.start.text = s.start.text.substring(0, s.start.pos + shift.back);
+            s.end.text = s.end.text.substring(s.end.pos + shift.forward);
           }
 
           s.start.block.text = s.start.text + s.end.text;
 
-          caret.pos += offset.backspace;
+          caret.pos += shift.back;
 
           return caret;
         }
       };
 
+      var args = utils.wrap.args(arguments);
       switch (args.arity) {
         case 0:
           return opts;
@@ -200,20 +167,10 @@ module.exports = function(dom) {
           }
           break;
         default:
-          if (utils.is.num(args.i(0)) && utils.is.num(args.i(1))) {
-            return opts.blocks(args.i(0), args.i(1));
-          } else if (utils.is.obj(args.i(0)) && utils.is.num(args.i(1))) {
-            return opts.text(args.i(0), args.i(1));
-          }
+          utils.exceptions.log(utils.exceptions['function signature not supported']());
       }
 
       return null;
-    },
-
-    saveToHistory: function(action) {
-      history.store = history.store.slice(0, history.i + 1);
-      history.store.push(action(history.store[history.i]));
-      history.i++;
     }
   };
 

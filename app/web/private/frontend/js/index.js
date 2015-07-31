@@ -1,6 +1,6 @@
 'use strict';
 
-var block = require('common/editor/block').factory;
+var block = require('common/editor/model/block').factory;
 
 window.onload = function() {
   var editor = require('frontend/editor')(document.querySelector('#editor'));
