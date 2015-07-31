@@ -6,13 +6,11 @@
   "license": "Brainch ©",
   "scripts": {
     "jscs": "gulp jscs",
-    "lint": "gulp eslint",
-    "jsdoc": "gulp jsdoc"
+    "lint": "gulp eslint"
   },
   "pre-commit": [
     "lint",
-    "jscs",
-    "jsdoc"
+    "jscs"
   ],
   "namedModules": {
     "pathes": "configs/pathes.js",
@@ -33,8 +31,6 @@
     "gulp-jscs": "^1.6.0",
     "gulp-sourcemaps": "^1.5.2",
     "gulp-stylus": "^2.0.5",
-    "ink-docstrap": "^0.5.2",
-    "jsdoc": "^3.3.2",
     "kouto-swiss": "^0.11.13",
     "node-libs-browser": "^0.5.2",
     "node-notifier": "^4.2.3",

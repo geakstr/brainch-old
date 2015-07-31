@@ -1,19 +1,9 @@
-/** @module common/editor/model */
 'use strict';
 
 var utils = require('common/utils');
 var block = require('common/editor/block').factory;
 var keys = require('common/keys_map');
 
-/**
- * Model represent document and working with it
- *
- * @alias module:common/editor/model
- *
- * @param  {Node} dom Node in DOM where model applied
- *
- * @return {model}    Model object
- */
 module.exports = function(dom) {
   var blocks = [];
   var history = {
@@ -21,19 +11,6 @@ module.exports = function(dom) {
     store: []
   };
 
-  /**
-   * Override default array splice method for 'blocks' variable
-   * This also remove associated node elements in array from DOM.
-   * Accept only one element (block) for insert
-   *
-   * @private
-   *
-   * @param  {Number} i Start index (inclusive)
-   * @param  {Number} n Delete count
-   * @param  {Object} b Block object
-   *
-   * @return {block[]}    Removed items
-   */
   blocks.splice = function(i, n, b) {
     if (!utils.is.undef(b)) {
       return Array.prototype.splice.call(this, i, n, b);
@@ -52,14 +29,6 @@ module.exports = function(dom) {
     return removed;
   };
 
-  /**
-   * Update indices of blocks in 'blocks' variable
-   *
-   * @private
-   *
-   * @param  {Number} start Start from index (inclusive)
-   * @param  {Number} stop  Go to this index (inclusive)
-   */
   blocks.update_indices = function(start, stop) {
     start = start || 0;
     stop = stop || (blocks.length - 1);
@@ -69,118 +38,30 @@ module.exports = function(dom) {
   };
 
   var that = {
-    /**
-     * Array of blocks
-     *
-     * @public
-     * @member {block[]} blocks
-     */
     get blocks() {
       return blocks;
     },
 
-    /**
-     * Get number of blocks
-     *
-     * @public
-     * @method size
-     *
-     * @return {Number} Number of blocks
-     */
     size: function() {
       return that.blocks.length;
     },
 
-    /**
-     * Get block by index
-     *
-     * @public
-     * @method get
-     *
-     * @param  {Number} i Index of block
-     *
-     * @return {block}    Block object
-     */
     get: function(i) {
       return that.blocks[i];
     },
 
-    /**
-     * Get first block in array
-     *
-     * @public
-     * @method first
-     *
-     * @return {block} Block object
-     */
     first: function() {
       return that.get(0);
     },
 
-    /**
-     * Get last block in array
-     *
-     * @public
-     * @method last
-     *
-     * @return {block} Block object
-     */
     last: function() {
       return that.get(that.size() - 1);
     },
 
-    /**
-     * Add block to tail of array
-     *
-     * @public
-     * @method push
-     *
-     * @param  {block}  b  Block for insert
-     *
-     * @return {block}     Pushed block
-     */
     push: function(b) {
-      return that.insert(this.size(), b);
+      return that.insert(that.size(), b);
     },
 
-    /**
-     * Insert text or block to model
-     *
-     * @public
-     * @method insert
-     *
-     * @param  {(undefined|Object|Number)} x {undefined} When want to get manual choice of action<br>
-     *                                       {Object}    Selection object when insert text<br>
-     *                                       {Number}    Position (index) when insert block
-     * @param  {(undefined|String|block)}  y {undefined} When want to get manual choice of action<br>
-     *                                       {String}    Text when insert text<br>
-     *                                       {block}     Block when insert block
-     *
-     * @return {(Object|undefined|block)}    {Object}    Actions when want to get manual choice of action<br>
-     *                                       {undefined} When insert text<br>
-     *                                       {block}     Inserted block when insert block
-     *
-     * @example {@lang javascript}
-     * // Insert text under selection
-     * model.insert(selection_object, text);
-     *
-     * // Insert block on index
-     * model.insert(index, block);
-     *
-     *
-     * // Get object with actions
-     * var insert = model.insert();
-     * var insert_text = insert.text;
-     * var insert_block = insert.block;
-     *
-     * insert_text(selection_object, text);
-     * insert_block(index, block);
-     *
-     * // Or compact
-     * model.insert().text(selection_object, text);
-     * model.insert().block(index, block);
-     *
-     */
     insert: function() {
       var args = utils.wrap.args(arguments);
 
@@ -233,54 +114,6 @@ module.exports = function(dom) {
       return null;
     },
 
-    /**
-     * Remove text or block from model
-     *
-     * @public
-     * @method remove
-     *
-     * @param {(undefined|Number|Object)} x {undefined} When want to get manual choice of action<br>
-     *                                      {Number} When this is single arg this is index of block for remove<br>
-     *                                      {Number} When has number in second arg this is 'from' idx in range
-     *                                      for remove blocks<br>
-     *                                      {Object} This is selection object for remove text
-     *
-     * @param {(undefined|Number)}        y {undefined} When want to get manual choice of action<br>
-     *                                      {Number} When first arg is number this is 'to' idx in range for remove
-     *                                      blocks. Otherwise when first arg is selection object this is key code
-     *                                      (backspace or delete) for remove text
-     *
-     * @return {(block[]|Object)}           {Object} Actions when want to get manual choice of action<br>
-     *                                      {block[]} When remove blocks this is array with removed items<br>
-     *                                      {Object} When remove text this is object
-     *                                      with information about new caret position
-     *
-     * @example {@lang javascript}
-     * // Remove blocks from index (inclusive) to index (inclusive)
-     * model.remove(from_idx, to_idx);
-     *
-     * // Remove block by index
-     * model.remove(index)
-     *
-     * // Remove text under selection with key code (backspace or delete)
-     * model.remove(selection_object, key_code)
-     *
-     *
-     * // Get object with actions
-     * var remove = model.remove();
-     * var remove_blocks = remove.blocks;
-     * var remove_block = remove.block;
-     * var remove_text = remove.text;
-     *
-     * remove_blocks(from_idx, to_idx);
-     * remove_block(index);
-     * remove_text(selection_object, key_code);
-     *
-     * // Or compact
-     * model.remove().blocks(from_idx, to_idx);
-     * model.remove().block(index);
-     * model.remove().text(selection_object, key_code);
-     */
     remove: function() {
       var args = utils.wrap.args(arguments);
 
