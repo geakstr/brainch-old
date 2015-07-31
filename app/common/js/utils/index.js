@@ -239,6 +239,12 @@ exports.is = {
 
   firefox: function() {
     return navigator.userAgent.toLowerCase().indexOf('firefox') > -1;
+  },
+
+  os: {
+    mac: navigator.platform.toLowerCase().indexOf('mac') !== -1,
+    windows: navigator.platform.toLowerCase().indexOf('win') !== -1,
+    linux: navigator.platform.toLowerCase().indexOf('linux') !== -1
   }
 };
 
@@ -257,33 +263,32 @@ exports.wrap = {
         return args;
       }
     };
-  }
-};
-
-exports.event = function(event) {
-  return {
-    key: event.which,
-    char: String.fromCharCode(event.which),
-    alt: event.altKey,
-    shift: event.shiftKey,
-    ctrl: event.ctrlKey,
-    meta: event.metaKey,
-    prevent: function() {
-      event.preventDefault();
-    },
-    clipboard: {
-      get: {
-        text: function() {
-          return event.clipboardData.getData('text/plain');
-        }
+  },
+  event: function(event) {
+    return {
+      key: event.keyCode || event.which,
+      char: String.fromCharCode(event.keyCode),
+      alt: event.altKey,
+      shift: event.shiftKey,
+      ctrl: event.ctrlKey,
+      meta: event.metaKey,
+      prevent: function() {
+        event.preventDefault();
       },
-      set: {
-        text: function(x) {
-          return event.clipboardData.setData('text/plain', x);
+      clipboard: {
+        get: {
+          text: function() {
+            return event.clipboardData.getData('text/plain');
+          }
+        },
+        set: {
+          text: function(x) {
+            return event.clipboardData.setData('text/plain', x);
+          }
         }
       }
-    }
-  };
+    };
+  }
 };
 
 exports.exceptions = {

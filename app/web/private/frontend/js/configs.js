@@ -3,7 +3,7 @@
 module.exports = {
   debug: {
     on: true,
-    events: false,
+    events: true,
     verbose: true
   },
   editor: {

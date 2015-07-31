@@ -8,7 +8,7 @@ var block = require('./block');
 module.exports = function(dom) {
   var blocks = block.utils.storage(dom);
 
-  var history = require('./history')();
+  var history = require('./history')(this);
 
   var that = {
     get blocks() {
@@ -43,6 +43,14 @@ module.exports = function(dom) {
       var opts = {
         block: function(i, b) {
           blocks.splice(i, 0, b);
+          history.push({
+            action: {
+              name: 'insert block',
+              data: {
+                block: b
+              }
+            }
+          });
         },
 
         text: function(_s, text) {
@@ -59,6 +67,18 @@ module.exports = function(dom) {
           } else {
             s.start.block.text += text + s.end.text;
           }
+        },
+
+        char: function(_s) {
+          var s = utils.clone.assoc(_s);
+
+          var b = that.get(s.start.i).normalize();
+          var ch = b.text.substring(s.start.pos - 1, s.start.pos);
+
+          return {
+            i: b.i,
+            pos: s.start.pos
+          };
         }
       };
 
@@ -83,7 +103,18 @@ module.exports = function(dom) {
     remove: function() {
       var opts = {
         blocks: function(from, to) {
-          return blocks.splice(from, to - from + 1);
+          var removed = blocks.splice(from, to - from + 1);
+
+          history.push({
+            action: {
+              name: 'remove blocks',
+              data: {
+                blocks: removed
+              }
+            }
+          });
+
+          return removed;
         },
 
         block: function(i) {
