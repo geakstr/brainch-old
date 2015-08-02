@@ -43,22 +43,43 @@ module.exports = function(dom) {
         model.insert(s.clone(), '\n');
         model.history.record.stop();
         selection.set(model.get(s.start.i + 1).container, 0);
+        model.history.batch.stop(selection.get(model));
       },
 
       delete: function(s) {
         model.history.batch.start('delete', s.clone());
         model.history.record.start();
-        var caret = model.remove(s.clone(), keys.delete);
-        model.history.record.stop();
-        selection.set(model.get(caret.i).container, caret.pos);
+
+        var info = model.remove(s.clone(), keys.delete);
+
+        if (info.cancel_story) {
+          model.history.record.cancel();
+        } else {
+          selection.set(model.get(info.i).container, info.pos);
+
+          model.history.record.stop();
+          if (info.stop_batch) {
+            model.history.batch.stop(selection.get(model));
+          }
+        }
       },
 
       backspace: function(s) {
         model.history.batch.start('backspace', s.clone());
         model.history.record.start();
-        var caret = model.remove(s.clone(), keys.backspace);
-        model.history.record.stop();
-        selection.set(model.get(caret.i).container, caret.pos);
+
+        var info = model.remove(s.clone(), keys.backspace);
+
+        if (info.cancel_story) {
+          model.history.record.cancel();
+        } else {
+          selection.set(model.get(info.i).container, info.pos);
+
+          model.history.record.stop();
+          if (info.stop_batch) {
+            model.history.batch.stop(selection.get(model));
+          }
+        }
       },
 
       tab: function(s) {
@@ -67,14 +88,25 @@ module.exports = function(dom) {
         model.insert(s.clone(), '\t');
         model.history.record.stop();
         selection.set(model.get(s.start.i).container, s.start.pos + 1);
+        model.history.batch.stop(selection.get(model));
       },
 
       char_under_selection: function(s) {
         model.history.batch.start('char_under_selection', s.clone());
         model.history.record.start();
-        model.remove(s.clone(), keys.backspace);
-        model.history.record.stop();
-        selection.set(model.get(s.start.i).container, s.start.pos);
+
+        var info = model.remove(s.clone(), keys.delete);
+
+        if (info.cancel_story) {
+          model.history.record.cancel();
+        } else {
+          selection.set(model.get(info.i).container, info.pos);
+
+          model.history.record.stop();
+          if (info.stop_batch) {
+            model.history.batch.stop(selection.get(model));
+          }
+        }
       },
 
       just_char: function(was_keydown, was_keypress, was_keyup) {
@@ -110,14 +142,15 @@ module.exports = function(dom) {
             }
           });
           model.history.record.stop();
+          selection.set(model.get(s.start.i).container, s.start.pos);
         };
 
         if (state.last_char !== null && state.last_char !== ch) {
           if (state.last_char !== ' ' && ch === ' ') {
             store_char();
-            model.history.batch.stop();
+            model.history.batch.stop(selection.get(model));
           } else if (state.last_char === ' ' && ch !== ' ') {
-            model.history.batch.stop();
+            model.history.batch.stop(selection.get(model));
             store_char();
           } else {
             store_char();
@@ -127,7 +160,6 @@ module.exports = function(dom) {
         }
 
         state.last_char = ch;
-        selection.set(model.get(s.start.i).container, s.start.pos);
 
         state.events.was.keydown = was_keydown;
         state.events.was.keypress = was_keypress;
@@ -135,20 +167,20 @@ module.exports = function(dom) {
       }
     },
     event: {
-      undo: function() {
+      undo: function(s) {
         if (config.debug.on && config.debug.events) {
           console.log('undo');
         }
 
-        model.history.undo();
+        model.history.undo(s.clone());
       },
 
-      redo: function() {
+      redo: function(s) {
         if (config.debug.on && config.debug.events) {
           console.log('redo');
         }
 
-        model.history.redo();
+        model.history.redo(s.clone());
       }
     }
   };
@@ -260,9 +292,9 @@ module.exports = function(dom) {
           } else if (is.actions.input.tab(event)) {
             actions.input.tab(s);
           } else if (is.events.undoredo(event, !e.shift)) {
-            actions.event.undo();
+            actions.event.undo(s);
           } else if (is.events.undoredo(event, e.shift)) {
-            actions.event.redo();
+            actions.event.redo(s);
           } else if (is.actions.input.char_under_selection(event, s)) {
             actions.input.char_under_selection(s);
             state.events.prevent.default = false;

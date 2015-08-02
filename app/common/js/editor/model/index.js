@@ -160,16 +160,19 @@ module.exports = function(dom) {
                 end: s.is.caret && s.end.text.length === s.end.pos
               };
 
-              var caret = {
+              var info = {
                 i: s.start.i,
-                pos: s.start.pos
+                pos: s.start.pos,
+                cancel_story: false,
+                stop_batch: true
               };
 
               var moved;
 
               if (pos.start && key === keys.backspace) {
                 if (s.start.i === 0) {
-                  return caret;
+                  info.cancel_story = true;
+                  return info;
                 }
 
                 moved = s.start.block.text;
@@ -178,14 +181,15 @@ module.exports = function(dom) {
 
                 shift.back = 0;
 
-                caret.i = s.start.i;
-                caret.pos = s.start.text.length;
+                info.i = s.start.i;
+                info.pos = s.start.text.length;
 
                 that.remove(s.end.i);
                 that.insert(s.start.block, moved, s.start.text.length);
               } else if (pos.end && key === keys.delete) {
                 if (s.end.i === that.size() - 1) {
-                  return caret;
+                  info.cancel_story = true;
+                  return info;
                 }
 
                 s.end.block = that.get(++s.end.i);
@@ -208,12 +212,13 @@ module.exports = function(dom) {
                   that.remove(s.start.i + 1, s.end.i);
                 } else {
                   that.remove(s.start.block, s.start.pos + shift.back, s.end.pos + shift.forward);
+                  info.stop_batch = false;
                 }
               }
 
-              caret.pos += shift.back;
+              info.pos += shift.back;
 
-              return caret;
+              return info;
             },
 
             in_block: function(block, start, end) {

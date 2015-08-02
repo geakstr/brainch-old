@@ -28,16 +28,16 @@ module.exports = function() {
       }
     },
 
-    undo: function() {
-      that.batch.stop();
+    undo: function(selection) {
+      that.batch.stop(selection);
       if (state.i === 0) {
         return;
       }
       restore(--state.i, -1);
     },
 
-    redo: function() {
-      that.batch.stop();
+    redo: function(selection) {
+      that.batch.stop(selection);
       if (state.i === state.batches.length) {
         return;
       }
@@ -49,14 +49,15 @@ module.exports = function() {
         if (state.batching && state.batch.title === title) {
           return;
         } else if (state.batching) {
-          that.batch.stop();
+          that.batch.stop(selection.clone());
         }
         state.batching = true;
         state.batch = batch(model, title, selection);
       },
 
-      stop: function() {
+      stop: function(selection) {
         if (state.batching) {
+          state.batch.end_selection = selection;
           state.batches.splice(state.i++, Number.MAX_VALUE, state.batch);
         }
         state.batching = false;
