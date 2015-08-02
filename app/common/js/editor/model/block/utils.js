@@ -1,4 +1,5 @@
 var utils = require('common/utils');
+
 module.exports = {
   type: require('./type'),
 
@@ -18,44 +19,22 @@ module.exports = {
     return x.length === 0 ? r : this.decorate(this.sanitize(this.normalize(x)));
   },
 
-  storage: function(dom) {
-    var blocks = [];
+  clone: function(block) {
+    var cloned = require('./factory')();
+    if (utils.is.browser()) {
+      cloned.container = block.container.cloneNode(true);
+    } else {
+      cloned.text = block.text;
+      cloned.i = block.i;
+    }
+    return cloned;
+  },
 
-    blocks.splice = function(i, n, b) {
-      var that = this;
-
-      var insert = function() {
-        if (dom && utils.is.browser()) {
-          dom.insertBefore(b.container, dom.childNodes[i]);
-        }
-        return Array.prototype.splice.call(that, i, n, b);
-      };
-
-      var remove = function() {
-        var removed = Array.prototype.splice.call(that, i, n);
-        if (dom && utils.is.browser()) {
-          removed.loop(function(x) {
-            if (dom.contains(x.container)) {
-              dom.removeChild(x.container);
-            }
-          });
-        }
-        return removed;
-      };
-
-      var update_indices = function() {
-        that.loop(i, function(x, i) {
-          x.i = i;
-        });
-      };
-
-      var removed = utils.is.undef(b) ? remove() : insert();
-
-      update_indices();
-
-      return removed;
-    };
-
-    return blocks;
+  to_string: function(b) {
+    var ret = '[Block]\n';
+    ret += '\tIndex : ' + b.i + '\n';
+    ret += '\tText : ' + b.text + '\n';
+    ret += '\tType : ' + b.type + '\n';
+    return ret;
   }
 };

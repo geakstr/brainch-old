@@ -7,7 +7,10 @@ Function.prototype.method = function(name, f) {
 
 String.method('entitify', function() {
   return function() {
-    return this.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+    return this.replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;');
   };
 }());
 
@@ -36,12 +39,12 @@ Number.isNaN = Number.isNaN || function(value) {
  * arr.loop(callback);
  *
  * Procedure can be called with variable args set
- * @param {Number}    start       Iterate from this index (inclusive)
- * @param {Number}    stop        Iterate to this index (inclusive)
- * @param {Number}    step        Iteration step (positive or negative)
+ * @param {Number}    start       Iterate from this index (inclusive); 0 by default
+ * @param {Number}    stop        Iterate to this index (inclusive); arr.length - 1 by default
+ * @param {Number}    step        Iteration step (positive or negative); 1 by default
  * @param {Function}  callback    Callback function which call with
  *                                cur element and index params on each iteration
- * @param {Object}    context     Context object for callback function
+ * @param {Object}    context     Context object for callback function; array context by default
  * @param {Function}  checker     Check function which call with
  *                                start, stop and step params on each iteration
  * @return {void}
@@ -57,9 +60,9 @@ Array.method('loop', function() {
       };
     }
 
-    var start;
-    var stop;
-    var step;
+    var start = 0;
+    var stop = this.length - 1;
+    var step = 1;
     var callback;
     var context;
     var checker;
@@ -171,14 +174,11 @@ Array.method('loop', function() {
       };
     }
 
-    start = start || 0;
-    stop = stop || (this.length - 1);
-    step = step || 1;
-    context = context || this;
-
     if ((step > 0 && start > stop) || (step < 0 && start < stop)) {
       return;
     }
+
+    context = context || this;
 
     var i;
     for (i = start; step > 0 ? i <= stop : i >= stop; i += step) {
@@ -201,6 +201,9 @@ exports.clone = {
       }
     }
     return r;
+  },
+  array: function(array) {
+    return array.slice(0);
   }
 };
 
@@ -272,8 +275,10 @@ exports.wrap = {
       shift: event.shiftKey,
       ctrl: event.ctrlKey,
       meta: event.metaKey,
-      prevent: function() {
-        event.preventDefault();
+      prevent: {
+        default: function() {
+          event.preventDefault();
+        }
       },
       clipboard: {
         get: {
@@ -294,8 +299,9 @@ exports.wrap = {
 exports.exceptions = {
   log: function(e) {
     console.log(e.name + ' : ' + e.message);
+    console.log(e.stack);
   },
-  'function signature not supported': function() {
+  'signature not supported': function() {
     return {
       name: 'TypeError',
       message: 'This function signature not supported'

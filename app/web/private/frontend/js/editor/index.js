@@ -5,7 +5,7 @@ var block = require('common/editor/model/block').factory;
 var keys = require('common/keys_map');
 
 var config = require('frontend/configs');
-var selection = require('frontend/editor/selection');
+var selection = require('common/editor/selection').factory();
 
 module.exports = function(dom) {
   dom.setAttribute('spellcheck', false);
@@ -20,7 +20,7 @@ module.exports = function(dom) {
       }
     },
     events: {
-      prevents: {
+      prevent: {
         default: false
       },
       was: {
@@ -37,42 +37,44 @@ module.exports = function(dom) {
   var actions = {
     input: {
       new_line: function(s) {
-        model.history.record.on();
-        model.insert(s, '\n');
+        model.history.record.start('new_line', s.clone());
+        model.insert(s.clone(), '\n');
+        model.history.record.stop();
         selection.set(model.get(s.start.i + 1).container, 0);
-        model.history.record.off();
       },
 
       delete: function(s) {
-        model.history.record.on();
-        var caret = model.remove(s, keys.delete);
+        model.history.record.start('delete', s.clone());
+        var caret = model.remove(s.clone(), keys.delete);
+        model.history.record.stop();
         selection.set(model.get(caret.i).container, caret.pos);
-        model.history.record.off();
       },
 
       backspace: function(s) {
-        model.history.record.on();
-        var caret = model.remove(s, keys.backspace);
+        model.history.record.start('backspace', s.clone());
+        var caret = model.remove(s.clone(), keys.backspace);
+        model.history.record.stop();
         selection.set(model.get(caret.i).container, caret.pos);
-        model.history.record.off();
       },
 
       tab: function(s) {
-        model.history.record.on();
-        model.insert(s, '\t');
+        model.history.record.start('tab', s.clone());
+        model.insert(s.clone(), '\t');
+        model.history.record.stop();
         selection.set(model.get(s.start.i).container, s.start.pos + 1);
-        model.history.record.off();
       },
 
       char_under_selection: function(s) {
-        model.history.record.on();
-        model.remove(s, keys.backspace);
+        model.history.record.start('char_under_selection', s.clone());
+        model.remove(s.clone(), keys.backspace);
+        model.history.record.stop();
         selection.set(model.get(s.start.i).container, s.start.pos);
-        model.history.record.off();
       },
 
       just_char: function(was_keydown, was_keypress, was_keyup) {
-        if (state.events.was.cut || state.events.was.copy || state.events.was.paste) {
+        if (state.events.was.cut ||
+          state.events.was.copy ||
+          state.events.was.paste) {
           return;
         }
 
@@ -84,7 +86,10 @@ module.exports = function(dom) {
 
         var s = selection.get(model);
 
-        var caret = model.insert().char(s);
+        model.history.record.start('just_char', s.clone());
+        var caret = model.insert().char(s.clone());
+        model.history.record.stop();
+
         selection.set(model.get(caret.i).container, caret.pos);
 
         state.events.was.keydown = was_keydown;
@@ -203,11 +208,11 @@ module.exports = function(dom) {
           console.log('keydown');
         }
 
-        state.events.prevents.default = false;
+        state.events.prevent.default = false;
 
         var s = selection.get(model);
         if (s !== null) {
-          state.events.prevents.default = true;
+          state.events.prevent.default = true;
 
           if (is.actions.input.new_line(event)) {
             actions.input.new_line(s);
@@ -223,18 +228,18 @@ module.exports = function(dom) {
             actions.event.redo();
           } else if (is.actions.input.char_under_selection(event, s)) {
             actions.input.char_under_selection(s);
-            state.events.prevents.default = false;
+            state.events.prevent.default = false;
           } else if (is.events.handled(s)) {
-            state.events.prevents.default = false;
+            state.events.prevent.default = false;
             return false;
           } else {
-            state.events.prevents.default = false;
+            state.events.prevent.default = false;
           }
 
         }
 
-        if (state.events.prevents.default) {
-          event.preventDefault();
+        if (state.events.prevent.default) {
+          e.prevent.default();
         } else {
           if (state.events.was.keydown || state.events.was.keypress) {
             actions.input.just_char(true, false, false);
@@ -249,13 +254,13 @@ module.exports = function(dom) {
         state.events.was.cut = false;
         state.dom.html.length = dom.innerHTML.length;
 
-        return !state.events.prevents.default;
+        return !state.events.prevent.default;
       } catch (e) {
         model.history.record.cancel();
         utils.exceptions.log(e);
         return false;
       } finally {
-        model.history.record.off();
+        model.history.record.stop();
       }
     },
 
@@ -275,23 +280,24 @@ module.exports = function(dom) {
         utils.exceptions.log(e);
         return false;
       } finally {
-        model.history.record.off();
+        model.history.record.stop();
       }
     },
 
     keyup: function(event) {
       try {
+        var e = utils.wrap.event(event);
         if (config.debug.on && config.debug.events) {
           console.log('keyup');
         }
 
-        if (state.events.prevents.default) {
-          state.events.prevents.default = false;
-          event.preventDefault();
+        if (state.events.prevent.default) {
+          state.events.prevent.default = false;
+          e.prevent.default();
           return false;
         }
 
-        state.events.prevents.default = false;
+        state.events.prevent.default = false;
 
         if (state.events.was.keydown || !state.events.was.keypress) {
           actions.input.just_char(false, false, true);
@@ -303,14 +309,12 @@ module.exports = function(dom) {
         utils.exceptions.log(e);
         return false;
       } finally {
-        model.history.record.off();
+        model.history.record.stop();
       }
     },
 
     paste: function(event) {
       try {
-        model.history.record.on();
-
         var e = utils.wrap.event(event);
         if (config.debug.on && config.debug.events) {
           console.log('onpaste');
@@ -319,8 +323,8 @@ module.exports = function(dom) {
         state.events.was.copy = false;
         state.events.was.paste = true;
         state.events.was.cut = false;
-        state.events.prevents.default = true;
-        e.prevent();
+        state.events.prevent.default = true;
+        e.prevent.default();
 
         var s = selection.get(model);
 
@@ -332,7 +336,7 @@ module.exports = function(dom) {
         if (len === 0) {
           return false;
         } else if (len === 1) {
-          model.insert(s, splited[0]);
+          model.insert(s.clone(), splited[0]);
         } else {
           if (s.is.caret && s.start.pos === 0 && s.start.i === 0) {
             utils.range(splited - 1, function(i) {
@@ -341,10 +345,9 @@ module.exports = function(dom) {
               s.end.i++;
             });
 
-            model.insert(s, splited[len - 1]);
-          } else if (s.is.caret && s.end.pos === s.end.text.length &&
-            s.end.i === model.size() - 1) {
-            model.insert(s, splited[0]);
+            model.insert(s.clone(), splited[len - 1]);
+          } else if (s.is.caret && s.end.pos === s.end.text.length && s.end.i === model.size() - 1) {
+            model.insert(s.clone(), splited[0]);
 
             utils.range(1, len, function(i) {
               model.insert(++s.start.i, block(splited[i]));
@@ -377,14 +380,12 @@ module.exports = function(dom) {
         utils.exceptions.log(e);
         return false;
       } finally {
-        model.history.record.off();
+        model.history.record.stop();
       }
     },
 
     cut: function(event) {
       try {
-        model.history.record.on();
-
         var e = utils.wrap.event(event);
         if (config.debug.on && config.debug.events) {
           console.log('oncut');
@@ -393,8 +394,8 @@ module.exports = function(dom) {
         state.events.was.copy = false;
         state.events.was.paste = false;
         state.events.was.cut = true;
-        state.events.prevents.default = true;
-        e.prevent();
+        state.events.prevent.default = true;
+        e.prevent.default();
 
         var s = selection.get(model);
 
@@ -413,7 +414,7 @@ module.exports = function(dom) {
 
         e.clipboard.set.text(text);
 
-        model.remove(s, keys.backspace);
+        model.remove(s.clone(), keys.backspace);
         selection.set(s.start.block.container, s.start.pos);
 
         return false;
@@ -422,14 +423,12 @@ module.exports = function(dom) {
         utils.exceptions.log(e);
         return false;
       } finally {
-        model.history.record.off();
+        model.history.record.stop();
       }
     },
 
     copy: function(event) {
       try {
-        model.history.record.on();
-
         var e = utils.wrap.event(event);
         if (config.debug.on && config.debug.events) {
           console.log('oncopy');
@@ -438,8 +437,8 @@ module.exports = function(dom) {
         state.events.was.copy = true;
         state.events.was.paste = false;
         state.events.was.cut = false;
-        state.events.prevents.default = true;
-        e.prevent();
+        state.events.prevent.default = true;
+        e.prevent.default();
 
         var s = selection.get(model);
 
@@ -464,7 +463,7 @@ module.exports = function(dom) {
         utils.exceptions.log(e);
         return false;
       } finally {
-        model.history.record.off();
+        model.history.record.stop();
       }
     }
   };

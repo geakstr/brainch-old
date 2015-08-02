@@ -1,19 +1,38 @@
 'use strict';
 
+var utils = require('common/utils');
+var block = require('common/editor/model/block');
+var browser_selection = require('frontend/editor/selection');
+var node_selection = require('frontend/editor/selection');
+
 exports.build = function(model) {
-  var info = Object.create(null);
+  var s = Object.create(null);
 
-  info.start = Object.create(null);
-  info.start.block = model.first();
-  info.start.i = 0;
-  info.start.text = info.start.block.text;
-  info.start.pos = 0;
+  s.start = Object.create(null);
+  s.start.block = model.first();
+  s.start.i = 0;
+  s.start.text = s.start.block.text;
+  s.start.pos = 0;
 
-  info.end = Object.create(null);
-  info.end.block = model.last();
-  info.end.i = model.size() - 1;
-  info.end.text = info.end.block.text;
-  info.end.pos = info.end.text.length;
+  s.end = Object.create(null);
+  s.end.block = model.last();
+  s.end.i = model.size() - 1;
+  s.end.text = s.end.block.text;
+  s.end.pos = s.end.text.length;
 
-  return info;
+  s.is = Object.create(null);
+  s.is.range = s.start.i !== s.end.i || s.start.pos !== s.end.pos;
+  s.is.caret = s.start.i === s.end.i && s.start.pos === s.end.pos;
+
+  return s;
+};
+
+exports.clone = function(ctx) {
+  ctx = ctx || this;
+  ctx = utils.clone.assoc(ctx);
+  return ctx;
+};
+
+exports.factory = function() {
+  return utils.is.browser() ? browser_selection : node_selection;
 };

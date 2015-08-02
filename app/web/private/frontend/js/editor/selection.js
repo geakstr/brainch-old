@@ -81,6 +81,8 @@ exports.get = function(model) {
     caret: info.start.i === info.end.i && info.start.pos === info.end.pos
   };
 
+  info.clone = selection.clone;
+
   return info;
 };
 

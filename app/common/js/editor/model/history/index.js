@@ -1,4 +1,4 @@
-var story = require('./story');
+var story = require('common/editor/model/history/story');
 
 module.exports = function(model) {
   var state = {
@@ -8,45 +8,42 @@ module.exports = function(model) {
     story: null
   };
 
-  var persist = function(story) {
-    state.stories.splice(++state.i, Number.MAX_VALUE, story);
+  var restore = function(i, direction) {
+    state.stories[i].restore(direction);
   };
 
-  var restore = function(i) {
-    state.stories[i].restore();
+  var persist = function() {
+    state.stories.splice(state.i++, Number.MAX_VALUE, state.story);
   };
 
   var that = {
     push: function(action) {
-      if (!state.recording) {
-        return;
+      if (state.recording) {
+        state.story.push(action);
       }
-      state.story.push(action);
     },
 
     undo: function() {
-      that.record.cancel();
-      if (state.i <= 0) {
+      if (state.i === 0) {
         return;
       }
-      restore(--state.i);
+      restore(--state.i, -1);
     },
 
     redo: function() {
-      that.record.cancel();
-      if (state.i >= state.stories.length - 1) {
+      if (state.i === state.stories.length) {
         return;
       }
-      restore(++state.i);
+      restore(state.i++, +1);
     },
 
     record: {
-      on: function() {
+      start: function(title, selection) {
         state.recording = true;
-        state.story = story(model);
+        state.story = story(model, title, selection);
       },
 
-      off: function() {
+      stop: function() {
         if (state.recording) {
           persist(state.story);
         }
