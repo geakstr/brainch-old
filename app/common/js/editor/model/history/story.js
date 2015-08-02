@@ -1,9 +1,9 @@
-module.exports = function(model, name, s) {
+module.exports = function(model) {
   var actions = [];
 
   var that = {
     push: function(action) {
-      return actions.push(action);
+      actions.push(action);
     },
 
     restore: function(direction) {

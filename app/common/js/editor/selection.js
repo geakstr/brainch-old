@@ -1,9 +1,9 @@
 'use strict';
 
 var utils = require('common/utils');
-var block = require('common/editor/model/block');
 var browser_selection = require('frontend/editor/selection');
 var node_selection = require('frontend/editor/selection');
+var block = require('common/editor/model/block');
 
 exports.build = function(model) {
   var s = Object.create(null);
@@ -21,7 +21,7 @@ exports.build = function(model) {
   s.end.pos = s.end.text.length;
 
   s.is = Object.create(null);
-  s.is.range = s.start.i !== s.end.i || s.start.pos !== s.end.pos;
+  s.is.range = s.start.pos !== s.end.pos;
   s.is.caret = s.start.i === s.end.i && s.start.pos === s.end.pos;
 
   return s;
@@ -29,8 +29,15 @@ exports.build = function(model) {
 
 exports.clone = function(ctx) {
   ctx = ctx || this;
-  ctx = utils.clone.assoc(ctx);
-  return ctx;
+
+  var start = utils.clone.assoc(ctx.start);
+  var end = utils.clone.assoc(ctx.end);
+
+  var ret = utils.clone.assoc(ctx);
+  ret.start = start;
+  ret.end = end;
+
+  return ret;
 };
 
 exports.factory = function() {

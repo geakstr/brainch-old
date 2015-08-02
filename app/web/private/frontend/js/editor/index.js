@@ -31,41 +31,47 @@ module.exports = function(dom) {
         paste: false,
         copy: false
       }
-    }
+    },
+    last_char: null
   };
 
   var actions = {
     input: {
       new_line: function(s) {
-        model.history.record.start('new_line', s.clone());
+        model.history.batch.start('new_line', s.clone());
+        model.history.record.start();
         model.insert(s.clone(), '\n');
         model.history.record.stop();
         selection.set(model.get(s.start.i + 1).container, 0);
       },
 
       delete: function(s) {
-        model.history.record.start('delete', s.clone());
+        model.history.batch.start('delete', s.clone());
+        model.history.record.start();
         var caret = model.remove(s.clone(), keys.delete);
         model.history.record.stop();
         selection.set(model.get(caret.i).container, caret.pos);
       },
 
       backspace: function(s) {
-        model.history.record.start('backspace', s.clone());
+        model.history.batch.start('backspace', s.clone());
+        model.history.record.start();
         var caret = model.remove(s.clone(), keys.backspace);
         model.history.record.stop();
         selection.set(model.get(caret.i).container, caret.pos);
       },
 
       tab: function(s) {
-        model.history.record.start('tab', s.clone());
+        model.history.batch.start('tab', s.clone());
+        model.history.record.start();
         model.insert(s.clone(), '\t');
         model.history.record.stop();
         selection.set(model.get(s.start.i).container, s.start.pos + 1);
       },
 
       char_under_selection: function(s) {
-        model.history.record.start('char_under_selection', s.clone());
+        model.history.batch.start('char_under_selection', s.clone());
+        model.history.record.start();
         model.remove(s.clone(), keys.backspace);
         model.history.record.stop();
         selection.set(model.get(s.start.i).container, s.start.pos);
@@ -85,12 +91,43 @@ module.exports = function(dom) {
         state.dom.html.length = dom.innerHTML.length;
 
         var s = selection.get(model);
+        var ch = s.start.block.text.substring(s.start.pos - 1, s.start.pos);
 
-        model.history.record.start('just_char', s.clone());
-        var caret = model.insert().char(s.clone());
-        model.history.record.stop();
+        var store_char = function() {
+          var _s = s.clone();
+          _s.start.pos--;
 
-        selection.set(model.get(caret.i).container, caret.pos);
+          model.get(_s.start.i).normalize();
+
+          model.history.batch.start('just_char', _s);
+          model.history.record.start();
+          model.history.push({
+            name: 'insert.text',
+            data: {
+              i: _s.start.i,
+              pos: _s.start.pos,
+              text: ch
+            }
+          });
+          model.history.record.stop();
+        };
+
+        if (state.last_char !== null && state.last_char !== ch) {
+          if (state.last_char !== ' ' && ch === ' ') {
+            store_char();
+            model.history.batch.stop();
+          } else if (state.last_char === ' ' && ch !== ' ') {
+            model.history.batch.stop();
+            store_char();
+          } else {
+            store_char();
+          }
+        } else {
+          store_char();
+        }
+
+        state.last_char = ch;
+        selection.set(model.get(s.start.i).container, s.start.pos);
 
         state.events.was.keydown = was_keydown;
         state.events.was.keypress = was_keypress;
@@ -256,6 +293,7 @@ module.exports = function(dom) {
 
         return !state.events.prevent.default;
       } catch (e) {
+        model.history.batch.cancel();
         model.history.record.cancel();
         utils.exceptions.log(e);
         return false;
@@ -276,6 +314,7 @@ module.exports = function(dom) {
 
         return true;
       } catch (e) {
+        model.history.batch.cancel();
         model.history.record.cancel();
         utils.exceptions.log(e);
         return false;
@@ -305,6 +344,7 @@ module.exports = function(dom) {
 
         return true;
       } catch (e) {
+        model.history.batch.cancel();
         model.history.record.cancel();
         utils.exceptions.log(e);
         return false;
@@ -333,6 +373,7 @@ module.exports = function(dom) {
         var len = splited.length;
         var offset = s.start.pos + pasted.length;
 
+        model.history.record.start('paste', s.clone());
         if (len === 0) {
           return false;
         } else if (len === 1) {
@@ -353,10 +394,10 @@ module.exports = function(dom) {
               model.insert(++s.start.i, block(splited[i]));
             });
           } else {
-            s.start.text = s.start.text.substring(0, s.start.pos);
             s.end.text = s.end.text.substring(s.end.pos);
 
-            s.start.block.text = s.start.text + splited[0];
+            model.remove(s.start.block, s.start.pos, s.end.pos);
+            model.insert(s.start.block, splited[0], s.start.pos);
 
             if (s.is.range) {
               model.remove(s.start.i + 1, s.end.i);
@@ -372,10 +413,13 @@ module.exports = function(dom) {
           offset = splited[len - 1].length;
         }
 
+        model.history.record.stop();
+
         selection.set(model.get(s.start.i).container, offset);
 
         return false;
       } catch (e) {
+        model.history.batch.cancel();
         model.history.record.cancel();
         utils.exceptions.log(e);
         return false;
@@ -414,11 +458,15 @@ module.exports = function(dom) {
 
         e.clipboard.set.text(text);
 
+        model.history.record.start('cut', s.clone());
         model.remove(s.clone(), keys.backspace);
+        model.history.record.stop();
+
         selection.set(s.start.block.container, s.start.pos);
 
         return false;
       } catch (e) {
+        model.history.batch.cancel();
         model.history.record.cancel();
         utils.exceptions.log(e);
         return false;
@@ -459,6 +507,7 @@ module.exports = function(dom) {
 
         return false;
       } catch (e) {
+        model.history.batch.cancel();
         model.history.record.cancel();
         utils.exceptions.log(e);
         return false;

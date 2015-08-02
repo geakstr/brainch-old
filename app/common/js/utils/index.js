@@ -217,7 +217,7 @@ exports.is = {
   },
 
   num: function(x) {
-    return Object.prototype.toString.call(x) === '[object Number]';
+    return Object.prototype.toString.call(x) === '[object Number]' && isFinite(x);
   },
 
   str: function(x) {

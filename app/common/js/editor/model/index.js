@@ -7,26 +7,23 @@ var block = require('common/editor/model/block');
 
 module.exports = function(dom) {
   var storage = require('./storage')(dom);
+  var history = require('./history')();
 
   var that = {
-    get storage() {
-      return storage;
-    },
-
     get history() {
       return history;
     },
 
     size: function() {
-      return that.storage.size();
+      return storage.size();
     },
 
     get: function(i) {
-      return that.storage.get(i);
+      return storage.get(i);
     },
 
     set: function(i, b) {
-      that.storage.set(i, b);
+      storage.set(i, b);
     },
 
     first: function() {
@@ -105,24 +102,6 @@ module.exports = function(dom) {
             default:
               utils.exceptions.log(utils.exceptions['signature not supported']());
           }
-        },
-
-        char: function(s) {
-          var blck = that.get(s.start.i).normalize();
-
-          history.push({
-            name: 'insert.text',
-            data: {
-              i: s.start.i,
-              pos: s.start.pos - 1,
-              text: blck.text.substring(s.start.pos - 1, s.start.pos)
-            }
-          });
-
-          return {
-            i: s.start.i,
-            pos: s.start.pos
-          };
         }
       };
 
@@ -186,12 +165,14 @@ module.exports = function(dom) {
                 pos: s.start.pos
               };
 
+              var moved;
+
               if (pos.start && key === keys.backspace) {
                 if (s.start.i === 0) {
                   return caret;
                 }
 
-                var moved = s.start.block.text;
+                moved = s.start.block.text;
                 s.start.block = that.get(--s.start.i);
                 s.start.text = s.start.block.text;
 
@@ -215,9 +196,19 @@ module.exports = function(dom) {
                 if (s.is.range) {
                   shift.back = 0;
                   shift.forward = 0;
+
+                  if (s.start.i < s.end.i) {
+                    moved = s.end.text.substring(s.end.pos);
+                    that.remove(s.start.block, s.start.pos, s.start.text.length);
+                    that.insert(s.start.block, moved, s.start.pos);
+                  } else {
+                    that.remove(s.start.block, s.start.pos, s.end.pos);
+                  }
+
                   that.remove(s.start.i + 1, s.end.i);
+                } else {
+                  that.remove(s.start.block, s.start.pos + shift.back, s.end.pos + shift.forward);
                 }
-                that.remove(s.start.block, s.start.pos + shift.back, s.end.pos + shift.forward);
               }
 
               caret.pos += shift.back;
@@ -290,7 +281,7 @@ module.exports = function(dom) {
     }
   };
 
-  var history = require('./history')(that);
+  history.model = that;
 
   return that;
 };
