@@ -1,3 +1,5 @@
+'use strict';
+
 var utils = require('common/utils');
 
 module.exports = {

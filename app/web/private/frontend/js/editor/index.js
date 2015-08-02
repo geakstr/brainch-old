@@ -25,8 +25,6 @@ module.exports = function(dom) {
       },
       was: {
         keydown: false,
-        keypress: false,
-        keyup: false,
         cut: false,
         paste: false,
         copy: false
@@ -42,7 +40,6 @@ module.exports = function(dom) {
     input: {
       new_line: function(s) {
         model.history.batch.start('new_line', s.clone());
-        model.history.record.start();
         model.insert(s.clone(), '\n');
         model.history.record.stop();
         selection.set(model.get(s.start.i + 1).container, 0);
@@ -51,7 +48,6 @@ module.exports = function(dom) {
 
       delete: function(s) {
         model.history.batch.start('delete', s.clone());
-        model.history.record.start();
 
         var info = model.remove(s.clone(), keys.delete);
 
@@ -69,10 +65,8 @@ module.exports = function(dom) {
 
       backspace: function(s) {
         model.history.batch.start('backspace', s.clone());
-        model.history.record.start();
 
         var info = model.remove(s.clone(), keys.backspace);
-
         selection.set(model.get(info.i).container, info.pos);
         if (info.cancel_story) {
           model.history.record.cancel();
@@ -87,7 +81,7 @@ module.exports = function(dom) {
 
       tab: function(s) {
         model.history.batch.start('tab', s.clone());
-        model.history.record.start();
+
         model.insert(s.clone(), '\t');
         model.history.record.stop();
         selection.set(model.get(s.start.i).container, s.start.pos + 1);
@@ -96,7 +90,6 @@ module.exports = function(dom) {
 
       char_under_selection: function(s) {
         model.history.batch.start('char_under_selection', s.clone());
-        model.history.record.start();
 
         var info = model.remove(s.clone(), keys.delete);
 
@@ -112,10 +105,8 @@ module.exports = function(dom) {
         }
       },
 
-      just_char: function(was_keydown, was_keypress, was_keyup) {
-        if (state.events.was.cut ||
-          state.events.was.copy ||
-          state.events.was.paste) {
+      just_char: function() {
+        if (state.events.was.cut || state.events.was.copy || state.events.was.paste) {
           return;
         }
 
@@ -127,6 +118,9 @@ module.exports = function(dom) {
 
         var s = selection.get(model);
         var ch = s.start.block.text.substring(s.start.pos - 1, s.start.pos);
+        if (config.debug.on && config.debug.verbose) {
+          console.log(ch);
+        }
 
         var store_char = function() {
           var _s = s.clone();
@@ -135,7 +129,7 @@ module.exports = function(dom) {
           model.get(_s.start.i).normalize();
 
           model.history.batch.start('just_char', _s);
-          model.history.record.start();
+
           model.history.push({
             name: 'insert.text',
             data: {
@@ -167,10 +161,6 @@ module.exports = function(dom) {
 
         state.prev.char = ch;
         state.prev.selection = s.clone();
-
-        state.events.was.keydown = was_keydown;
-        state.events.was.keypress = was_keypress;
-        state.events.was.keyup = was_keyup;
       }
     },
     event: {
@@ -317,14 +307,12 @@ module.exports = function(dom) {
         if (state.events.prevent.default) {
           e.prevent.default();
         } else {
-          if (state.events.was.keydown || state.events.was.keypress) {
-            actions.input.just_char(true, false, false);
+          if (state.events.was.keydown) {
+            actions.input.just_char();
           }
         }
 
         state.events.was.keydown = true;
-        state.events.was.keypress = false;
-        state.events.was.keyup = false;
         state.events.was.copy = false;
         state.events.was.paste = false;
         state.events.was.cut = false;
@@ -342,24 +330,7 @@ module.exports = function(dom) {
     },
 
     keypress: function(event) {
-      try {
-        if (config.debug.on && config.debug.events) {
-          console.log('keypress');
-        }
 
-        if (state.events.was.keypress) {
-          actions.input.just_char(false, true, false);
-        }
-
-        return true;
-      } catch (e) {
-        model.history.batch.cancel();
-        model.history.record.cancel();
-        utils.exceptions.log(e);
-        return false;
-      } finally {
-        model.history.record.stop();
-      }
     },
 
     keyup: function(event) {
@@ -377,8 +348,9 @@ module.exports = function(dom) {
 
         state.events.prevent.default = false;
 
-        if (state.events.was.keydown || !state.events.was.keypress) {
-          actions.input.just_char(false, false, true);
+        if (state.events.was.keydown) {
+          state.events.was.keydown = false;
+          actions.input.just_char();
         }
 
         return true;
@@ -408,11 +380,16 @@ module.exports = function(dom) {
         var s = selection.get(model);
 
         var pasted = e.clipboard.get.text();
+        if (pasted.length === 0) {
+          return false;
+        }
+
         var splited = pasted.split('\n');
         var len = splited.length;
         var offset = s.start.pos + pasted.length;
 
-        model.history.record.start('paste', s.clone());
+        model.history.batch.start('paste', s.clone());
+
         if (len === 0) {
           return false;
         } else if (len === 1) {
@@ -453,8 +430,8 @@ module.exports = function(dom) {
         }
 
         model.history.record.stop();
-
         selection.set(model.get(s.start.i).container, offset);
+        model.history.batch.stop(selection.get(model));
 
         return false;
       } catch (e) {
@@ -497,11 +474,18 @@ module.exports = function(dom) {
 
         e.clipboard.set.text(text);
 
-        model.history.record.start('cut', s.clone());
-        model.remove(s.clone(), keys.backspace);
-        model.history.record.stop();
-
-        selection.set(s.start.block.container, s.start.pos);
+        model.history.batch.start('cut', s.clone());
+        var info = model.remove(s.clone(), keys.backspace);
+        selection.set(model.get(info.i).container, info.pos);
+        if (info.cancel_story) {
+          model.history.record.cancel();
+          model.history.batch.stop(selection.get(model));
+        } else {
+          model.history.record.stop();
+          if (info.stop_batch) {
+            model.history.batch.stop(selection.get(model));
+          }
+        }
 
         return false;
       } catch (e) {

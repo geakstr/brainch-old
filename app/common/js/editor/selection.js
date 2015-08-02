@@ -3,7 +3,6 @@
 var utils = require('common/utils');
 var browser_selection = require('frontend/editor/selection');
 var node_selection = require('frontend/editor/selection');
-var block = require('common/editor/model/block');
 
 exports.build = function(model) {
   var s = Object.create(null);

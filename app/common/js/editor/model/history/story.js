@@ -1,3 +1,5 @@
+'use strict';
+
 module.exports = function(model) {
   var actions = [];
 
@@ -8,7 +10,7 @@ module.exports = function(model) {
 
     restore: function(direction) {
       var undo = function() {
-        actions.loop(actions.length - 1, 0, -1, function(action) {
+        actions.loop(true, function(action) {
           var data = action.data;
           switch (action.name) {
             case 'insert.text':
@@ -43,7 +45,7 @@ module.exports = function(model) {
               model.insert(data.block.i, data.block);
               break;
             case 'remove.blocks':
-              data.blocks.loop(function(x) {
+              data.blocks.loop(true, function(x) {
                 model.remove(x.i);
               });
               break;

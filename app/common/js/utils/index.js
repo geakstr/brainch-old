@@ -14,7 +14,7 @@ String.method('entitify', function() {
   };
 }());
 
-Number.isNaN = Number.isNaN || function(value) {
+Number.isNaN = function(value) {
   return typeof value === 'number' && isNaN(value);
 };
 
@@ -27,18 +27,22 @@ Number.isNaN = Number.isNaN || function(value) {
  * arr.loop(start, stop, step, callback, context, checker);
  * arr.loop(start, stop, step, callback, context);
  * arr.loop(start, stop, step, callback, checker);
+ * arr.loop(reverse, callback, context, checker);
  * arr.loop(start, stop, step, callback);
  * arr.loop(start, stop, callback, context);
  * arr.loop(start, stop, callback, checker);
+ * arr.loop(reverse, callback, context);
  * arr.loop(start, stop, callback);
  * arr.loop(start, callback, context);
  * arr.loop(start, callback, checker);
+ * arr.loop(reverse, callback);
  * arr.loop(start, callback);
  * arr.loop(callback, context);
  * arr.loop(callback, checker);
  * arr.loop(callback);
  *
  * Procedure can be called with variable args set
+ * @param {Boolean}   reverse     Reverse iteration direction
  * @param {Number}    start       Iterate from this index (inclusive); 0 by default
  * @param {Number}    stop        Iterate to this index (inclusive); arr.length - 1 by default
  * @param {Number}    step        Iteration step (positive or negative); 1 by default
@@ -128,6 +132,18 @@ Array.method('loop', function() {
         stop = args[1];
         callback = args[2];
         checker = args[3];
+      } else if (typeof args[0] === 'boolean' &&
+        typeof args[1] === 'function' &&
+        typeof args[2] === 'object' &&
+        typeof args[3] === 'function') {
+        if (args[0]) {
+          start = stop;
+          stop = 0;
+          step = -1;
+        }
+        callback = args[1];
+        context = args[2];
+        checker = args[3];
       }
     } else if (args.length === 3) {
       if (typeof args[0] === 'number' &&
@@ -148,6 +164,16 @@ Array.method('loop', function() {
         start = args[0];
         callback = args[1];
         checker = args[2];
+      } else if (typeof args[0] === 'boolean' &&
+        typeof args[1] === 'function' &&
+        typeof args[2] === 'object') {
+        if (args[0]) {
+          start = stop;
+          stop = 0;
+          step = -1;
+        }
+        callback = args[1];
+        context = args[2];
       }
     } else if (args.length === 2) {
       if (typeof args[0] === 'number' &&
@@ -162,10 +188,23 @@ Array.method('loop', function() {
         typeof args[1] === 'function') {
         callback = args[0];
         checker = args[1];
+      } else if (typeof args[0] === 'boolean' &&
+        typeof args[1] === 'function') {
+        if (args[0]) {
+          start = stop;
+          stop = 0;
+          step = -1;
+        }
+        callback = args[1];
       }
     } else if (args.length === 1) {
       if (typeof args[0] === 'function') {
         callback = args[0];
+      } else {
+        throw {
+          name: 'TypeError',
+          message: 'This method signature not supported'
+        };
       }
     } else {
       throw {
@@ -187,8 +226,6 @@ Array.method('loop', function() {
         callback.call(context, x, i);
       }
     }
-
-    return;
   };
 }());
 
@@ -230,6 +267,10 @@ exports.is = {
 
   fun: function(x) {
     return Object.prototype.toString.call(x) === '[object Function]';
+  },
+
+  bool: function(x) {
+    return Object.prototype.toString.call(x) === '[object Boolean]';
   },
 
   browser: function() {

@@ -1,3 +1,5 @@
+'use strict';
+
 var story = require('common/editor/model/history/story');
 var batch = require('common/editor/model/history/batch');
 
@@ -46,6 +48,8 @@ module.exports = function() {
 
     batch: {
       start: function(title, selection) {
+        state.recording = true;
+        state.story = story(model);
         if (state.batching && state.batch.title === title) {
           return;
         } else if (state.batching) {
@@ -70,11 +74,6 @@ module.exports = function() {
     },
 
     record: {
-      start: function() {
-        state.recording = true;
-        state.story = story(model);
-      },
-
       stop: function() {
         if (state.recording) {
           state.batch.push(state.story);

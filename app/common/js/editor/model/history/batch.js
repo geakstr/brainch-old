@@ -1,3 +1,5 @@
+'use strict';
+
 var selection = require('common/editor/selection').factory();
 
 module.exports = function(model, title, start_selection) {
@@ -24,7 +26,7 @@ module.exports = function(model, title, start_selection) {
 
     restore: function(direction) {
       var undo = function() {
-        stories.loop(stories.length - 1, 0, -1, function(story) {
+        stories.loop(true, function(story) {
           story.restore(direction);
         });
         selection.set(model.get(start_selection.start.i).container, start_selection.start.pos);

@@ -1,3 +1,5 @@
+'use strict';
+
 var Types = exports.enum = {
   TASK: 'task',
   EMPTY: 'empty',
