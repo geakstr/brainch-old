@@ -53,13 +53,20 @@ module.exports = function(dom) {
         text: function(s, text) {
           var opts = {
             under_selection: function(s, text) {
-              that.remove(s.start.block, s.start.pos, s.start.text.length);
               if (s.is.range) {
-                that.remove(s.start.i + 1, s.end.i);
+                if (s.start.i < s.end.i) {
+                  that.remove(s.start.block, s.start.pos, s.start.text.length);
+                  that.remove(s.start.i + 1, s.end.i);
+                } else {
+                  that.remove(s.start.block, s.start.pos, s.end.pos);
+                }
               }
 
               s.end.text = s.end.text.substring(s.end.pos);
               if (text === '\n') {
+                if (s.is.caret) {
+                  that.remove(s.start.block, s.start.pos, s.start.text.length);
+                }
                 that.insert(s.start.i + 1, block.factory(s.end.text));
               } else {
                 that.insert(s.start.block, text, s.start.pos);

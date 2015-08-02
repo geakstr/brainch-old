@@ -32,7 +32,10 @@ module.exports = function(dom) {
         copy: false
       }
     },
-    last_char: null
+    prev: {
+      selection: null,
+      char: null
+    }
   };
 
   var actions = {
@@ -52,11 +55,11 @@ module.exports = function(dom) {
 
         var info = model.remove(s.clone(), keys.delete);
 
+        selection.set(model.get(info.i).container, info.pos);
         if (info.cancel_story) {
           model.history.record.cancel();
+          model.history.batch.stop(selection.get(model));
         } else {
-          selection.set(model.get(info.i).container, info.pos);
-
           model.history.record.stop();
           if (info.stop_batch) {
             model.history.batch.stop(selection.get(model));
@@ -70,11 +73,11 @@ module.exports = function(dom) {
 
         var info = model.remove(s.clone(), keys.backspace);
 
+        selection.set(model.get(info.i).container, info.pos);
         if (info.cancel_story) {
           model.history.record.cancel();
+          model.history.batch.stop(selection.get(model));
         } else {
-          selection.set(model.get(info.i).container, info.pos);
-
           model.history.record.stop();
           if (info.stop_batch) {
             model.history.batch.stop(selection.get(model));
@@ -97,11 +100,11 @@ module.exports = function(dom) {
 
         var info = model.remove(s.clone(), keys.delete);
 
+        selection.set(model.get(info.i).container, info.pos);
         if (info.cancel_story) {
           model.history.record.cancel();
+          model.history.batch.stop(selection.get(model));
         } else {
-          selection.set(model.get(info.i).container, info.pos);
-
           model.history.record.stop();
           if (info.stop_batch) {
             model.history.batch.stop(selection.get(model));
@@ -145,11 +148,14 @@ module.exports = function(dom) {
           selection.set(model.get(s.start.i).container, s.start.pos);
         };
 
-        if (state.last_char !== null && state.last_char !== ch) {
-          if (state.last_char !== ' ' && ch === ' ') {
+        if (state.prev.selection !== null && state.prev.selection.start.i !== s.start.i) {
+          model.history.batch.stop(state.prev.selection.clone());
+          store_char();
+        } else if (state.prev.char !== null && state.prev.char !== ch) {
+          if (state.prev.char !== ' ' && ch === ' ') {
             store_char();
             model.history.batch.stop(selection.get(model));
-          } else if (state.last_char === ' ' && ch !== ' ') {
+          } else if (state.prev.char === ' ' && ch !== ' ') {
             model.history.batch.stop(selection.get(model));
             store_char();
           } else {
@@ -159,7 +165,8 @@ module.exports = function(dom) {
           store_char();
         }
 
-        state.last_char = ch;
+        state.prev.char = ch;
+        state.prev.selection = s.clone();
 
         state.events.was.keydown = was_keydown;
         state.events.was.keypress = was_keypress;
@@ -209,7 +216,7 @@ module.exports = function(dom) {
         },
 
         char_under_selection: function(event, s) {
-          return s.start.i < s.end.i && is.events.char_keypress(event);
+          return s.is.range && is.events.char_keypress(event);
         }
       }
     },
