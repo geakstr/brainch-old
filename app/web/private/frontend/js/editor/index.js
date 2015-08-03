@@ -1,10 +1,7 @@
 'use strict';
 
 module.exports = function(container) {
-  var that, model, state, events;
-
-  container.setAttribute('spellcheck', false);
-  container.setAttribute('contenteditable', true);
+  var that, model, state, events, ws;
 
   state = {
     dom: {
@@ -31,19 +28,66 @@ module.exports = function(container) {
         story: false,
         batch: false
       },
+      stop: {
+        batch: false
+      },
+      was: {
+        char: false
+      },
       selection: null,
       char: null
     }
   };
 
+  ws = new WebSocket('ws://localhost:8888');
   model = require('common/editor/model')(container);
-  events = require('frontend/editor/actions/events')(model, state);
+  events = require('frontend/editor/actions/events')(model, state, ws);
 
-  container.onkeydown = events.keydown;
-  container.onkeyup = events.keyup;
-  container.onpaste = events.paste;
-  container.oncut = events.cut;
-  container.oncopy = events.copy;
+  ws.onopen = function() {
+    container.setAttribute('spellcheck', false);
+    container.setAttribute('contenteditable', true);
+
+    container.onkeydown = events.keydown;
+    container.onkeyup = events.keyup;
+    container.onpaste = events.paste;
+    container.oncut = events.cut;
+    container.oncopy = events.copy;
+
+    console.log('Socket was opened');
+  };
+
+  ws.onclose = function(event) {
+    container.setAttribute('contenteditable', false);
+
+    container.onkeydown = null;
+    container.onkeyup = null;
+    container.onpaste = null;
+    container.oncut = null;
+    container.oncopy = null;
+
+    console.log('Socket was closed. Code: %s; Reason: %s', event.code, event.reason);
+  };
+
+  ws.onerror = function(error) {
+    console.log('Socket error: %s', error.message);
+  };
+
+  ws.onmessage = function(e) {
+    var data, type;
+
+    data = JSON.parse(e.data);
+    type = data.type;
+
+    switch (type) {
+      case 'history_batch':
+        model.history.apply(data.type, data.stories);
+        break;
+    }
+  };
+
+  window.onbeforeunload = function(e) {
+    ws.close();
+  };
 
   that = {
     get model() {

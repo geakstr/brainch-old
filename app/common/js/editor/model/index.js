@@ -52,7 +52,8 @@ module.exports = function(container) {
           history.push({
             name: 'insert.block',
             data: {
-              block: block.utils.clone(b)
+              i: b.i,
+              text: b.text
             }
           });
         },

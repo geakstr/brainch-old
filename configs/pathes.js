@@ -17,6 +17,9 @@ module.exports = {
     common: {
       js: path.join(process.cwd(), 'app/common/js')
     },
+    api: {
+      js: path.join(process.cwd(), 'app/api/js')
+    },
     web: {
       private: {
         backend: {

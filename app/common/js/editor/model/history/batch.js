@@ -2,7 +2,7 @@
 
 var selection = require('common/editor/selection').factory();
 
-module.exports = function(model, title, start_selection) {
+module.exports = function(model, title, start_selection, set_selection) {
   var that, stories, end_selection;
 
   stories = [];
@@ -12,12 +12,30 @@ module.exports = function(model, title, start_selection) {
       return title;
     },
 
+    set stories(x) {
+      stories = x;
+    },
+
     set end_selection(s) {
       end_selection = s;
     },
 
     get end_selection() {
       return end_selection || start_selection;
+    },
+
+    to_json: function() {
+      var json;
+
+      json = {
+        type: 'history_batch',
+        title: title,
+        stories: stories.map(function(story) {
+          return story.actions;
+        })
+      };
+
+      return JSON.stringify(json);
     },
 
     push: function(story) {
@@ -34,7 +52,9 @@ module.exports = function(model, title, start_selection) {
           stories[i].restore(direction);
         }
 
-        selection.set(model.get(start_selection.start.i).container, start_selection.start.pos);
+        if (set_selection) {
+          selection.set(model.get(start_selection.start.i).container, start_selection.start.pos);
+        }
       };
 
       redo = function() {
@@ -45,7 +65,9 @@ module.exports = function(model, title, start_selection) {
           stories[i].restore(direction);
         }
 
-        selection.set(model.get(that.end_selection.start.i).container, that.end_selection.start.pos);
+        if (set_selection) {
+          selection.set(model.get(that.end_selection.start.i).container, that.end_selection.start.pos);
+        }
       };
 
       return direction === -1 ? undo() : redo();

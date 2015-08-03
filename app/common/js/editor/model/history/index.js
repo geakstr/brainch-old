@@ -38,7 +38,7 @@ module.exports = function() {
         return;
       }
       state.i -= 1;
-      restore(state.i, -1);
+      restore(state.i, -1, true);
     },
 
     redo: function(selection) {
@@ -46,7 +46,28 @@ module.exports = function() {
       if (state.i === state.batches.length) {
         return;
       }
-      restore(state.i, +1);
+      restore(state.i, +1, true);
+      state.i += 1;
+    },
+
+    apply: function(title, raw_stories) {
+      that.record.stop();
+      that.batch.stop();
+
+      state.batch = batch(model, title);
+      state.batch.stories = raw_stories.map(function(cur_story) {
+        var new_story = story(model);
+
+        cur_story.forEach(function(cur_action) {
+          new_story.push(cur_action);
+        });
+
+        return new_story;
+      });
+
+      state.batches.splice(state.i, Number.MAX_VALUE, state.batch);
+
+      restore(state.i, +1, false);
       state.i += 1;
     },
 
@@ -64,12 +85,19 @@ module.exports = function() {
       },
 
       stop: function(selection) {
+        var was_batching = state.batching;
+
         if (state.batching) {
           state.batch.end_selection = selection;
           state.batches.splice(state.i, Number.MAX_VALUE, state.batch);
           state.i += 1;
         }
         state.batching = false;
+
+        return {
+          was_batching: was_batching,
+          data: state.batch
+        };
       },
 
       cancel: function() {

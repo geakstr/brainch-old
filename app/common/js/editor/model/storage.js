@@ -48,7 +48,12 @@ module.exports = function(dom) {
 
     update_indices();
 
-    return deleted;
+    return deleted.map(function(removed) {
+      return {
+        i: removed.i,
+        text: removed.text
+      };
+    });
   };
 
   var that = {

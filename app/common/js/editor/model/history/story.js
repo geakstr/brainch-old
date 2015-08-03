@@ -1,20 +1,30 @@
 'use strict';
 
+var block = require('common/editor/model/block');
+
 module.exports = function(model) {
   var that, actions;
 
   actions = [];
 
   that = {
+    get actions() {
+      return actions;
+    },
+
     push: function(action) {
       actions.push(action);
+    },
+
+    to_json: function() {
+      return JSON.stringify(actions);
     },
 
     restore: function(direction) {
       var undo, redo;
 
       undo = function() {
-        var i, j, l, action, data, block;
+        var i, j, l, action, data, b;
 
         for (i = actions.length - 1; i >= 0; i -= 1) {
           action = actions[i];
@@ -28,13 +38,13 @@ module.exports = function(model) {
               model.insert(model.get(data.i), data.text, data.pos);
               break;
             case 'insert.block':
-              model.remove(data.block.i);
+              model.remove(data.i);
               break;
             case 'remove.blocks':
               l = data.blocks.length;
               for (j = 0; j < l; j += 1) {
-                block = data.blocks[j];
-                model.insert(block.i, block);
+                b = data.blocks[j];
+                model.insert(b.i, block.factory(b.text));
               }
               break;
           }
@@ -57,7 +67,7 @@ module.exports = function(model) {
               model.remove(model.get(data.i), data.pos, data.pos + data.text.length);
               break;
             case 'insert.block':
-              model.insert(data.block.i, data.block);
+              model.insert(data.i, block.factory(data.text));
               break;
             case 'remove.blocks':
               for (j = data.blocks.length - 1; j >= 0; j -= 1) {

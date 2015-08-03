@@ -8,12 +8,12 @@ var gulp = require('gulp');
 var jscs = require('gulp-jscs');
 var eslint = require('gulp-eslint');
 
+require('./configs/api/gulp.dev.tasks.js');
 require('./configs/web/backend/gulp.dev.tasks.js');
 require('./configs/web/frontend/gulp.dev.tasks.js');
 require('./configs/web/frontend/gulp.dev.test.tasks.js');
 
 var pathes = require('pathes');
-
 
 gulp.task('common-watch-named-modules', function() {
   if (packageJson.namedModules) {
@@ -32,7 +32,8 @@ gulp.task('run-dev-web', ['run-dev-web-frontend', 'run-dev-web-backend']);
 gulp.task('jscs', function() {
   return gulp.src([
       path.join(pathes.app.web.private.backend.js, '/**/*.js'),
-      path.join(pathes.app.web.private.frontend.js, '/**/*.js')
+      path.join(pathes.app.web.private.frontend.js, '/**/*.js'),
+      path.join(pathes.app.api.js, '/**/*.js')
     ])
     .pipe(jscs());
 });

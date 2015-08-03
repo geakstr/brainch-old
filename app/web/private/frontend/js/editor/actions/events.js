@@ -7,10 +7,10 @@ var config = require('frontend/configs');
 var helpers = require('frontend/editor/actions/helpers');
 var block = require('common/editor/model/block');
 
-module.exports = function(model, state) {
+module.exports = function(model, state, ws) {
   var that, fire, inputs;
 
-  inputs = require('frontend/editor/actions/inputs')(model, state);
+  inputs = require('frontend/editor/actions/inputs')(model, state, ws);
 
   fire = function(title, e, s, callback) {
     try {

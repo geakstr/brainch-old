@@ -4,8 +4,8 @@ var selection = require('common/editor/selection').factory();
 var keys = require('common/keys_map');
 var config = require('frontend/configs');
 
-module.exports = function(model, state) {
-  var that, resolve_batch, need_stop_batch, need_cancel_batch;
+module.exports = function(model, state, ws) {
+  var that, stop_batch, resolve_batch, need_stop_batch, need_cancel_batch;
 
   need_stop_batch = function(s) {
     return state.prev.selection !== null && state.prev.selection.start.i !== s.start.i;
@@ -26,17 +26,27 @@ module.exports = function(model, state) {
       if (need_cancel_batch(info)) {
         model.batch.cancel();
       } else {
-        model.history.batch.stop(s);
+        stop_batch(s);
       }
       state.prev.cancel.story = true;
     } else {
       model.history.record.stop();
       if (info.stop_batch || need_stop_batch(s)) {
-        model.history.batch.stop(s);
+        stop_batch(s);
       }
       state.prev.cancel.story = false;
     }
     state.prev.selection = s.clone();
+  };
+
+  stop_batch = function(s) {
+    var batch;
+
+    batch = model.history.batch.stop(s);
+
+    if (batch.was_batching) {
+      ws.send(batch.data.to_json());
+    }
   };
 
   that = {
@@ -45,7 +55,7 @@ module.exports = function(model, state) {
       model.insert(s.clone(), '\n');
       model.history.record.stop();
       selection.set(model.get(s.start.i + 1).container, 0);
-      model.history.batch.stop(selection.get(model));
+      stop_batch(selection.get(model));
     },
 
     delete: function(s) {
@@ -63,7 +73,7 @@ module.exports = function(model, state) {
       model.insert(s.clone(), '\t');
       model.history.record.stop();
       selection.set(model.get(s.start.i).container, s.start.pos + 1);
-      model.history.batch.stop(selection.get(model));
+      stop_batch(selection.get(model));
     },
 
     char_under_selection: function(s) {
@@ -110,14 +120,14 @@ module.exports = function(model, state) {
       };
 
       if (need_stop_batch(s)) {
-        model.history.batch.stop(state.prev.selection.clone());
+        stop_batch(state.prev.selection.clone());
         store_char();
       } else if (state.prev.char !== null && state.prev.char !== c) {
         if (state.prev.char !== ' ' && c === ' ') {
           store_char();
-          model.history.batch.stop(selection.get(model));
+          stop_batch(selection.get(model));
         } else if (state.prev.char === ' ' && c !== ' ') {
-          model.history.batch.stop(selection.get(model));
+          stop_batch(selection.get(model));
           store_char();
         } else {
           store_char();
