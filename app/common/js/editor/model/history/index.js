@@ -4,9 +4,11 @@ var story = require('common/editor/model/history/story');
 var batch = require('common/editor/model/history/batch');
 
 module.exports = function() {
-  var model = null;
+  var that, model, state, restore;
 
-  var state = {
+  model = null;
+
+  state = {
     i: 0,
     batches: [],
     batch: [],
@@ -15,11 +17,11 @@ module.exports = function() {
     recording: false
   };
 
-  var restore = function(i, direction) {
+  restore = function(i, direction) {
     state.batches[i].restore(direction);
   };
 
-  var that = {
+  that = {
     set model(_model) {
       model = _model;
     },
@@ -35,7 +37,8 @@ module.exports = function() {
       if (state.i === 0) {
         return;
       }
-      restore(--state.i, -1);
+      state.i -= 1;
+      restore(state.i, -1);
     },
 
     redo: function(selection) {
@@ -43,7 +46,8 @@ module.exports = function() {
       if (state.i === state.batches.length) {
         return;
       }
-      restore(state.i++, +1);
+      restore(state.i, +1);
+      state.i += 1;
     },
 
     batch: {
@@ -62,7 +66,8 @@ module.exports = function() {
       stop: function(selection) {
         if (state.batching) {
           state.batch.end_selection = selection;
-          state.batches.splice(state.i++, Number.MAX_VALUE, state.batch);
+          state.batches.splice(state.i, Number.MAX_VALUE, state.batch);
+          state.i += 1;
         }
         state.batching = false;
       },

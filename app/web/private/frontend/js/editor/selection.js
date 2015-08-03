@@ -4,25 +4,25 @@ var utils = require('common/utils');
 var selection = require('common/editor/selection');
 
 exports.get = function(model) {
-  var s = window.getSelection();
+  var s, anchor, focus, info, position;
+
+  s = window.getSelection();
 
   if (!s.anchorNode || !s.focusNode) {
     throw utils.exceptions['editor selection error']();
   }
 
-  var anchor = s.anchorNode;
-  var focus = s.focusNode;
+  anchor = s.anchorNode;
+  focus = s.focusNode;
 
-  var info = selection.build(model);
+  info = selection.build(model);
 
   if (anchor.id !== 'editor' && focus.id !== 'editor') {
-    while (anchor.parentNode !== null &&
-      (anchor.nodeType !== 1 || !anchor.classList.contains('block'))) {
+    while (anchor.parentNode !== null && (anchor.nodeType !== 1 || !anchor.classList.contains('block'))) {
       anchor = anchor.parentNode;
     }
 
-    while (focus.parentNode !== null &&
-      (focus.nodeType !== 1 || !focus.classList.contains('block'))) {
+    while (focus.parentNode !== null && (focus.nodeType !== 1 || !focus.classList.contains('block'))) {
       focus = focus.parentNode;
     }
 
@@ -42,17 +42,19 @@ exports.get = function(model) {
       focus = [anchor, anchor = focus][0];
     }
 
-    var position = function(node) {
-      var s = node.ownerDocument.defaultView.getSelection();
+    position = function(node) {
+      var s, position, range, cloned;
 
-      var position = Object.create(null);
+      s = node.ownerDocument.defaultView.getSelection();
+
+      position = Object.create(null);
       position.start = 0;
       position.end = 0;
 
       if (s.rangeCount > 0) {
-        var range = s.getRangeAt(0);
+        range = s.getRangeAt(0);
 
-        var cloned = range.cloneRange();
+        cloned = range.cloneRange();
         cloned.selectNodeContents(node);
         cloned.setStart(range.startContainer, range.startOffset);
         position.start = node.textContent.length - cloned.toString().length;
@@ -87,14 +89,16 @@ exports.get = function(model) {
 };
 
 exports.set = function(node, offset) {
-  var s = window.getSelection();
+  var s, tw, range, cur_node, cur_offset, was_range_set;
 
-  var tw = document.createTreeWalker(node, NodeFilter.SHOW_TEXT, null, null);
-  var range = document.createRange();
+  s = window.getSelection();
 
-  var cur_node = null;
-  var cur_offset = 0;
-  var was_range_set = false;
+  tw = document.createTreeWalker(node, NodeFilter.SHOW_TEXT, null, null);
+  range = document.createRange();
+
+  cur_node = null;
+  cur_offset = 0;
+  was_range_set = false;
 
   while ((cur_node = tw.nextNode())) {
     cur_offset += cur_node.nodeValue.length;

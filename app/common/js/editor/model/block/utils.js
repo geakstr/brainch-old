@@ -21,19 +21,23 @@ module.exports = {
     return x.length === 0 ? r : this.decorate(this.sanitize(this.normalize(x)));
   },
 
-  clone: function(block) {
-    var cloned = require('./factory')();
+  clone: function(b) {
+    var cloned;
+
+    cloned = require('./factory')();
     if (utils.is.browser()) {
-      cloned.container = block.container.cloneNode(true);
+      cloned.container = b.container.cloneNode(true);
     } else {
-      cloned.text = block.text;
-      cloned.i = block.i;
+      cloned.text = b.text;
+      cloned.i = b.i;
     }
     return cloned;
   },
 
   to_string: function(b) {
-    var ret = '[Block]\n';
+    var ret;
+
+    ret = '[Block]\n';
     ret += '\tIndex : ' + b.i + '\n';
     ret += '\tText : ' + b.text + '\n';
     ret += '\tType : ' + b.type + '\n';

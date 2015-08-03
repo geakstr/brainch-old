@@ -1,17 +1,25 @@
 'use strict';
 
 module.exports = function(model) {
-  var actions = [];
+  var that, actions;
 
-  var that = {
+  actions = [];
+
+  that = {
     push: function(action) {
       actions.push(action);
     },
 
     restore: function(direction) {
-      var undo = function() {
-        actions.loop(true, function(action) {
-          var data = action.data;
+      var undo, redo;
+
+      undo = function() {
+        var i, j, l, action, data, block;
+
+        for (i = actions.length - 1; i >= 0; i -= 1) {
+          action = actions[i];
+          data = action.data;
+
           switch (action.name) {
             case 'insert.text':
               model.remove(model.get(data.i), data.pos, data.pos + data.text.length);
@@ -23,17 +31,24 @@ module.exports = function(model) {
               model.remove(data.block.i);
               break;
             case 'remove.blocks':
-              data.blocks.loop(function(x) {
-                model.insert(x.i, x);
-              });
+              l = data.blocks.length;
+              for (j = 0; j < l; j += 1) {
+                block = data.blocks[j];
+                model.insert(block.i, block);
+              }
               break;
           }
-        });
+        }
       };
 
-      var redo = function() {
-        actions.loop(function(action) {
-          var data = action.data;
+      redo = function() {
+        var i, j, l, action, data;
+
+        l = actions.length;
+        for (i = 0; i < l; i += 1) {
+          action = actions[i];
+          data = action.data;
+
           switch (action.name) {
             case 'insert.text':
               model.insert(model.get(data.i), data.text, data.pos);
@@ -45,12 +60,12 @@ module.exports = function(model) {
               model.insert(data.block.i, data.block);
               break;
             case 'remove.blocks':
-              data.blocks.loop(true, function(x) {
-                model.remove(x.i);
-              });
+              for (j = data.blocks.length - 1; j >= 0; j -= 1) {
+                model.remove(data.blocks[j].i);
+              }
               break;
           }
-        });
+        }
       };
 
       return direction === -1 ? undo() : redo();

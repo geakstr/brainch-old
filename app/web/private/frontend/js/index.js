@@ -3,7 +3,9 @@
 var block = require('common/editor/model/block').factory;
 
 window.onload = function() {
-  var editor = require('frontend/editor')(document.querySelector('#editor'));
+  var editor;
+
+  editor = require('frontend/editor')(document.querySelector('#editor'));
 
   editor.model.push(block('- Расстановка запятых перед а, но.'));
   editor.model.push(block('- Замена big трех точек на знак многоточия.'));

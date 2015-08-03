@@ -5,40 +5,50 @@ var utils = require('common/utils');
 module.exports = function(dom) {
   var blocks = [];
 
-  blocks.splice = function(i, n, b) {
-    var that = this;
+  blocks.splice = function(start, count, b) {
+    var that, insert, remove, update_indices, deleted;
 
-    var insert = function() {
+    that = this;
+
+    insert = function() {
       if (dom && utils.is.browser()) {
-        dom.insertBefore(b.container, dom.childNodes[i]);
+        dom.insertBefore(b.container, dom.childNodes[start]);
       }
-      return Array.prototype.splice.call(that, i, n, b);
+      return Array.prototype.splice.call(that, start, count, b);
     };
 
-    var remove = function() {
-      var removed = Array.prototype.splice.call(that, i, n);
+    remove = function() {
+      var i, l, deleted, removed;
+
+      deleted = Array.prototype.splice.call(that, start, count);
+
       if (dom && utils.is.browser()) {
-        removed.loop(function(x) {
-          if (dom.contains(x.container)) {
-            dom.removeChild(x.container);
+        l = deleted.length;
+        for (i = 0; i < l; i += 1) {
+          removed = deleted[i];
+          if (dom.contains(removed.container)) {
+            dom.removeChild(removed.container);
           }
-        });
+        }
       }
 
-      return removed;
+      return deleted;
     };
 
-    var update_indices = function() {
-      that.loop(i, function(x, i) {
-        x.i = i;
-      });
+    update_indices = function() {
+      var i, l;
+
+      l = that.length;
+      for (i = start; i < l; i += 1) {
+        that[i].i = i;
+      }
     };
 
-    var removed = utils.is.undef(b) ? remove() : insert();
+    deleted = utils.is.undef(b) ? remove() : insert();
 
     update_indices();
 
-    return removed;
+    return deleted;
   };
 
   var that = {
@@ -54,15 +64,15 @@ module.exports = function(dom) {
       return that.blocks[i];
     },
 
-    set: function(i, block) {
+    set: function(i, b) {
       if (dom && utils.is.browser()) {
         var old = that.get(i);
         if (dom.contains(old.container)) {
-          dom.replaceChild(block.container, old.container);
+          dom.replaceChild(b.container, old.container);
         }
       }
 
-      that.blocks[i] = block;
+      that.blocks[i] = b;
     }
   };
 

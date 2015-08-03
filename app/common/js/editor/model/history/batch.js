@@ -3,11 +3,11 @@
 var selection = require('common/editor/selection').factory();
 
 module.exports = function(model, title, start_selection) {
-  var stories = [];
+  var that, stories, end_selection;
 
-  var end_selection;
+  stories = [];
 
-  var that = {
+  that = {
     get title() {
       return title;
     },
@@ -25,23 +25,30 @@ module.exports = function(model, title, start_selection) {
     },
 
     restore: function(direction) {
-      var undo = function() {
-        stories.loop(true, function(story) {
-          story.restore(direction);
-        });
+      var undo, redo;
+
+      undo = function() {
+        var i;
+
+        for (i = stories.length - 1; i >= 0; i -= 1) {
+          stories[i].restore(direction);
+        }
+
         selection.set(model.get(start_selection.start.i).container, start_selection.start.pos);
       };
 
-      var redo = function() {
-        stories.loop(function(story) {
-          story.restore(direction);
-        });
+      redo = function() {
+        var i, l;
+
+        l = stories.length;
+        for (i = 0; i < l; i += 1) {
+          stories[i].restore(direction);
+        }
+
         selection.set(model.get(that.end_selection.start.i).container, that.end_selection.start.pos);
       };
 
-      var ret = direction === -1 ? undo() : redo();
-
-      return ret;
+      return direction === -1 ? undo() : redo();
     }
   };
 

@@ -12,6 +12,5 @@ exports.detect = function(x) {
   } else if (x.length === 0) {
     return Types.EMPTY;
   }
-
   return Types.NOTE;
 };

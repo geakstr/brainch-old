@@ -3,9 +3,11 @@
 var block = require('common/editor/model/block');
 
 module.exports = function(text) {
-  var container = {};
+  var that, container;
 
-  var that = {
+  container = {};
+
+  that = {
     get container() {
       return container;
     },

@@ -5,7 +5,9 @@ var browser_selection = require('frontend/editor/selection');
 var node_selection = require('frontend/editor/selection');
 
 exports.build = function(model) {
-  var s = Object.create(null);
+  var s;
+
+  s = Object.create(null);
 
   s.start = Object.create(null);
   s.start.block = model.first();
@@ -27,12 +29,14 @@ exports.build = function(model) {
 };
 
 exports.clone = function(ctx) {
+  var start, end, ret;
+
   ctx = ctx || this;
 
-  var start = utils.clone.assoc(ctx.start);
-  var end = utils.clone.assoc(ctx.end);
+  start = utils.clone.assoc(ctx.start);
+  end = utils.clone.assoc(ctx.end);
 
-  var ret = utils.clone.assoc(ctx);
+  ret = utils.clone.assoc(ctx);
   ret.start = start;
   ret.end = end;
 

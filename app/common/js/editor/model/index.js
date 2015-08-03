@@ -2,14 +2,19 @@
 
 var utils = require('common/utils');
 var keys = require('common/keys_map');
-
 var block = require('common/editor/model/block');
 
-module.exports = function(dom) {
-  var storage = require('./storage')(dom);
-  var history = require('./history')();
+module.exports = function(container) {
+  var storage, history, that;
 
-  var that = {
+  storage = require('./storage')(container);
+  history = require('./history')();
+
+  that = {
+    get container() {
+      return container;
+    },
+
     get history() {
       return history;
     },
@@ -34,24 +39,28 @@ module.exports = function(dom) {
       return that.get(that.size() - 1);
     },
 
-    push: function(blck) {
-      return that.insert(that.size(), blck);
+    push: function(b) {
+      return that.insert(that.size(), b);
     },
 
     insert: function() {
-      var opts = {
-        block: function(i, blck) {
-          storage.blocks.splice(i, 0, blck);
+      var args, opts;
+
+      opts = {
+        block: function(i, b) {
+          storage.blocks.splice(i, 0, b);
           history.push({
             name: 'insert.block',
             data: {
-              block: block.utils.clone(blck)
+              block: block.utils.clone(b)
             }
           });
         },
 
         text: function(s, text) {
-          var opts = {
+          var args, opts;
+
+          opts = {
             under_selection: function(s, text) {
               if (s.is.range) {
                 if (s.start.i < s.end.i) {
@@ -73,16 +82,18 @@ module.exports = function(dom) {
               }
             },
 
-            in_block: function(block, text, pos) {
-              var left = block.text.substring(0, pos);
-              var right = block.text.substring(pos);
+            in_block: function(b, text, pos) {
+              var left, right;
 
-              block.text = left + text + right;
+              left = b.text.substring(0, pos);
+              right = b.text.substring(pos);
+
+              b.text = left + text + right;
 
               history.push({
                 name: 'insert.text',
                 data: {
-                  i: block.i,
+                  i: b.i,
                   pos: pos,
                   text: text
                 }
@@ -90,7 +101,7 @@ module.exports = function(dom) {
             }
           };
 
-          var args = utils.wrap.args(arguments);
+          args = utils.wrap.args(arguments);
           switch (args.arity) {
             case 0:
               return opts;
@@ -112,7 +123,7 @@ module.exports = function(dom) {
         }
       };
 
-      var args = utils.wrap.args(arguments);
+      args = utils.wrap.args(arguments);
       switch (args.arity) {
         case 0:
           return opts;
@@ -138,16 +149,20 @@ module.exports = function(dom) {
     },
 
     remove: function() {
-      var opts = {
+      var args, opts;
+
+      opts = {
         blocks: function(from, to) {
-          var removed = storage.blocks.splice(from, to - from + 1);
+          var deleted;
+
+          deleted = storage.blocks.splice(from, to - from + 1);
           history.push({
             name: 'remove.blocks',
             data: {
-              blocks: removed
+              blocks: deleted
             }
           });
-          return removed;
+          return deleted;
         },
 
         block: function(i) {
@@ -155,28 +170,30 @@ module.exports = function(dom) {
         },
 
         text: function() {
-          var opts = {
-            under_selection: function(s, key) {
-              var shift = {
-                back: key === keys.backspace ? -1 : 0,
-                forward: key === keys.delete ? 1 : 0
+          var args, opts;
+
+          opts = {
+            under_selection: function(s, key_code) {
+              var shift, pos, info, moved;
+
+              shift = {
+                back: key_code === keys.backspace ? -1 : 0,
+                forward: key_code === keys.delete ? 1 : 0
               };
 
-              var pos = {
+              pos = {
                 start: s.is.caret && s.start.pos === 0,
                 end: s.is.caret && s.end.text.length === s.end.pos
               };
 
-              var info = {
+              info = {
                 i: s.start.i,
                 pos: s.start.pos,
                 cancel_story: false,
                 stop_batch: true
               };
 
-              var moved;
-
-              if (pos.start && key === keys.backspace) {
+              if (pos.start && key_code === keys.backspace) {
                 if (s.start.i === 0) {
                   info.cancel_story = true;
                   return info;
@@ -193,7 +210,7 @@ module.exports = function(dom) {
 
                 that.remove(s.end.i);
                 that.insert(s.start.block, moved, s.start.text.length);
-              } else if (pos.end && key === keys.delete) {
+              } else if (pos.end && key_code === keys.delete) {
                 if (s.end.i === that.size() - 1) {
                   info.cancel_story = true;
                   return info;
@@ -228,17 +245,19 @@ module.exports = function(dom) {
               return info;
             },
 
-            in_block: function(block, start, end) {
-              var left = block.text.substring(0, start);
-              var rigth = block.text.substring(end);
-              var removed = block.text.substring(start, end);
+            in_block: function(b, start, end) {
+              var left, right, removed;
 
-              block.text = left + rigth;
+              left = b.text.substring(0, start);
+              right = b.text.substring(end);
+              removed = b.text.substring(start, end);
+
+              b.text = left + right;
 
               history.push({
                 name: 'remove.text',
                 data: {
-                  i: block.i,
+                  i: b.i,
                   pos: start,
                   text: removed
                 }
@@ -246,7 +265,7 @@ module.exports = function(dom) {
             }
           };
 
-          var args = utils.wrap.args(arguments);
+          args = utils.wrap.args(arguments);
           switch (args.arity) {
             case 2:
               if (utils.is.obj(args.i(0)) && utils.is.num(args.i(1))) {
@@ -264,7 +283,7 @@ module.exports = function(dom) {
         }
       };
 
-      var args = utils.wrap.args(arguments);
+      args = utils.wrap.args(arguments);
       switch (args.arity) {
         case 0:
           return opts;

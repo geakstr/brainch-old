@@ -6,6 +6,8 @@
   
   "requireLineFeedAtFileEnd": null,
   "requireCamelCaseOrUpperCaseIdentifiers": null,
+  "disallowMultipleVarDecl": null,
+  "requirePaddingNewLinesAfterBlocks": null,
   "validateIndentation": 2,
   "maximumLineLength": 120,
   

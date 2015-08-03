@@ -4,19 +4,23 @@ var express = require('express');
 var nunjucks = require('nunjucks');
 var path = require('path');
 
-var app = express();
+(function() {
+  var app, server;
 
-app.use('/static', express.static(path.join(__dirname, '/../../../public')));
+  app = express();
 
-nunjucks.configure(path.join(__dirname, '/../views'), {
-  autoescape: true,
-  express: app
-});
+  app.use('/static', express.static(path.join(__dirname, '/../../../public')));
 
-app.get('/', function(req, res) {
-  res.render('index.html');
-});
+  nunjucks.configure(path.join(__dirname, '/../views'), {
+    autoescape: true,
+    express: app
+  });
 
-var server = app.listen(8000, function() {
-  console.log('Web server started on port %s', server.address().port);
-});
+  app.get('/', function(req, res) {
+    res.render('index.html');
+  });
+
+  server = app.listen(8000, function() {
+    console.log('Web server started on port %s', server.address().port);
+  });
+})();
