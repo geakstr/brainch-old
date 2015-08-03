@@ -40,7 +40,7 @@ module.exports = function(container) {
   };
 
   ws = new WebSocket('ws://localhost:8888');
-  model = require('common/editor/model')(container);
+  model = require('common/editor/model')(container, ws);
   events = require('frontend/editor/actions/events')(model, state, ws);
 
   ws.onopen = function() {

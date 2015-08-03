@@ -5,7 +5,18 @@ var keys = require('common/keys_map');
 var config = require('frontend/configs');
 
 module.exports = function(model, state, ws) {
-  var that, stop_batch, resolve_batch, need_stop_batch, need_cancel_batch;
+  var that;
+  var stop_batch, resolve_batch;
+  var need_stop_batch, need_cancel_batch;
+  var batch_timer_factory, batch_timer;
+
+  batch_timer_factory = function() {
+    clearTimeout(batch_timer);
+    batch_timer = setTimeout(function() {
+      stop_batch(selection.get(model));
+    }, 5000);
+  };
+  batch_timer_factory();
 
   need_stop_batch = function(s) {
     return state.prev.selection !== null && state.prev.selection.start.i !== s.start.i;
@@ -45,7 +56,7 @@ module.exports = function(model, state, ws) {
     batch = model.history.batch.stop(s);
 
     if (batch.was_batching) {
-      ws.send(batch.data.to_json());
+      batch_timer_factory();
     }
   };
 

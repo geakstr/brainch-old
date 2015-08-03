@@ -3,7 +3,7 @@
 var story = require('common/editor/model/history/story');
 var batch = require('common/editor/model/history/batch');
 
-module.exports = function() {
+module.exports = function(ws) {
   var that, model, state, restore;
 
   model = null;
@@ -11,19 +11,40 @@ module.exports = function() {
   state = {
     i: 0,
     batches: [],
-    batch: [],
+    batch: null,
     story: null,
     batching: false,
     recording: false
   };
 
-  restore = function(i, direction) {
-    state.batches[i].restore(direction);
+  restore = function(i, direction, set_selection) {
+    return state.batches[i].restore(direction, set_selection);
   };
 
   that = {
     set model(_model) {
       model = _model;
+    },
+
+    get cur_batch() {
+      return state.batch;
+    },
+
+    get cur_story() {
+      return state.story;
+    },
+
+    get batching() {
+      return state.batching;
+    },
+
+    slice_batch: function(from) {
+      var sliced;
+
+      sliced = batch(model, state.batch.title);
+      sliced.stories = state.batch.stories.slice(from);
+
+      return sliced;
     },
 
     push: function(action) {
@@ -38,7 +59,7 @@ module.exports = function() {
         return;
       }
       state.i -= 1;
-      restore(state.i, -1, true);
+      ws.send(restore(state.i, -1, true).to_json());
     },
 
     redo: function(selection) {
@@ -46,6 +67,7 @@ module.exports = function() {
       if (state.i === state.batches.length) {
         return;
       }
+      ws.send(state.batches[state.i].to_json());
       restore(state.i, +1, true);
       state.i += 1;
     },
@@ -91,12 +113,13 @@ module.exports = function() {
           state.batch.end_selection = selection;
           state.batches.splice(state.i, Number.MAX_VALUE, state.batch);
           state.i += 1;
+
+          ws.send(state.batch.to_json());
         }
         state.batching = false;
 
         return {
-          was_batching: was_batching,
-          data: state.batch
+          was_batching: was_batching
         };
       },
 

@@ -4,11 +4,11 @@ var utils = require('common/utils');
 var keys = require('common/keys_map');
 var block = require('common/editor/model/block');
 
-module.exports = function(container) {
+module.exports = function(container, ws) {
   var storage, history, that;
 
   storage = require('./storage')(container);
-  history = require('./history')();
+  history = require('./history')(ws);
 
   that = {
     get container() {

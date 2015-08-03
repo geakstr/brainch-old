@@ -12,6 +12,14 @@ module.exports = function(model) {
       return actions;
     },
 
+    set actions(x) {
+      actions = x;
+    },
+
+    get length() {
+      return actions.length;
+    },
+
     push: function(action) {
       actions.push(action);
     },
@@ -24,8 +32,9 @@ module.exports = function(model) {
       var undo, redo;
 
       undo = function() {
-        var i, j, l, action, data, b;
+        var i, j, l, action, data, b, undo_story, undo_actions;
 
+        undo_actions = [];
         for (i = actions.length - 1; i >= 0; i -= 1) {
           action = actions[i];
           data = action.data;
@@ -33,22 +42,58 @@ module.exports = function(model) {
           switch (action.name) {
             case 'insert.text':
               model.remove(model.get(data.i), data.pos, data.pos + data.text.length);
+              undo_actions.push({
+                name: 'remove.text',
+                data: {
+                  i: data.i,
+                  pos: data.pos,
+                  text: data.text
+                }
+              });
               break;
             case 'remove.text':
               model.insert(model.get(data.i), data.text, data.pos);
+              undo_actions.push({
+                name: 'insert.text',
+                data: {
+                  i: data.i,
+                  pos: data.pos,
+                  text: data.text
+                }
+              });
               break;
             case 'insert.block':
               model.remove(data.i);
+              undo_actions.push({
+                name: 'remove.blocks',
+                data: {
+                  blocks: [{
+                    i: data.i,
+                    text: data.text
+                  }]
+                }
+              });
               break;
             case 'remove.blocks':
               l = data.blocks.length;
               for (j = 0; j < l; j += 1) {
                 b = data.blocks[j];
                 model.insert(b.i, block.factory(b.text));
+                undo_actions.push({
+                  name: 'insert.block',
+                  data: {
+                    i: b.i,
+                    text: b.text
+                  }
+                });
               }
               break;
           }
         }
+        undo_story = module.exports(model);
+        undo_story.actions = undo_actions;
+
+        return undo_story;
       };
 
       redo = function() {
