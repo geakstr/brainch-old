@@ -27,6 +27,10 @@ module.exports = function(container) {
       }
     },
     prev: {
+      cancel: {
+        story: false,
+        batch: false
+      },
       selection: null,
       char: null
     }

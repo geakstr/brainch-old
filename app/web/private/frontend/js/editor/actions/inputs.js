@@ -5,19 +5,38 @@ var keys = require('common/keys_map');
 var config = require('frontend/configs');
 
 module.exports = function(model, state) {
-  var that, resolve_batch;
+  var that, resolve_batch, need_stop_batch, need_cancel_batch;
+
+  need_stop_batch = function(s) {
+    return state.prev.selection !== null && state.prev.selection.start.i !== s.start.i;
+  };
+
+  need_cancel_batch = function(info) {
+    return info.cancel_story && state.prev.cancel.story;
+  };
 
   resolve_batch = function(info) {
+    var s;
+
     selection.set(model.get(info.i).container, info.pos);
+
+    s = selection.get(model);
     if (info.cancel_story) {
       model.history.record.cancel();
-      model.history.batch.stop(selection.get(model));
+      if (need_cancel_batch(info)) {
+        model.batch.cancel();
+      } else {
+        model.history.batch.stop(s);
+      }
+      state.prev.cancel.story = true;
     } else {
       model.history.record.stop();
-      if (info.stop_batch) {
-        model.history.batch.stop(selection.get(model));
+      if (info.stop_batch || need_stop_batch(s)) {
+        model.history.batch.stop(s);
       }
+      state.prev.cancel.story = false;
     }
+    state.prev.selection = s.clone();
   };
 
   that = {
@@ -90,7 +109,7 @@ module.exports = function(model, state) {
         selection.set(model.get(s.start.i).container, s.start.pos);
       };
 
-      if (state.prev.selection !== null && state.prev.selection.start.i !== s.start.i) {
+      if (need_stop_batch(s)) {
         model.history.batch.stop(state.prev.selection.clone());
         store_char();
       } else if (state.prev.char !== null && state.prev.char !== c) {
