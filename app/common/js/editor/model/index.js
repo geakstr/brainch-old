@@ -71,12 +71,11 @@ module.exports = function(container) {
                 }
               }
 
-              s.end.text = s.end.text.substring(s.end.pos);
               if (text === '\n') {
                 if (s.is.caret) {
                   that.remove(s.start.block, s.start.pos, s.start.text.length);
                 }
-                that.insert(s.start.i + 1, block.factory(s.end.text));
+                that.insert(s.start.i + 1, block.factory(s.end.text.substring(s.end.pos)));
               } else {
                 that.insert(s.start.block, text, s.start.pos);
               }

@@ -17,7 +17,6 @@ module.exports = function(model, state) {
       if (config.debug.on && config.debug.events) {
         console.log(title);
       }
-
       return callback(utils.wrap.event(e), s);
     } catch (e) {
       model.history.batch.cancel();
@@ -46,9 +45,9 @@ module.exports = function(model, state) {
           } else if (helpers.is.actions.input.tab(e)) {
             inputs.tab(s);
           } else if (helpers.is.events.undoredo(e, !e.shift)) {
-            that.undo(s);
+            that.undo(e);
           } else if (helpers.is.events.undoredo(e, e.shift)) {
-            that.redo(s);
+            that.redo(e);
           } else if (helpers.is.actions.input.char_under_selection(e, s)) {
             inputs.char_under_selection(s);
             state.events.prevent.default = false;
@@ -157,7 +156,6 @@ module.exports = function(model, state) {
 
           offset = splited[l - 1].length;
         }
-
         model.history.record.stop();
         selection.set(model.get(s.start.i).container, offset);
         model.history.batch.stop(selection.get(model));
@@ -199,7 +197,6 @@ module.exports = function(model, state) {
       return fire('cut', e, selection.get(model), function(e, s) {
         that.cutcopy(e, s, true);
         inputs.backspace(s, 'cut');
-
         return false;
       });
     },
@@ -207,25 +204,22 @@ module.exports = function(model, state) {
     copy: function(e) {
       return fire('copy', e, selection.get(model), function(e, s) {
         that.cutcopy(e, s, false);
-
         return false;
       });
     },
 
-    undo: function(s) {
-      if (config.debug.on && config.debug.events) {
-        console.log('undo');
-      }
-
-      model.history.undo(s.clone());
+    undo: function(e) {
+      return fire('undo', e, selection.get(model), function(e, s) {
+        model.history.undo(s);
+        return false;
+      });
     },
 
-    redo: function(s) {
-      if (config.debug.on && config.debug.events) {
-        console.log('redo');
-      }
-
-      model.history.redo(s.clone());
+    redo: function(e) {
+      return fire('redo', e, selection.get(model), function(e, s) {
+        model.history.redo(s);
+        return false;
+      });
     }
   };
 
