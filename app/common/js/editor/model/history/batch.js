@@ -3,15 +3,25 @@
 var utils = require('common/utils');
 var selection = require('common/editor/selection').factory();
 var protocol = require('common/protocol');
+var global_state = require('common/editor/state');
 
 module.exports = function(model, title, start_selection) {
-  var that, stories, end_selection;
+  var that, id, stories, end_selection;
 
+  id = global_state.model.history.batch.offset;
   stories = [];
 
   that = {
     get title() {
       return protocol.history.batch[title];
+    },
+
+    get id() {
+      return id;
+    },
+
+    set id(val) {
+      id = val;
     },
 
     get stories() {
@@ -38,7 +48,9 @@ module.exports = function(model, title, start_selection) {
       var json;
 
       json = [
+        Date.now(),
         protocol.message.batch_history,
+        id,
         title, [
           start_selection.start.i, start_selection.start.pos,
           that.end_selection.start.i, that.end_selection.start.pos
@@ -66,6 +78,7 @@ module.exports = function(model, title, start_selection) {
           redo_stories.push(stories[i].restore(direction));
         }
         redo_batch = module.exports(model, title, start_selection);
+        redo_batch.id = id;
         redo_batch.stories = redo_stories;
 
         if (set_selection && !utils.is.undef(start_selection)) {

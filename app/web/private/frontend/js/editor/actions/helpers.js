@@ -3,12 +3,13 @@
 var utils = require('common/utils');
 var keys = require('common/keys_map');
 var config = require('frontend/configs');
+var global_state = require('common/editor/state');
 
 var is = exports.is = {
   actions: {
     input: {
       new_line: function(e) {
-        return e.key === keys.enter || (e.char === 'M' && e.ctrl);
+        return e.key === keys.enter;
       },
 
       delete: function(e) {
@@ -30,6 +31,8 @@ var is = exports.is = {
   },
   events: {
     char_keypress: function(e) {
+      global_state.prev.cancel.char = e.shift || e.alt;
+
       if (utils.is.num(e.key) && e.key > 0) {
         return !e.ctrl && !e.meta && is.events.handled_key(e.key);
       }

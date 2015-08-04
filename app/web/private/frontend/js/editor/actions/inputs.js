@@ -1,11 +1,13 @@
 'use strict';
 
-var selection = require('common/editor/selection').factory();
 var keys = require('common/keys_map');
-var config = require('frontend/configs');
 var protocol = require('common/protocol');
+var state = require('common/editor/state');
+var selection = require('common/editor/selection').factory();
 
-module.exports = function(model, state, ws) {
+var config = require('frontend/configs');
+
+module.exports = function(model, ws) {
   var that;
   var stop_batch, resolve_batch;
   var need_stop_batch, need_cancel_batch;
@@ -141,6 +143,7 @@ module.exports = function(model, state, ws) {
 
       state.prev.char = c;
       state.prev.selection = s.clone();
+      state.prev.cancel.char = false;
     }
   };
 

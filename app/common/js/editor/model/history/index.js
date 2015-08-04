@@ -5,6 +5,7 @@ var selection = require('common/editor/selection').factory();
 
 var story = require('common/editor/model/history/story');
 var batch = require('common/editor/model/history/batch');
+var global_state = require('common/editor/state');
 
 module.exports = function(ws) {
   var that, model, state, restore;
@@ -55,7 +56,7 @@ module.exports = function(ws) {
       ws.send(restore(state.i++, +1, true).to_json());
     },
 
-    apply: function(title, selections, raw_stories) {
+    apply: function(id, title, selections, raw_stories) {
       var s, start_selection, end_selection;
 
       s = selection.get(model);
@@ -86,6 +87,7 @@ module.exports = function(ws) {
       });
 
       state.batches.splice(state.i, Number.MAX_VALUE, state.batch);
+      global_state.model.history.batch.offset++;
 
       restore(state.i++, +1, false);
 
@@ -122,6 +124,7 @@ module.exports = function(ws) {
         if (state.batching) {
           state.batch.end_selection = selection;
           state.batches.splice(state.i++, Number.MAX_VALUE, state.batch);
+          global_state.model.history.batch.offset++;
           ws.send(state.batch.to_json());
         }
         state.batching = false;

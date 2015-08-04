@@ -1,16 +1,18 @@
 'use strict';
 
 var utils = require('common/utils');
+var protocol = require('common/protocol');
+var state = require('common/editor/state');
 var selection = require('common/editor/selection').factory();
 
 var config = require('frontend/configs');
 var helpers = require('frontend/editor/actions/helpers');
 var block = require('common/editor/model/block');
 
-module.exports = function(model, state, ws) {
+module.exports = function(model, ws) {
   var that, fire, inputs;
 
-  inputs = require('frontend/editor/actions/inputs')(model, state, ws);
+  inputs = require('frontend/editor/actions/inputs')(model, ws);
 
   fire = function(title, e, s, callback) {
     try {
@@ -64,7 +66,10 @@ module.exports = function(model, state, ws) {
           e.prevent.default();
         } else {
           if (state.events.was.keydown) {
-            inputs.just_char();
+            if (!state.prev.cancel.char) {
+              inputs.just_char();
+            }
+            state.prev.cancel.char = false;
           }
         }
 
@@ -121,7 +126,7 @@ module.exports = function(model, state, ws) {
         l = splited.length;
         offset = s.start.pos + pasted.length;
 
-        model.history.batch.start('paste', s.clone());
+        model.history.batch.start(protocol.history.batch.text, s.clone());
         if (l === 1) {
           model.insert(s.clone(), splited[0]);
         } else {

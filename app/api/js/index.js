@@ -50,7 +50,9 @@ var protocol = require('common/protocol');
       console.log(json);
 
       data = JSON.parse(json);
-      type = data[0];
+      type = data[1];
+
+      data[0] = Date.now();
 
       switch (type) {
         case protocol.message.batch_history:

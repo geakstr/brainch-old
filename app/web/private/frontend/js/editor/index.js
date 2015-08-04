@@ -1,49 +1,16 @@
 'use strict';
 
 var protocol = require('common/protocol');
+var state = require('common/editor/state');
 
 module.exports = function(container) {
-  var that, model, state, events, ws;
-
-  state = {
-    dom: {
-      html: {
-        length: container.innerHTML.length
-      }
-    },
-    events: {
-      prevent: {
-        default: false
-      },
-      was: {
-        keydown: false,
-        cut: false,
-        paste: false,
-        copy: false,
-        clipboard: function() {
-          return state.events.was.paste || state.events.was.cut || state.events.was.copy;
-        }
-      }
-    },
-    prev: {
-      cancel: {
-        story: false,
-        batch: false
-      },
-      stop: {
-        batch: false
-      },
-      was: {
-        char: false
-      },
-      selection: null,
-      char: null
-    }
-  };
+  var that, model, events, ws;
 
   ws = new WebSocket('ws://localhost:8888');
   model = require('common/editor/model')(container, ws);
-  events = require('frontend/editor/actions/events')(model, state, ws);
+  events = require('frontend/editor/actions/events')(model, ws);
+
+  state.dom.html.length = container.innerHTML.length;
 
   ws.onopen = function() {
     container.setAttribute('spellcheck', false);
@@ -78,11 +45,11 @@ module.exports = function(container) {
     var data, type;
 
     data = JSON.parse(e.data);
-    type = data[0];
+    type = data[1];
 
     switch (type) {
       case protocol.message.batch_history:
-        model.history.apply(data[1], data[2], data[3]);
+        model.history.apply(data[2], data[3], data[4], data[5]);
         break;
     }
   };

@@ -219,7 +219,7 @@ module.exports = function(container, ws) {
                     that.remove(s.start.block, s.start.pos, s.start.text.length);
                     that.insert(s.start.block, moved, s.start.pos);
                   } else {
-                    that.remove(s.start.block, s.start.pos, s.start.text.length);
+                    that.remove(s.start.block, s.start.pos, s.end.pos);
                   }
 
                   that.remove(s.start.i + 1, s.end.i);
