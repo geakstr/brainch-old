@@ -58,8 +58,11 @@ module.exports = function(container, ws) {
 
           opts = {
             under_selection: function(s, text) {
+              var was_remove_to_end;
+
               if (s.is.range) {
                 if (s.start.i < s.end.i) {
+                  was_remove_to_end = true;
                   that.remove(s.start.block, s.start.pos, s.start.text.length);
                   that.remove(s.start.i + 1, s.end.i);
                 } else {
@@ -68,7 +71,7 @@ module.exports = function(container, ws) {
               }
 
               if (text === '\n') {
-                if (s.is.caret) {
+                if (!was_remove_to_end) {
                   that.remove(s.start.block, s.start.pos, s.start.text.length);
                 }
                 that.insert(s.start.i + 1, block.factory(s.end.text.substring(s.end.pos)));
@@ -216,7 +219,7 @@ module.exports = function(container, ws) {
                     that.remove(s.start.block, s.start.pos, s.start.text.length);
                     that.insert(s.start.block, moved, s.start.pos);
                   } else {
-                    that.remove(s.start.block, s.start.pos, s.end.pos);
+                    that.remove(s.start.block, s.start.pos, s.start.text.length);
                   }
 
                   that.remove(s.start.i + 1, s.end.i);

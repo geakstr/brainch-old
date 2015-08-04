@@ -37,9 +37,16 @@ module.exports = function(model, title, start_selection) {
     to_json: function() {
       var json;
 
-      json = [protocol.message.batch_history, title, stories.map(function(story) {
-        return story.actions;
-      })];
+      json = [
+        protocol.message.batch_history,
+        title, [
+          start_selection.start.i, start_selection.start.pos,
+          end_selection.start.i, end_selection.start.pos
+        ],
+        stories.map(function(story) {
+          return story.actions;
+        })
+      ];
 
       return JSON.stringify(json);
     },

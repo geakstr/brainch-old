@@ -1,5 +1,8 @@
 'use strict';
 
+var protocol = require('common/protocol');
+var selection = require('common/editor/selection').factory();
+
 var story = require('common/editor/model/history/story');
 var batch = require('common/editor/model/history/batch');
 
@@ -52,11 +55,26 @@ module.exports = function(ws) {
       ws.send(restore(state.i++, +1, true).to_json());
     },
 
-    apply: function(title, raw_stories) {
+    apply: function(title, selections, raw_stories) {
+      var s, start_selection, end_selection;
+
+      s = selection.get(model);
+
+      start_selection = Object.create(null);
+      start_selection.start = Object.create(null);
+      start_selection.start.i = selections[0];
+      start_selection.start.pos = selections[1];
+
+      end_selection = Object.create(null);
+      end_selection.start = Object.create(null);
+      end_selection.start.i = selections[2];
+      end_selection.start.pos = selections[3];
+
       that.record.stop();
       that.batch.stop();
 
-      state.batch = batch(model, title);
+      state.batch = batch(model, title, start_selection);
+      state.batch.end_selection = end_selection;
       state.batch.stories = raw_stories.map(function(cur_story) {
         var new_story = story(model);
 
@@ -70,13 +88,25 @@ module.exports = function(ws) {
       state.batches.splice(state.i, Number.MAX_VALUE, state.batch);
 
       restore(state.i++, +1, false);
+
+      if (s !== null) {
+        try {
+          selection.set(s.start.block.container, s.start.pos);
+        } catch (e) {
+          try {
+            selection.set(model.get(s.start.i).container, s.start.pos);
+          } catch (e) {
+            throw e;
+          }
+        }
+      }
     },
 
     batch: {
       start: function(title, selection) {
         state.recording = true;
         state.story = story(model);
-        if (state.batching && state.batch.title === title) {
+        if (state.batching && state.batch.title === protocol.history.batch[title]) {
           return;
         } else if (state.batching) {
           that.batch.stop(selection.clone());

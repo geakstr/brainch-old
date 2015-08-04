@@ -15,7 +15,7 @@ module.exports = function(model, state, ws) {
     clearInterval(batch_timer);
     batch_timer = setInterval(function() {
       stop_batch(selection.get(model));
-    }, 3000);
+    }, 1500);
   };
   batch_timer_factory();
 
@@ -52,11 +52,7 @@ module.exports = function(model, state, ws) {
   };
 
   stop_batch = function(s) {
-    var batch;
-
-    batch = model.history.batch.stop(s);
-
-    if (batch.was_batching) {
+    if (model.history.batch.stop(s).was_batching) {
       batch_timer_factory();
     }
   };
@@ -136,9 +132,11 @@ module.exports = function(model, state, ws) {
           store_char();
         } else {
           store_char();
+          batch_timer_factory();
         }
       } else {
         store_char();
+        batch_timer_factory();
       }
 
       state.prev.char = c;

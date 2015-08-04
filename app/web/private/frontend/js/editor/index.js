@@ -82,7 +82,7 @@ module.exports = function(container) {
 
     switch (type) {
       case protocol.message.batch_history:
-        model.history.apply(data[1], data[2]);
+        model.history.apply(data[1], data[2], data[3]);
         break;
     }
   };
