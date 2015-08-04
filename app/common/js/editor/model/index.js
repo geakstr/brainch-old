@@ -5,11 +5,11 @@ var keys = require('common/keys_map');
 var block = require('common/editor/model/block');
 var protocol = require('common/protocol');
 
-module.exports = function(container, ws) {
+module.exports = function(container) {
   var storage, history, that;
 
   storage = require('./storage')(container);
-  history = require('./history')(ws);
+  history = require('./history')();
 
   that = {
     get container() {

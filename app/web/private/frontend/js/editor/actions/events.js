@@ -2,17 +2,17 @@
 
 var utils = require('common/utils');
 var protocol = require('common/protocol');
-var state = require('common/editor/state');
+var app = require('common/editor/state');
 var selection = require('common/editor/selection').factory();
 
 var config = require('frontend/configs');
 var helpers = require('frontend/editor/actions/helpers');
 var block = require('common/editor/model/block');
 
-module.exports = function(model, ws) {
+module.exports = function(model) {
   var that, fire, inputs;
 
-  inputs = require('frontend/editor/actions/inputs')(model, ws);
+  inputs = require('frontend/editor/actions/inputs')(model);
 
   fire = function(title, e, s, callback) {
     try {
@@ -33,10 +33,10 @@ module.exports = function(model, ws) {
   that = {
     keydown: function(e) {
       return fire('keydown', e, selection.get(model), function(e, s) {
-        state.events.prevent.default = false;
+        app.events.prevent.default = false;
 
         if (s !== null) {
-          state.events.prevent.default = true;
+          app.events.prevent.default = true;
 
           if (helpers.is.actions.input.new_line(e)) {
             inputs.new_line(s);
@@ -52,49 +52,49 @@ module.exports = function(model, ws) {
             that.redo(e);
           } else if (helpers.is.actions.input.char_under_selection(e, s)) {
             inputs.char_under_selection(s);
-            state.events.prevent.default = false;
+            app.events.prevent.default = false;
           } else if (helpers.is.events.handled(s)) {
-            state.events.prevent.default = false;
+            app.events.prevent.default = false;
             return false;
           } else {
-            state.events.prevent.default = false;
+            app.events.prevent.default = false;
           }
 
         }
 
-        if (state.events.prevent.default) {
+        if (app.events.prevent.default) {
           e.prevent.default();
         } else {
-          if (state.events.was.keydown) {
-            if (!state.prev.cancel.char) {
+          if (app.events.was.keydown) {
+            if (!app.prev.cancel.char) {
               inputs.just_char();
             }
-            state.prev.cancel.char = false;
+            app.prev.cancel.char = false;
           }
         }
 
-        state.events.was.keydown = true;
-        state.events.was.paste = false;
-        state.events.was.cut = false;
-        state.events.was.copy = false;
-        state.dom.html.length = model.container.innerHTML.length;
+        app.events.was.keydown = true;
+        app.events.was.paste = false;
+        app.events.was.cut = false;
+        app.events.was.copy = false;
+        app.dom.html.length = model.container.innerHTML.length;
 
-        return !state.events.prevent.default;
+        return !app.events.prevent.default;
       });
     },
 
     keyup: function(e) {
       return fire('keyup', e, selection.get(model), function(e, s) {
-        if (state.events.prevent.default) {
-          state.events.prevent.default = false;
+        if (app.events.prevent.default) {
+          app.events.prevent.default = false;
           e.prevent.default();
           return false;
         }
 
-        state.events.prevent.default = false;
+        app.events.prevent.default = false;
 
-        if (state.events.was.keydown) {
-          state.events.was.keydown = false;
+        if (app.events.was.keydown) {
+          app.events.was.keydown = false;
           inputs.just_char();
         }
 
@@ -106,10 +106,10 @@ module.exports = function(model, ws) {
       fire('paste', e, selection.get(model), function(e, s) {
         var i, l, pos, pasted, splited, offset;
 
-        state.events.was.paste = true;
-        state.events.was.cut = false;
-        state.events.was.copy = false;
-        state.events.prevent.default = true;
+        app.events.was.paste = true;
+        app.events.was.cut = false;
+        app.events.was.copy = false;
+        app.events.prevent.default = true;
         e.prevent.default();
 
         pasted = e.clipboard.get.text();
@@ -174,10 +174,10 @@ module.exports = function(model, ws) {
 
       e.prevent.default();
 
-      state.events.was.paste = false;
-      state.events.was.cut = is_cut;
-      state.events.was.copy = !is_cut;
-      state.events.prevent.default = true;
+      app.events.was.paste = false;
+      app.events.was.cut = is_cut;
+      app.events.was.copy = !is_cut;
+      app.events.prevent.default = true;
 
       text = (function() {
         var i, text;

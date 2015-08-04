@@ -1,14 +1,20 @@
 'use strict';
 
 var protocol = require('common/protocol');
-var state = require('common/editor/state');
+var app = require('common/editor/state');
 
 module.exports = function(container) {
-  var that, model, events, ws, create_ws, ws_repeater, ws_repeater_factory;
+  var that, model, events, create_ws, ws_repeater, ws_repeater_factory;
+
+  model = require('common/editor/model')(container);
+  events = require('frontend/editor/actions/events')(model);
+
+  app.dom.html.length = container.innerHTML.length;
 
   ws_repeater_factory = function() {
+    clearInterval(ws_repeater);
     ws_repeater = setInterval(function() {
-      if (!ws || ws.readyState === 3) {
+      if (!app.api.ws || app.api.ws.readyState === 3) {
         console.log('Trying connect to API...');
         create_ws();
       } else {
@@ -19,9 +25,9 @@ module.exports = function(container) {
 
   create_ws = function() {
     try {
-      ws = new WebSocket('ws://localhost:8888');
+      app.api.ws = new WebSocket('ws://localhost:8888');
 
-      ws.onopen = function() {
+      app.api.ws.onopen = function() {
         clearInterval(ws_repeater);
 
         container.setAttribute('spellcheck', false);
@@ -36,7 +42,7 @@ module.exports = function(container) {
         console.log('Socket was opened');
       };
 
-      ws.onclose = function(event) {
+      app.api.ws.onclose = function(event) {
         container.setAttribute('contenteditable', false);
 
         container.onkeydown = null;
@@ -47,15 +53,14 @@ module.exports = function(container) {
 
         console.log('Socket was closed. Code: %s; Reason: %s', event.code, event.reason);
 
-        clearInterval(ws_repeater);
         ws_repeater_factory();
       };
 
-      ws.onerror = function(error) {
+      app.api.ws.onerror = function(error) {
         console.log('Socket error: %s', error.message);
       };
 
-      ws.onmessage = function(e) {
+      app.api.ws.onmessage = function(e) {
         var data, type;
 
         data = JSON.parse(e.data);
@@ -73,13 +78,10 @@ module.exports = function(container) {
   };
   create_ws();
 
-  model = require('common/editor/model')(container, ws);
-  events = require('frontend/editor/actions/events')(model, ws);
-
-  state.dom.html.length = container.innerHTML.length;
-
   window.onbeforeunload = function(e) {
-    ws.close();
+    if (app.api.ws) {
+      app.api.ws.close();
+    }
   };
 
   that = {

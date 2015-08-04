@@ -1,4 +1,7 @@
 var state = module.exports = {
+  api: {
+    ws: null
+  },
   dom: {
     html: {
       length: null
