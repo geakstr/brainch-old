@@ -2,6 +2,11 @@ var state = module.exports = {
   api: {
     ws: null
   },
+  editor: {
+    container: null,
+    model: null,
+    events: null
+  },
   dom: {
     html: {
       length: null

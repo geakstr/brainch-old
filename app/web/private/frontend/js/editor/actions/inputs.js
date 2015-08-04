@@ -7,11 +7,13 @@ var selection = require('common/editor/selection').factory();
 
 var config = require('frontend/configs');
 
-module.exports = function(model) {
-  var that;
+module.exports = function() {
+  var that, model;
   var stop_batch, resolve_batch;
   var need_stop_batch, need_cancel_batch;
   var batch_timer_factory, batch_timer;
+
+  model = app.editor.model;
 
   batch_timer_factory = function() {
     clearInterval(batch_timer);

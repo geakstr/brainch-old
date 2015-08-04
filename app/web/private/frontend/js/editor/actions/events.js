@@ -9,10 +9,12 @@ var config = require('frontend/configs');
 var helpers = require('frontend/editor/actions/helpers');
 var block = require('common/editor/model/block');
 
-module.exports = function(model) {
-  var that, fire, inputs;
+module.exports = function() {
+  var that, model, fire, inputs;
 
-  inputs = require('frontend/editor/actions/inputs')(model);
+  model = app.editor.model;
+
+  inputs = require('frontend/editor/actions/inputs')();
 
   fire = function(title, e, s, callback) {
     try {

@@ -1,9 +1,13 @@
 'use strict';
 
+var app = require('common/editor/state');
 var utils = require('common/utils');
 
-module.exports = function(dom) {
-  var blocks = [];
+module.exports = function() {
+  var blocks, container;
+
+  container = app.editor.container;
+  blocks = [];
 
   blocks.splice = function(start, count, b) {
     var that, insert, remove, update_indices, deleted;
@@ -11,8 +15,8 @@ module.exports = function(dom) {
     that = this;
 
     insert = function() {
-      if (dom && utils.is.browser()) {
-        dom.insertBefore(b.container, dom.childNodes[start]);
+      if (container && utils.is.browser()) {
+        container.insertBefore(b.container, container.childNodes[start]);
       }
       return Array.prototype.splice.call(that, start, count, b);
     };
@@ -22,12 +26,12 @@ module.exports = function(dom) {
 
       deleted = Array.prototype.splice.call(that, start, count);
 
-      if (dom && utils.is.browser()) {
+      if (container && utils.is.browser()) {
         l = deleted.length;
         for (i = 0; i < l; i += 1) {
           removed = deleted[i];
-          if (dom.contains(removed.container)) {
-            dom.removeChild(removed.container);
+          if (container.contains(removed.container)) {
+            container.removeChild(removed.container);
           }
         }
       }
@@ -70,10 +74,10 @@ module.exports = function(dom) {
     },
 
     set: function(i, b) {
-      if (dom && utils.is.browser()) {
+      if (container && utils.is.browser()) {
         var old = that.get(i);
-        if (dom.contains(old.container)) {
-          dom.replaceChild(b.container, old.container);
+        if (container.contains(old.container)) {
+          container.replaceChild(b.container, old.container);
         }
       }
 

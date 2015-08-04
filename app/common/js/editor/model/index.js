@@ -1,14 +1,17 @@
 'use strict';
 
+var app = require('common/editor/state');
 var utils = require('common/utils');
 var keys = require('common/keys_map');
 var block = require('common/editor/model/block');
 var protocol = require('common/protocol');
 
-module.exports = function(container) {
-  var storage, history, that;
+module.exports = function() {
+  var storage, container, history, that;
 
-  storage = require('./storage')(container);
+  container = app.editor.container;
+
+  storage = require('./storage')();
   history = require('./history')();
 
   that = {

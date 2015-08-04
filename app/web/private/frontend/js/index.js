@@ -1,5 +1,6 @@
 'use strict';
 
+var app = require('common/editor/state');
 var block = require('common/editor/model/block').factory;
 
 window.onload = function() {
@@ -15,4 +16,10 @@ window.onload = function() {
   editor.model.push(block('- Добавление точки в конце последнего предложения (по умолчанию выключено).'));
   editor.model.push(block('- Расстановка апострофа в английских и русских словах..'));
   editor.model.push(block('Удаление повторяющихся знаков препинания (восклицательные, море точек — до многоточия)'));
+};
+
+window.onbeforeunload = function(e) {
+  if (app.api.ws) {
+    app.api.ws.close();
+  }
 };
