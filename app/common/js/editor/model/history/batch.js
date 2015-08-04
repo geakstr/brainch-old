@@ -1,6 +1,8 @@
 'use strict';
 
+var utils = require('common/utils');
 var selection = require('common/editor/selection').factory();
+var protocol = require('common/protocol');
 
 module.exports = function(model, title, start_selection) {
   var that, stories, end_selection;
@@ -9,7 +11,7 @@ module.exports = function(model, title, start_selection) {
 
   that = {
     get title() {
-      return title;
+      return protocol.history.batch[title];
     },
 
     get stories() {
@@ -35,13 +37,9 @@ module.exports = function(model, title, start_selection) {
     to_json: function() {
       var json;
 
-      json = {
-        type: 'history_batch',
-        title: title,
-        stories: stories.map(function(story) {
-          return story.actions;
-        })
-      };
+      json = [protocol.message.batch_history, title, stories.map(function(story) {
+        return story.actions;
+      })];
 
       return JSON.stringify(json);
     },
@@ -54,20 +52,20 @@ module.exports = function(model, title, start_selection) {
       var undo, redo;
 
       undo = function() {
-        var i, undo_batch, undo_stories;
+        var i, redo_batch, redo_stories;
 
-        undo_stories = [];
+        redo_stories = [];
         for (i = stories.length - 1; i >= 0; i -= 1) {
-          undo_stories.push(stories[i].restore(direction));
+          redo_stories.push(stories[i].restore(direction));
         }
-        undo_batch = module.exports(model, title, start_selection);
-        undo_batch.stories = undo_stories;
+        redo_batch = module.exports(model, title, start_selection);
+        redo_batch.stories = redo_stories;
 
-        if (set_selection) {
+        if (set_selection && !utils.is.undef(start_selection)) {
           selection.set(model.get(start_selection.start.i).container, start_selection.start.pos);
         }
 
-        return undo_batch;
+        return redo_batch;
       };
 
       redo = function() {
@@ -78,9 +76,11 @@ module.exports = function(model, title, start_selection) {
           stories[i].restore(direction);
         }
 
-        if (set_selection) {
+        if (set_selection && !utils.is.undef(end_selection)) {
           selection.set(model.get(that.end_selection.start.i).container, that.end_selection.start.pos);
         }
+
+        return that;
       };
 
       return direction === -1 ? undo() : redo();

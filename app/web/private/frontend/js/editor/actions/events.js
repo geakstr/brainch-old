@@ -41,7 +41,7 @@ module.exports = function(model, state, ws) {
           } else if (helpers.is.actions.input.delete(e)) {
             inputs.delete(s);
           } else if (helpers.is.actions.input.backspace(e)) {
-            inputs.backspace(s, 'backspace');
+            inputs.backspace(s);
           } else if (helpers.is.actions.input.tab(e)) {
             inputs.tab(s);
           } else if (helpers.is.events.undoredo(e, !e.shift)) {
@@ -196,7 +196,7 @@ module.exports = function(model, state, ws) {
     cut: function(e) {
       return fire('cut', e, selection.get(model), function(e, s) {
         that.cutcopy(e, s, true);
-        inputs.backspace(s, 'cut');
+        inputs.backspace(s);
         return false;
       });
     },

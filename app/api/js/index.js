@@ -1,4 +1,5 @@
 var WebSocketServer = require('ws').Server;
+var protocol = require('common/protocol');
 
 (function() {
   var wss, port, sockets;
@@ -46,11 +47,13 @@ var WebSocketServer = require('ws').Server;
     ws.on('message', function(json) {
       var data, type;
 
+      console.log(json);
+
       data = JSON.parse(json);
-      type = data.type;
+      type = data[0];
 
       switch (type) {
-        case 'history_batch':
+        case protocol.message.batch_history:
           wss.broadcast(ws.uid, json);
           break;
       }

@@ -26,25 +26,8 @@ module.exports = function(ws) {
       model = _model;
     },
 
-    get cur_batch() {
-      return state.batch;
-    },
-
-    get cur_story() {
-      return state.story;
-    },
-
     get batching() {
       return state.batching;
-    },
-
-    slice_batch: function(from) {
-      var sliced;
-
-      sliced = batch(model, state.batch.title);
-      sliced.stories = state.batch.stories.slice(from);
-
-      return sliced;
     },
 
     push: function(action) {
@@ -58,8 +41,7 @@ module.exports = function(ws) {
       if (state.i === 0) {
         return;
       }
-      state.i -= 1;
-      ws.send(restore(state.i, -1, true).to_json());
+      ws.send(restore(--state.i, -1, true).to_json());
     },
 
     redo: function(selection) {
@@ -67,9 +49,7 @@ module.exports = function(ws) {
       if (state.i === state.batches.length) {
         return;
       }
-      ws.send(state.batches[state.i].to_json());
-      restore(state.i, +1, true);
-      state.i += 1;
+      ws.send(restore(state.i++, +1, true).to_json());
     },
 
     apply: function(title, raw_stories) {
@@ -89,8 +69,7 @@ module.exports = function(ws) {
 
       state.batches.splice(state.i, Number.MAX_VALUE, state.batch);
 
-      restore(state.i, +1, false);
-      state.i += 1;
+      restore(state.i++, +1, false);
     },
 
     batch: {
@@ -107,13 +86,12 @@ module.exports = function(ws) {
       },
 
       stop: function(selection) {
-        var was_batching = state.batching;
+        var was_batching;
 
+        was_batching = state.batching;
         if (state.batching) {
           state.batch.end_selection = selection;
-          state.batches.splice(state.i, Number.MAX_VALUE, state.batch);
-          state.i += 1;
-
+          state.batches.splice(state.i++, Number.MAX_VALUE, state.batch);
           ws.send(state.batch.to_json());
         }
         state.batching = false;

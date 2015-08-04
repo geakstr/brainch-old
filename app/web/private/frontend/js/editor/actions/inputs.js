@@ -3,6 +3,7 @@
 var selection = require('common/editor/selection').factory();
 var keys = require('common/keys_map');
 var config = require('frontend/configs');
+var protocol = require('common/protocol');
 
 module.exports = function(model, state, ws) {
   var that;
@@ -11,10 +12,10 @@ module.exports = function(model, state, ws) {
   var batch_timer_factory, batch_timer;
 
   batch_timer_factory = function() {
-    clearTimeout(batch_timer);
-    batch_timer = setTimeout(function() {
+    clearInterval(batch_timer);
+    batch_timer = setInterval(function() {
       stop_batch(selection.get(model));
-    }, 5000);
+    }, 3000);
   };
   batch_timer_factory();
 
@@ -62,7 +63,7 @@ module.exports = function(model, state, ws) {
 
   that = {
     new_line: function(s) {
-      model.history.batch.start('new_line', s.clone());
+      model.history.batch.start(protocol.history.batch.new_line, s.clone());
       model.insert(s.clone(), '\n');
       model.history.record.stop();
       selection.set(model.get(s.start.i + 1).container, 0);
@@ -70,17 +71,17 @@ module.exports = function(model, state, ws) {
     },
 
     delete: function(s) {
-      model.history.batch.start('delete', s.clone());
+      model.history.batch.start(protocol.history.batch.delete, s.clone());
       resolve_batch(model.remove(s.clone(), keys.delete));
     },
 
-    backspace: function(s, batch_title) {
-      model.history.batch.start(batch_title, s.clone());
+    backspace: function(s) {
+      model.history.batch.start(protocol.history.batch.backspace, s.clone());
       resolve_batch(model.remove(s.clone(), keys.backspace));
     },
 
     tab: function(s) {
-      model.history.batch.start('tab', s.clone());
+      model.history.batch.start(protocol.history.batch.text, s.clone());
       model.insert(s.clone(), '\t');
       model.history.record.stop();
       selection.set(model.get(s.start.i).container, s.start.pos + 1);
@@ -88,7 +89,7 @@ module.exports = function(model, state, ws) {
     },
 
     char_under_selection: function(s) {
-      model.history.batch.start('char_under_selection', s.clone());
+      model.history.batch.start(protocol.history.batch.delete, s.clone());
       resolve_batch(model.remove(s.clone(), keys.delete));
     },
 
@@ -117,15 +118,8 @@ module.exports = function(model, state, ws) {
 
         model.get(_s.start.i).normalize();
 
-        model.history.batch.start('just_char', _s);
-        model.history.push({
-          name: 'insert.text',
-          data: {
-            i: _s.start.i,
-            pos: _s.start.pos,
-            text: c
-          }
-        });
+        model.history.batch.start(protocol.history.batch.text, _s);
+        model.history.push([protocol.history.story.insert_text, _s.start.i, c, _s.start.pos]);
         model.history.record.stop();
         selection.set(model.get(s.start.i).container, s.start.pos);
       };

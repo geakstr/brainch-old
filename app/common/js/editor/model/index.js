@@ -3,6 +3,7 @@
 var utils = require('common/utils');
 var keys = require('common/keys_map');
 var block = require('common/editor/model/block');
+var protocol = require('common/protocol');
 
 module.exports = function(container, ws) {
   var storage, history, that;
@@ -49,13 +50,7 @@ module.exports = function(container, ws) {
       opts = {
         block: function(i, b) {
           storage.blocks.splice(i, 0, b);
-          history.push({
-            name: 'insert.block',
-            data: {
-              i: b.i,
-              text: b.text
-            }
-          });
+          history.push([protocol.history.story.insert_block, i, b.text]);
         },
 
         text: function(s, text) {
@@ -90,14 +85,7 @@ module.exports = function(container, ws) {
 
               b.text = left + text + right;
 
-              history.push({
-                name: 'insert.text',
-                data: {
-                  i: b.i,
-                  pos: pos,
-                  text: text
-                }
-              });
+              history.push([protocol.history.story.insert_text, b.i, text, pos]);
             }
           };
 
@@ -153,15 +141,13 @@ module.exports = function(container, ws) {
 
       opts = {
         blocks: function(from, to) {
-          var deleted;
+          var i, deleted;
 
           deleted = storage.blocks.splice(from, to - from + 1);
-          history.push({
-            name: 'remove.blocks',
-            data: {
-              blocks: deleted
-            }
-          });
+          for (i = deleted.length - 1; i >= 0; i--) {
+            history.push([protocol.history.story.remove_block, deleted[i].i, deleted[i].text]);
+          }
+
           return deleted;
         },
 
@@ -254,14 +240,7 @@ module.exports = function(container, ws) {
 
               b.text = left + right;
 
-              history.push({
-                name: 'remove.text',
-                data: {
-                  i: b.i,
-                  pos: start,
-                  text: removed
-                }
-              });
+              history.push([protocol.history.story.remove_text, b.i, removed, start]);
             }
           };
 

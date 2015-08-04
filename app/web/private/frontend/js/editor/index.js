@@ -1,5 +1,7 @@
 'use strict';
 
+var protocol = require('common/protocol');
+
 module.exports = function(container) {
   var that, model, state, events, ws;
 
@@ -76,11 +78,11 @@ module.exports = function(container) {
     var data, type;
 
     data = JSON.parse(e.data);
-    type = data.type;
+    type = data[0];
 
     switch (type) {
-      case 'history_batch':
-        model.history.apply(data.type, data.stories);
+      case protocol.message.batch_history:
+        model.history.apply(data[1], data[2]);
         break;
     }
   };
