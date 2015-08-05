@@ -1,6 +1,13 @@
 'use strict';
 
+// Copy this file to ./configs.js
+
 module.exports = {
+  api: {
+    ws: {
+      url: 'ws://localhost:8888'
+    }
+  },
   debug: {
     on: true,
     events: false,

@@ -19,7 +19,7 @@ module.exports = function(onopen, onclose, onmessage, onerror) {
 
   create_ws = function() {
     try {
-      app.api.ws = new WebSocket('ws://localhost:8888');
+      app.api.ws = new WebSocket(app.api.ws.url);
 
       app.api.ws.onopen = function() {
         clearInterval(ws_repeater);
