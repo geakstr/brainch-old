@@ -30,6 +30,7 @@ module.exports = function(model) {
         // Remove line break
       } else if (cur_code === protocol.history.story.insert_text &&
         prev_code === protocol.history.story.remove_block) {
+
         if (cur[1] + 1 === prev[1] && cur[2] === prev[2]) {
           actions[l - 1] = [protocol.history.story.remove_line_break, prev[1], cur[2], cur[3]];
           return true;
@@ -98,6 +99,7 @@ module.exports = function(model) {
             case protocol.history.story.remove_line_break:
               model.insert(action[1], block.factory(action[2]));
               model.remove(model.get(action[1] - 1), action[3], action[3] + action[2].length);
+              redo_actions.push([protocol.history.story.line_break, action[1] - 1, action[2], action[3]]);
               break;
           }
         }
@@ -132,8 +134,8 @@ module.exports = function(model) {
               model.insert(action[1] + 1, block.factory(action[2]));
               break;
             case protocol.history.story.remove_line_break:
+              model.insert(model.get(action[1] - 1), action[2], action[3]);
               model.remove(action[1]);
-              model.insert(action[1] - 1, block.factory(action[2]));
               break;
           }
         }

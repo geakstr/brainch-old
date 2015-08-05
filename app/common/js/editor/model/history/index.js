@@ -76,6 +76,7 @@ module.exports = function() {
 
       state.batch = batch(model, title, start_selection);
       state.batch.end_selection = end_selection;
+
       state.batch.stories = raw_stories.map(function(cur_story) {
         var new_story = story(model);
 
