@@ -3,7 +3,10 @@
 module.exports = {
   message: {
     'batch_history': 0,
-    0: 'batch_history'
+    0: 'batch_history',
+
+    'sync_batch_time': 1,
+    1: 'sync_batch_time'
   },
   history: {
     batch: {

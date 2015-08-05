@@ -41,7 +41,7 @@ module.exports = function(container) {
 
     switch (type) {
       case protocol.message.batch_history:
-        app.editor.model.history.apply(data[2], data[3], data[4], data[5]);
+        app.editor.model.history.apply(data[0], data[3], data[4], data[5]);
         break;
     }
   }, function() {});

@@ -8,7 +8,7 @@ var story = require('common/editor/model/history/story');
 var batch = require('common/editor/model/history/batch');
 
 module.exports = function() {
-  var that, model, state, restore;
+  var that, model, state, push, restore;
 
   model = null;
 
@@ -23,6 +23,12 @@ module.exports = function() {
 
   restore = function(i, direction, set_selection) {
     return state.batches[i].restore(direction, set_selection);
+  };
+
+  push = function(new_batch) {
+    new_batch.time = Date.now();
+    state.batches.splice(state.i, Number.MAX_VALUE, new_batch);
+    app.editor.state.model.history.batch.offset++;
   };
 
   that = {
@@ -56,8 +62,8 @@ module.exports = function() {
       app.api.ws.send(restore(state.i++, +1, true).to_json());
     },
 
-    apply: function(id, title, selections, raw_stories) {
-      var s, start_selection, end_selection;
+    apply: function(time, title, selections, raw_stories) {
+      var s, new_batch, start_selection, end_selection;
 
       s = selection.get(model);
 
@@ -74,12 +80,13 @@ module.exports = function() {
       that.record.stop();
       that.batch.stop();
 
-      state.batch = batch(model, title, start_selection);
-      state.batch.end_selection = end_selection;
+      new_batch = batch(model, title, start_selection);
+      new_batch.time = time;
+      new_batch.end_selection = end_selection;
+      new_batch.stories = raw_stories.map(function(cur_story) {
+        var new_story;
 
-      state.batch.stories = raw_stories.map(function(cur_story) {
-        var new_story = story(model);
-
+        new_story = story(model);
         cur_story.forEach(function(cur_action) {
           new_story.push(cur_action);
         });
@@ -87,10 +94,10 @@ module.exports = function() {
         return new_story;
       });
 
-      state.batches.splice(state.i, Number.MAX_VALUE, state.batch);
-      app.editor.state.model.history.batch.offset++;
+      push(new_batch);
+      restore(state.i, +1, false);
 
-      restore(state.i++, +1, false);
+      state.i++;
 
       if (s !== null) {
         try {
@@ -124,8 +131,8 @@ module.exports = function() {
         was_batching = state.batching;
         if (state.batching) {
           state.batch.end_selection = selection;
-          state.batches.splice(state.i++, Number.MAX_VALUE, state.batch);
-          app.editor.state.model.history.batch.offset++;
+          push(state.batch);
+          state.i += 1;
           app.api.ws.send(state.batch.to_json());
         }
         state.batching = false;

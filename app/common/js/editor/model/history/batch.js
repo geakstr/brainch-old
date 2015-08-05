@@ -7,9 +7,10 @@ var protocol = require('common/protocol');
 var app = require('common/app');
 
 module.exports = function(model, title, start_selection) {
-  var that, id, stories, end_selection, compress;
+  var that, id, time, stories, end_selection, compress;
 
   id = app.editor.state.model.history.batch.offset;
+  time = Date.now();
   stories = [];
 
   compress = function(story) {
@@ -52,6 +53,14 @@ module.exports = function(model, title, start_selection) {
       id = val;
     },
 
+    get time() {
+      return time;
+    },
+
+    set time(x) {
+      time = x;
+    },
+
     get stories() {
       return stories;
     },
@@ -76,7 +85,7 @@ module.exports = function(model, title, start_selection) {
       var json;
 
       json = [
-        Date.now(),
+        time,
         protocol.message.batch_history,
         id,
         title, [

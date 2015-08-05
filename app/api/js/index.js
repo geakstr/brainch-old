@@ -56,7 +56,7 @@ var protocol = require('common/protocol');
 
       switch (type) {
         case protocol.message.batch_history:
-          wss.broadcast(ws.uid, json);
+          wss.broadcast(ws.uid, JSON.stringify(data));
           break;
       }
     });
