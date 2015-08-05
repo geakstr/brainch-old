@@ -1,6 +1,7 @@
 'use strict';
 
 var app = require('common/app');
+var config = require('frontend/configs');
 
 module.exports = function(onopen, onclose, onmessage, onerror) {
   var create_ws, ws_repeater, ws_repeater_factory;
@@ -19,7 +20,7 @@ module.exports = function(onopen, onclose, onmessage, onerror) {
 
   create_ws = function() {
     try {
-      app.api.ws = new WebSocket(app.api.ws.url);
+      app.api.ws = new WebSocket(config.api.ws.url);
 
       app.api.ws.onopen = function() {
         clearInterval(ws_repeater);
