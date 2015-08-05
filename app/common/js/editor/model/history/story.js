@@ -1,7 +1,8 @@
 'use strict';
 
-var block = require('common/editor/model/block');
 var protocol = require('common/protocol');
+
+var block = require('common/editor/model/block');
 
 module.exports = function(model) {
   var that, actions;

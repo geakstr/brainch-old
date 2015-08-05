@@ -1,7 +1,8 @@
 'use strict';
 
-var app = require('common/editor/state');
 var protocol = require('common/protocol');
+
+var app = require('common/app');
 
 module.exports = function(container) {
   var that;
@@ -23,7 +24,7 @@ module.exports = function(container) {
     container.oncut = events.cut;
     container.oncopy = events.copy;
 
-    app.dom.html.length = container.innerHTML.length;
+    app.editor.state.container.html.length = container.innerHTML.length;
   }, function() {
     container.setAttribute('contenteditable', false);
 

@@ -1,7 +1,8 @@
 'use strict';
 
-var app = require('common/editor/state');
 var utils = require('common/utils');
+
+var app = require('common/app');
 
 module.exports = function() {
   var blocks, container;

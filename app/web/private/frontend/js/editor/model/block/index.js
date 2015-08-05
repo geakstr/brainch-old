@@ -1,6 +1,7 @@
 'use strict';
 
 var utils = require('common/utils');
+
 var block = require('common/editor/model/block');
 
 module.exports = function() {

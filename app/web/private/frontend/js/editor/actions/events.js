@@ -1,13 +1,13 @@
 'use strict';
 
 var utils = require('common/utils');
-var protocol = require('common/protocol');
-var app = require('common/editor/state');
 var selection = require('common/editor/selection').factory();
-
+var protocol = require('common/protocol');
 var config = require('frontend/configs');
-var helpers = require('frontend/editor/actions/helpers');
+
+var app = require('common/app');
 var block = require('common/editor/model/block');
+var helpers = require('frontend/editor/actions/helpers');
 
 module.exports = function() {
   var that, model, fire, inputs;
@@ -35,10 +35,10 @@ module.exports = function() {
   that = {
     keydown: function(e) {
       return fire('keydown', e, selection.get(model), function(e, s) {
-        app.events.prevent.default = false;
+        app.editor.state.events.prevent = false;
 
         if (s !== null) {
-          app.events.prevent.default = true;
+          app.editor.state.events.prevent = true;
 
           if (helpers.is.actions.input.new_line(e)) {
             inputs.new_line(s);
@@ -54,49 +54,49 @@ module.exports = function() {
             that.redo(e);
           } else if (helpers.is.actions.input.char_under_selection(e, s)) {
             inputs.char_under_selection(s);
-            app.events.prevent.default = false;
+            app.editor.state.events.prevent = false;
           } else if (helpers.is.events.handled(s)) {
-            app.events.prevent.default = false;
+            app.editor.state.events.prevent = false;
             return false;
           } else {
-            app.events.prevent.default = false;
+            app.editor.state.events.prevent = false;
           }
 
         }
 
-        if (app.events.prevent.default) {
+        if (app.editor.state.events.prevent) {
           e.prevent.default();
         } else {
-          if (app.events.was.keydown) {
-            if (!app.prev.cancel.char) {
+          if (app.editor.state.events.keydown) {
+            if (!app.editor.state.cancel.char) {
               inputs.just_char();
             }
-            app.prev.cancel.char = false;
+            app.editor.state.cancel.char = false;
           }
         }
 
-        app.events.was.keydown = true;
-        app.events.was.paste = false;
-        app.events.was.cut = false;
-        app.events.was.copy = false;
-        app.dom.html.length = model.container.innerHTML.length;
+        app.editor.state.events.keydown = true;
+        app.editor.state.events.paste = false;
+        app.editor.state.events.cut = false;
+        app.editor.state.events.copy = false;
+        app.editor.state.container.html.length = model.container.innerHTML.length;
 
-        return !app.events.prevent.default;
+        return !app.editor.state.events.prevent;
       });
     },
 
     keyup: function(e) {
       return fire('keyup', e, selection.get(model), function(e, s) {
-        if (app.events.prevent.default) {
-          app.events.prevent.default = false;
+        if (app.editor.state.events.prevent) {
+          app.editor.state.events.prevent = false;
           e.prevent.default();
           return false;
         }
 
-        app.events.prevent.default = false;
+        app.editor.state.events.prevent = false;
 
-        if (app.events.was.keydown) {
-          app.events.was.keydown = false;
+        if (app.editor.state.events.keydown) {
+          app.editor.state.events.keydown = false;
           inputs.just_char();
         }
 
@@ -108,10 +108,10 @@ module.exports = function() {
       fire('paste', e, selection.get(model), function(e, s) {
         var i, l, pos, pasted, splited, offset;
 
-        app.events.was.paste = true;
-        app.events.was.cut = false;
-        app.events.was.copy = false;
-        app.events.prevent.default = true;
+        app.editor.state.events.paste = true;
+        app.editor.state.events.cut = false;
+        app.editor.state.events.copy = false;
+        app.editor.state.events.prevent = true;
         e.prevent.default();
 
         pasted = e.clipboard.get.text();
@@ -176,10 +176,10 @@ module.exports = function() {
 
       e.prevent.default();
 
-      app.events.was.paste = false;
-      app.events.was.cut = is_cut;
-      app.events.was.copy = !is_cut;
-      app.events.prevent.default = true;
+      app.editor.state.events.paste = false;
+      app.editor.state.events.cut = is_cut;
+      app.editor.state.events.copy = !is_cut;
+      app.editor.state.events.prevent = true;
 
       text = (function() {
         var i, text;

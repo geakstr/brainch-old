@@ -1,6 +1,6 @@
 'use strict';
 
-var app = require('common/editor/state');
+var app = require('common/app');
 var block = require('common/editor/model/block').factory;
 
 window.onload = function() {

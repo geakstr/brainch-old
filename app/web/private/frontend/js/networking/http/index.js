@@ -1,3 +1,5 @@
+'use strict';
+
 var get = exports.get = function(url) {
   return new Promise(function(succeed, fail) {
     var req = new XMLHttpRequest();

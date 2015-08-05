@@ -1,11 +1,11 @@
 'use strict';
 
 var keys = require('common/keys_map');
-var protocol = require('common/protocol');
-var app = require('common/editor/state');
 var selection = require('common/editor/selection').factory();
-
+var protocol = require('common/protocol');
 var config = require('frontend/configs');
+
+var app = require('common/app');
 
 module.exports = function() {
   var that, model;
@@ -24,11 +24,11 @@ module.exports = function() {
   batch_timer_factory();
 
   need_stop_batch = function(s) {
-    return app.prev.selection !== null && app.prev.selection.start.i !== s.start.i;
+    return app.editor.state.selection !== null && app.editor.state.selection.start.i !== s.start.i;
   };
 
   need_cancel_batch = function(info) {
-    return info.cancel_story && app.prev.cancel.story;
+    return info.cancel_story && app.editor.state.cancel.story;
   };
 
   resolve_batch = function(info) {
@@ -44,15 +44,15 @@ module.exports = function() {
       } else {
         stop_batch(s);
       }
-      app.prev.cancel.story = true;
+      app.editor.state.cancel.story = true;
     } else {
       model.history.record.stop();
       if (info.stop_batch || need_stop_batch(s)) {
         stop_batch(s);
       }
-      app.prev.cancel.story = false;
+      app.editor.state.cancel.story = false;
     }
-    app.prev.selection = s.clone();
+    app.editor.state.selection = s.clone();
   };
 
   stop_batch = function(s) {
@@ -96,12 +96,12 @@ module.exports = function() {
     just_char: function() {
       var s, c, store_char;
 
-      if (app.events.was.clipboard()) {
+      if (app.editor.state.events.clipboard()) {
         return;
-      } else if (app.dom.html.length === model.container.innerHTML.length) {
+      } else if (app.editor.state.container.html.length === model.container.innerHTML.length) {
         return;
       } else {
-        app.dom.html.length = model.container.innerHTML.length;
+        app.editor.state.container.html.length = model.container.innerHTML.length;
       }
 
       s = selection.get(model);
@@ -125,13 +125,13 @@ module.exports = function() {
       };
 
       if (need_stop_batch(s)) {
-        stop_batch(app.prev.selection.clone());
+        stop_batch(app.editor.state.selection.clone());
         store_char();
-      } else if (app.prev.char !== null && app.prev.char !== c) {
-        if (app.prev.char !== ' ' && c === ' ') {
+      } else if (app.editor.state.char !== null && app.editor.state.char !== c) {
+        if (app.editor.state.char !== ' ' && c === ' ') {
           store_char();
           stop_batch(selection.get(model));
-        } else if (app.prev.char === ' ' && c !== ' ') {
+        } else if (app.editor.state.char === ' ' && c !== ' ') {
           stop_batch(selection.get(model));
           store_char();
         } else {
@@ -143,9 +143,9 @@ module.exports = function() {
         batch_timer_factory();
       }
 
-      app.prev.char = c;
-      app.prev.selection = s.clone();
-      app.prev.cancel.char = false;
+      app.editor.state.char = c;
+      app.editor.state.selection = s.clone();
+      app.editor.state.cancel.char = false;
     }
   };
 

@@ -1,6 +1,7 @@
 'use strict';
 
 var utils = require('common/utils');
+
 var browser_block = require('frontend/editor/model/block');
 var node_block = require('backend/editor/model/block');
 

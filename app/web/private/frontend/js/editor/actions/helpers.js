@@ -3,7 +3,8 @@
 var utils = require('common/utils');
 var keys = require('common/keys_map');
 var config = require('frontend/configs');
-var global_state = require('common/editor/state');
+
+var app = require('common/app');
 
 var is = exports.is = {
   actions: {
@@ -31,7 +32,7 @@ var is = exports.is = {
   },
   events: {
     char_keypress: function(e) {
-      global_state.prev.cancel.char = e.shift || e.alt;
+      app.editor.state.cancel.char = e.shift || e.alt;
 
       if (utils.is.num(e.key) && e.key > 0) {
         return !e.ctrl && !e.meta && is.events.handled_key(e.key);

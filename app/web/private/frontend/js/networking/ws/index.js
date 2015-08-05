@@ -1,4 +1,6 @@
-var app = require('common/editor/state');
+'use strict';
+
+var app = require('common/app');
 
 module.exports = function(onopen, onclose, onmessage, onerror) {
   var create_ws, ws_repeater, ws_repeater_factory;

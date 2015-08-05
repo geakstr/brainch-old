@@ -1,6 +1,7 @@
 'use strict';
 
 var utils = require('common/utils');
+
 var browser_selection = require('frontend/editor/selection');
 var node_selection = require('frontend/editor/selection');
 

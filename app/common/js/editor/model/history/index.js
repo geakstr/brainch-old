@@ -1,11 +1,11 @@
 'use strict';
 
-var protocol = require('common/protocol');
 var selection = require('common/editor/selection').factory();
+var protocol = require('common/protocol');
 
+var app = require('common/app');
 var story = require('common/editor/model/history/story');
 var batch = require('common/editor/model/history/batch');
-var app = require('common/editor/state');
 
 module.exports = function() {
   var that, model, state, restore;
@@ -87,7 +87,7 @@ module.exports = function() {
       });
 
       state.batches.splice(state.i, Number.MAX_VALUE, state.batch);
-      app.model.history.batch.offset++;
+      app.editor.state.model.history.batch.offset++;
 
       restore(state.i++, +1, false);
 
@@ -124,7 +124,7 @@ module.exports = function() {
         if (state.batching) {
           state.batch.end_selection = selection;
           state.batches.splice(state.i++, Number.MAX_VALUE, state.batch);
-          app.model.history.batch.offset++;
+          app.editor.state.model.history.batch.offset++;
           app.api.ws.send(state.batch.to_json());
         }
         state.batching = false;

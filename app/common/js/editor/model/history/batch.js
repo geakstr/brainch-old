@@ -3,12 +3,13 @@
 var utils = require('common/utils');
 var selection = require('common/editor/selection').factory();
 var protocol = require('common/protocol');
-var global_state = require('common/editor/state');
+
+var app = require('common/app');
 
 module.exports = function(model, title, start_selection) {
   var that, id, stories, end_selection;
 
-  id = global_state.model.history.batch.offset;
+  id = app.editor.state.model.history.batch.offset;
   stories = [];
 
   that = {

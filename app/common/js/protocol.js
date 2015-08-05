@@ -1,3 +1,5 @@
+'use strict';
+
 module.exports = {
   message: {
     'batch_history': 0,

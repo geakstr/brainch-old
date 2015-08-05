@@ -1,4 +1,4 @@
 'use strict';
 
-exports.utils = require('./utils');
-exports.factory = require('./factory');
+exports.utils = require('common/editor/model/block/utils');
+exports.factory = require('common/editor/model/block/factory');

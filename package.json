@@ -15,6 +15,7 @@
   "namedModules": {
     "pathes": "configs/pathes.js",
     "common": "app/common/js",
+    "api": "app/api/js/",
     "frontend": "app/web/private/frontend/js/",
     "backend": "app/web/private/backend/js/"
   },
