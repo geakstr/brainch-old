@@ -43,13 +43,13 @@ module.exports = function(initial_text) {
       return storage.get(i);
     },
 
-    get_by_cursor: function(cursor) {
+    get_by_retain: function(retain) {
       var i, l, b;
 
       for (i = 0, l = storage.size(); i < l; i += 1) {
         b = that.get(i);
 
-        if (cursor >= b.start && cursor < b.end) {
+        if (retain >= b.start && retain <= b.end) {
           return b;
         }
       }
@@ -79,10 +79,12 @@ module.exports = function(initial_text) {
       opts = {
         block: function(i, b) {
           storage.blocks.splice(i, 0, b);
+          that.actualize();
           history.push([protocol.history.story.insert_block, i, b.text]);
+          app.editor.ot.op([that.get(i).start, b.text + '\n']);
         },
 
-        text: function(s, text) {
+        text: function() {
           var args, opts;
 
           opts = {
@@ -104,9 +106,20 @@ module.exports = function(initial_text) {
                   that.remove(s.start.block, s.start.pos, s.start.text.length);
                 }
                 that.insert(s.start.i + 1, block.factory(s.end.text.substring(s.end.pos)));
-                app.editor.ot.op([s.start.block.start + s.start.pos, '\n']);
               } else {
                 that.insert(s.start.block, text, s.start.pos);
+              }
+            },
+
+            ot_style: function(retain, text) {
+              var b, t, start;
+
+              b = that.get_by_retain(retain);
+
+              if (text === '\n') {
+                that.remove(b, retain, b.length);
+              } else {
+                opts.in_block(b, text, retain - b.start);
               }
             },
 
@@ -120,7 +133,7 @@ module.exports = function(initial_text) {
               that.actualize();
 
               history.push([protocol.history.story.insert_text, b.i, text, pos]);
-              app.editor.ot.op([b.block.start + pos, text]);
+              app.editor.ot.op([b.start + pos, text]);
             }
           };
 
@@ -129,7 +142,9 @@ module.exports = function(initial_text) {
             case 0:
               return opts;
             case 2:
-              if (utils.is.obj(args.i(0)) && utils.is.str(args.i(1))) {
+              if (utils.is.num(args.i(0)) && utils.is.str(args.i(1))) {
+                return opts.ot_style(args.i(0), args.i(1));
+              } else if (utils.is.obj(args.i(0)) && utils.is.str(args.i(1))) {
                 return opts.under_selection(args.i(0), args.i(1));
               }
               break;
@@ -151,7 +166,9 @@ module.exports = function(initial_text) {
         case 0:
           return opts;
         case 2:
-          if (utils.is.num(args.i(0)) && utils.is.obj(args.i(1))) {
+          if (utils.is.num(args.i(0)) && utils.is.str(args.i(1))) {
+            return opts.text(args.i(0), args.i(1));
+          } else if (utils.is.num(args.i(0)) && utils.is.obj(args.i(1))) {
             return opts.block(args.i(0), args.i(1));
           } else if (utils.is.obj(args.i(0)) && utils.is.str(args.i(1))) {
             return opts.text(args.i(0), args.i(1));
@@ -181,6 +198,9 @@ module.exports = function(initial_text) {
           deleted = storage.blocks.splice(from, to - from + 1);
           for (i = deleted.length - 1; i >= 0; i--) {
             history.push([protocol.history.story.remove_block, deleted[i].i, deleted[i].text]);
+            app.editor.ot.op([deleted[i].start, {
+              d: deleted[i].text.length + 1
+            }]);
           }
 
           return deleted;
@@ -266,6 +286,24 @@ module.exports = function(initial_text) {
               return info;
             },
 
+            ot_style: function(retain, obj) {
+              var b, start, end;
+
+              b = that.get_by_retain(retain);
+              start = retain - b.start;
+              end = start + obj.d;
+
+              if (end > b.length) {
+                while (b !== null && end > b.length) {
+                  end -= b.length;
+                  that.remove(b.i);
+                  b = that.get_by_retain(retain);
+                }
+              } else {
+                opts.in_block(b, start, end);
+              }
+            },
+
             in_block: function(b, start, end) {
               var left, right, removed;
 
@@ -274,15 +312,21 @@ module.exports = function(initial_text) {
               removed = b.text.substring(start, end);
 
               b.text = left + right;
+              that.actualize();
 
               history.push([protocol.history.story.remove_text, b.i, removed, start]);
+              app.editor.ot.op([b.start + start, {
+                d: end - start
+              }]);
             }
           };
 
           args = utils.wrap.args(arguments);
           switch (args.arity) {
             case 2:
-              if (utils.is.obj(args.i(0)) && utils.is.num(args.i(1))) {
+              if (utils.is.num(args.i(0)) && utils.is.obj(args.i(1))) {
+                return opts.ot_style(args.i(0), args.i(1));
+              } else if (utils.is.obj(args.i(0)) && utils.is.num(args.i(1))) {
                 return opts.under_selection(args.i(0), args.i(1));
               }
               break;
@@ -307,7 +351,9 @@ module.exports = function(initial_text) {
           }
           break;
         case 2:
-          if (utils.is.num(args.i(0)) && utils.is.num(args.i(1))) {
+          if (utils.is.num(args.i(0)) && utils.is.obj(args.i(1))) {
+            return opts.text(args.i(0), args.i(1));
+          } else if (utils.is.num(args.i(0)) && utils.is.num(args.i(1))) {
             return opts.blocks(args.i(0), args.i(1));
           } else if (utils.is.obj(args.i(0)) && utils.is.num(args.i(1))) {
             return opts.text(args.i(0), args.i(1));

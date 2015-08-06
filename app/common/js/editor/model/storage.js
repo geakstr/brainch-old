@@ -39,6 +39,7 @@ module.exports = function() {
     return deleted.map(function(removed) {
       return {
         i: removed.i,
+        start: removed.start,
         text: removed.text
       };
     });
@@ -79,7 +80,7 @@ module.exports = function() {
       blocks[0].start = 0;
       for (i = 1, l = blocks.length; i < l; i += 1) {
         blocks[i].i = i;
-        blocks[i].start = blocks[i - 1].end + 1;
+        blocks[i].start = blocks[i - 1].end + (i < l - 1 ? 1 : 0);
       }
     }
   };

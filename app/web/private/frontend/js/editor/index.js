@@ -29,6 +29,9 @@ module.exports = function(container) {
     app.editor.container.setAttribute('spellcheck', false);
     app.editor.container.setAttribute('contenteditable', true);
 
+    app.editor.ot = require('frontend/editor/ot')(doc);
+
+    app.editor.ot.can_op = false;
     app.editor.model = require('common/editor/model')(doc.getSnapshot());
     app.editor.state.container.html.length = app.editor.container.innerHTML.length;
 
@@ -38,8 +41,6 @@ module.exports = function(container) {
     app.editor.container.onpaste = app.editor.events.paste;
     app.editor.container.oncut = app.editor.events.cut;
     app.editor.container.oncopy = app.editor.events.copy;
-
-    app.editor.ot = require('frontend/editor/ot')(doc);
   });
 
   that = {};

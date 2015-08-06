@@ -7,6 +7,7 @@ var protocol = require('common/protocol');
 var app = require('common/app');
 var story = require('common/editor/model/history/story');
 var batch = require('common/editor/model/history/batch');
+var block = require('common/editor/model/block').factory;
 
 module.exports = function() {
   var that, model, state, push_batch, restore_batch;
@@ -46,9 +47,10 @@ module.exports = function() {
     },
 
     apply: function(op) {
-      var i, l, x, s, cursor;
+      var i, j, l, n, m, k, x, y, s, splited, retain;
 
-      cursor = 0;
+      console.log(op);
+      retain = 0;
       app.editor.ot.can_op = false;
       for (i = 0, l = op.length; i < l; i += 1) {
         x = op[i];
@@ -56,16 +58,16 @@ module.exports = function() {
         s = Object.create(null);
 
         s.start = Object.create(null);
-        s.start.block = model.get_by_cursor(cursor);
+        s.start.block = model.get_by_retain(retain);
         s.start.i = s.start.block.i;
         s.start.text = s.start.block.text;
-        s.start.pos = cursor - s.start.block.start;
+        s.start.pos = retain - s.start.block.start;
 
         s.end = Object.create(null);
-        s.end.block = model.get_by_cursor(cursor);
+        s.end.block = model.get_by_retain(retain);
         s.end.i = s.end.block.i;
         s.end.text = s.end.block.text;
-        s.end.pos = cursor - s.end.block.start;
+        s.end.pos = retain - s.end.block.start;
 
         s.is = Object.create(null);
         s.is.range = s.start.pos !== s.end.pos;
@@ -74,16 +76,22 @@ module.exports = function() {
         s.clone = selection.clone;
 
         if (utils.is.num(x)) {
-          cursor += x;
+          retain += x;
         } else if (utils.is.str(x)) {
-          if (x === '\n') {
+          splited = x.split('\n');
+          n = x.length;
+          m = splited.length;
+          if (x[n - 1] === '\n') {
             app.editor.inputs.new_line(s);
+            app.editor.model.insert(retain, x.substring(0, n - 1));
+            retain += n;
           } else {
-            app.editor.model.insert(s.start.block, x, s.start.pos);
+            app.editor.model.insert(retain, x);
+            retain += n;
           }
-          //model.insert(model.get_by_cursor(cursor), x, cursor);
+
         } else {
-          model.remove(model.get_by_cursor(cursor), cursor, x.d);
+          app.editor.model.remove(retain, x);
         }
       }
       app.editor.ot.can_op = true;
