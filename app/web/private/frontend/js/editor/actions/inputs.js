@@ -120,7 +120,9 @@ module.exports = function() {
 
         model.history.batch.start(protocol.history.batch.text, _s);
         model.history.push([protocol.history.story.insert_text, _s.start.i, c, _s.start.pos]);
+        app.editor.ot.op([_s.start.block.start + _s.start.pos, c]);
         model.history.record.stop();
+        model.actualize();
         selection.set(model.get(s.start.i).container, s.start.pos);
       };
 

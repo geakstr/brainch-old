@@ -60,10 +60,6 @@ module.exports = function(model) {
       }
     },
 
-    to_json: function() {
-      return JSON.stringify(actions);
-    },
-
     restore: function(direction) {
       var undo, redo;
 
@@ -112,8 +108,7 @@ module.exports = function(model) {
       redo = function() {
         var i, l, action;
 
-        l = actions.length;
-        for (i = 0; i < l; i += 1) {
+        for (i = 0, l = actions.length; i < l; i += 1) {
           action = actions[i];
 
           switch (action[0]) {

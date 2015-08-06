@@ -21,9 +21,12 @@
   },
   "dependencies": {
     "express": "^4.13.0",
+    "livedb": "^0.5.13",
+    "livedb-mongo": "^0.4.1",
     "node-named-modules": "^1.0.1",
     "nunjucks": "^1.3.4",
     "promise": "^7.0.3",
+    "share": "^0.7.40",
     "ws": "^0.7.2"
   },
   "devDependencies": {

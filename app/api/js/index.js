@@ -1,64 +1,71 @@
+var Duplex = require('stream').Duplex;
 var WebSocketServer = require('ws').Server;
-var protocol = require('common/protocol');
+var livedbmongo = require('livedb-mongo');
+var livedb = require('livedb');
+var sharejs = require('share');
 
 (function() {
-  var wss, port, sockets;
+  var socket_server, memory, db, mongo, share, sockets;
 
-  port = 8888;
+  memory = true;
 
-  wss = new WebSocketServer({
-    port: port
+  if (memory) {
+    db = livedb.client(livedb.memory());
+  } else {
+    mongo = livedbmongo('mongodb://localhost:27017/brainch');
+    db = livedb.client(mongo);
+  }
+  share = sharejs.server.createClient({
+    backend: db
   });
 
   sockets = [];
+  socket_server = new WebSocketServer({
+    port: 8888
+  });
+  socket_server.on('connection', function(socket) {
+    var stream;
 
-  wss.broadcast = function(self_uid, data) {
-    sockets.forEach(function(ws) {
-      if (ws.uid !== self_uid) {
-        ws.send(data, function(error) {
-          if (typeof error === 'undefined') {
-            return;
-          }
-          console.log(error);
-        });
-      }
+    socket.uid = sockets.length;
+    sockets.push(socket);
+    console.log('Socket %s was connected', socket.uid);
+
+    stream = new Duplex({
+      objectMode: true
     });
-  };
+    stream.headers = socket.upgradeReq.headers;
+    stream.remoteAddress = socket.upgradeReq.connection.remoteAddress;
+    stream._read = function() {};
+    stream._write = function(chunk, encoding, callback) {
+      console.log('s -> c ', chunk);
+      socket.send(JSON.stringify(chunk));
+      callback();
+    };
+    stream.on('error', function(error) {
+      socket.close(error);
+    });
+    stream.on('end', function() {
+      socket.close();
+    });
+    share.listen(stream);
 
-  wss.on('connection', function(ws) {
-    ws.uid = sockets.length;
-    sockets.push(ws);
-
-    console.log('Socket %s was connected', ws.uid);
-
-    ws.onclose = function() {
+    socket.onclose = function(reason) {
       var i, l;
 
-      sockets.splice(ws.uid, 1);
+      stream.push(null);
+      stream.emit('close');
 
-      l = sockets.length;
-      for (i = ws.uid; i < l; i += 1) {
+      socket.close(reason);
+      sockets.splice(socket.uid, 1);
+      for (i = socket.uid, l = sockets.length; i < l; i += 1) {
         sockets[i].uid = i;
       }
-
-      console.log('Socket %s was closed', ws.uid);
+      console.log('Socket %s was closed', socket.uid);
     };
 
-    ws.on('message', function(json) {
-      var data, type;
-
-      console.log(json);
-
-      data = JSON.parse(json);
-      type = data[1];
-
-      data[0] = Date.now();
-
-      switch (type) {
-        case protocol.message.batch_history:
-          wss.broadcast(ws.uid, JSON.stringify(data));
-          break;
-      }
+    socket.on('message', function(json) {
+      console.log('c -> s ', json);
+      stream.push(JSON.parse(json));
     });
   });
 })();

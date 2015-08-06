@@ -4,13 +4,9 @@ var utils = require('common/utils');
 var selection = require('common/editor/selection').factory();
 var protocol = require('common/protocol');
 
-var app = require('common/app');
-
 module.exports = function(model, title, start_selection) {
-  var that, id, time, stories, end_selection, compress;
+  var that, stories, end_selection, compress;
 
-  id = app.editor.state.model.history.batch.offset;
-  time = Date.now();
   stories = [];
 
   compress = function(story) {
@@ -45,22 +41,6 @@ module.exports = function(model, title, start_selection) {
       return protocol.history.batch[title];
     },
 
-    get id() {
-      return id;
-    },
-
-    set id(val) {
-      id = val;
-    },
-
-    get time() {
-      return time;
-    },
-
-    set time(x) {
-      time = x;
-    },
-
     get stories() {
       return stories;
     },
@@ -81,25 +61,6 @@ module.exports = function(model, title, start_selection) {
       return end_selection || start_selection;
     },
 
-    to_json: function() {
-      var json;
-
-      json = [
-        time,
-        protocol.message.batch_history,
-        id,
-        title, [
-          start_selection.start.i, start_selection.start.pos,
-          that.end_selection.start.i, that.end_selection.start.pos
-        ],
-        stories.map(function(story) {
-          return story.actions;
-        })
-      ];
-
-      return JSON.stringify(json);
-    },
-
     push: function(story) {
       if (!compress(story)) {
         stories.push(story);
@@ -117,7 +78,6 @@ module.exports = function(model, title, start_selection) {
           redo_stories.push(stories[i].restore(direction));
         }
         redo_batch = module.exports(model, title, start_selection);
-        redo_batch.id = id;
         redo_batch.stories = redo_stories;
 
         if (set_selection && !utils.is.undef(start_selection)) {

@@ -15,6 +15,7 @@ module.exports = function() {
   model = app.editor.model;
 
   inputs = require('frontend/editor/actions/inputs')();
+  app.editor.inputs = inputs;
 
   fire = function(title, e, s, callback) {
     try {
@@ -39,6 +40,7 @@ module.exports = function() {
 
         if (s !== null) {
           app.editor.state.events.prevent = true;
+          app.editor.ot.can_op = true;
 
           if (helpers.is.actions.input.new_line(e)) {
             inputs.new_line(s);
@@ -57,6 +59,7 @@ module.exports = function() {
             app.editor.state.events.prevent = false;
           } else if (helpers.is.events.handled(s)) {
             app.editor.state.events.prevent = false;
+            app.editor.ot.can_op = false;
             return false;
           } else {
             app.editor.state.events.prevent = false;
@@ -97,6 +100,7 @@ module.exports = function() {
 
         if (app.editor.state.events.keydown) {
           app.editor.state.events.keydown = false;
+          app.editor.ot.can_op = true;
           inputs.just_char();
         }
 
@@ -128,6 +132,7 @@ module.exports = function() {
         l = splited.length;
         offset = s.start.pos + pasted.length;
 
+        app.editor.ot.can_op = true;
         model.history.batch.start(protocol.history.batch.text, s.clone());
         if (l === 1) {
           model.insert(s.clone(), splited[0]);
@@ -202,6 +207,7 @@ module.exports = function() {
 
     cut: function(e) {
       return fire('cut', e, selection.get(model), function(e, s) {
+        app.editor.ot.can_op = true;
         that.cutcopy(e, s, true);
         inputs.backspace(s);
         return false;

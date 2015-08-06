@@ -1,56 +1,48 @@
 'use strict';
 
-var protocol = require('common/protocol');
-
 var app = require('common/app');
 
 module.exports = function(container) {
   var that;
 
-  app.editor.container = container;
-  app.editor.model = require('common/editor/model')();
-  app.editor.events = require('frontend/editor/actions/events')();
+  require('frontend/networking/sjs')(function(onopen) {
+    var doc;
 
-  require('frontend/networking/ws')(function() {
-    var events;
+    doc = app.api.sjs.get('docs', 'first');
+    doc.subscribe();
+    doc.whenReady(function() {
+      if (!doc.type || doc.type.name !== 'text') {
+        var t = '- Расстановка запятых перед а, но.\n';
+        t += '- Замена big трех точек на знак многоточия.\n';
+        t += 'Замена сдвоенных знаков препинания на одинарные.\n';
+        t += '- Замена восклицательного знаков местами. Не big совсем верно, мы заменим\n';
+        t += 'Многоточие для обозначения незаконченности высказывания с восклицательного знаков.\n';
+        t += '- Добавление точки в конце последнего предложения (по умолчанию выключено).\n';
+        t += '- Расстановка апострофа в английских и русских словах..\n';
+        t += 'Удаление повторяющихся знаков препинания (восклицательные море точек до многоточия)';
+        doc.create('text', t);
+      }
+      onopen(doc);
+    });
+  }, function(doc) {
+    app.editor.container = container;
+    app.editor.container.setAttribute('spellcheck', false);
+    app.editor.container.setAttribute('contenteditable', true);
 
-    container.setAttribute('spellcheck', false);
-    container.setAttribute('contenteditable', true);
+    app.editor.model = require('common/editor/model')(doc.getSnapshot());
+    app.editor.state.container.html.length = app.editor.container.innerHTML.length;
 
-    events = app.editor.events;
-    container.onkeydown = events.keydown;
-    container.onkeyup = events.keyup;
-    container.onpaste = events.paste;
-    container.oncut = events.cut;
-    container.oncopy = events.copy;
+    app.editor.events = require('frontend/editor/actions/events')();
+    app.editor.container.onkeydown = app.editor.events.keydown;
+    app.editor.container.onkeyup = app.editor.events.keyup;
+    app.editor.container.onpaste = app.editor.events.paste;
+    app.editor.container.oncut = app.editor.events.cut;
+    app.editor.container.oncopy = app.editor.events.copy;
 
-    app.editor.state.container.html.length = container.innerHTML.length;
-  }, function() {
-    container.setAttribute('contenteditable', false);
+    app.editor.ot = require('frontend/editor/ot')(doc);
+  });
 
-    container.onkeydown = null;
-    container.onkeyup = null;
-    container.onpaste = null;
-    container.oncut = null;
-    container.oncopy = null;
-  }, function(json) {
-    var data, type;
-
-    data = JSON.parse(json);
-    type = data[1];
-
-    switch (type) {
-      case protocol.message.batch_history:
-        app.editor.model.history.apply(data[0], data[3], data[4], data[5]);
-        break;
-    }
-  }, function() {});
-
-  that = {
-    get model() {
-      return app.editor.model;
-    }
-  };
+  that = {};
 
   return that;
 };

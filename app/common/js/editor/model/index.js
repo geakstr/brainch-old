@@ -7,21 +7,32 @@ var protocol = require('common/protocol');
 var app = require('common/app');
 var block = require('common/editor/model/block');
 
-module.exports = function() {
-  var storage, container, history, that;
-
-  container = app.editor.container;
+module.exports = function(initial_text) {
+  var that, storage, push_plain_text, history;
 
   storage = require('./storage')();
   history = require('./history')();
 
+  push_plain_text = function(text) {
+    var splited, i, l;
+
+    splited = text.split('\n');
+    for (i = 0, l = splited.length; i < l; i += 1) {
+      that.push(block.factory(splited[i]));
+    }
+  };
+
   that = {
     get container() {
-      return container;
+      return app.editor.container;
     },
 
     get history() {
       return history;
+    },
+
+    actualize: function() {
+      storage.actualize();
     },
 
     size: function() {
@@ -30,6 +41,20 @@ module.exports = function() {
 
     get: function(i) {
       return storage.get(i);
+    },
+
+    get_by_cursor: function(cursor) {
+      var i, l, b;
+
+      for (i = 0, l = storage.size(); i < l; i += 1) {
+        b = that.get(i);
+
+        if (cursor >= b.start && cursor < b.end) {
+          return b;
+        }
+      }
+
+      return null;
     },
 
     set: function(i, b) {
@@ -79,6 +104,7 @@ module.exports = function() {
                   that.remove(s.start.block, s.start.pos, s.start.text.length);
                 }
                 that.insert(s.start.i + 1, block.factory(s.end.text.substring(s.end.pos)));
+                app.editor.ot.op([s.start.block.start + s.start.pos, '\n']);
               } else {
                 that.insert(s.start.block, text, s.start.pos);
               }
@@ -91,8 +117,10 @@ module.exports = function() {
               right = b.text.substring(pos);
 
               b.text = left + text + right;
+              that.actualize();
 
               history.push([protocol.history.story.insert_text, b.i, text, pos]);
+              app.editor.ot.op([b.block.start + pos, text]);
             }
           };
 
@@ -299,6 +327,7 @@ module.exports = function() {
   };
 
   history.model = that;
+  push_plain_text(initial_text);
 
   return that;
 };

@@ -11,47 +11,30 @@ module.exports = function() {
   blocks = [];
 
   blocks.splice = function(start, count, b) {
-    var that, insert, remove, update_indices, deleted;
-
-    that = this;
+    var insert, remove, deleted;
 
     insert = function() {
-      if (container && utils.is.browser()) {
-        container.insertBefore(b.container, container.childNodes[start]);
-      }
-      return Array.prototype.splice.call(that, start, count, b);
+      container.insertBefore(b.container, container.childNodes[start]);
+      return Array.prototype.splice.call(blocks, start, count, b);
     };
 
     remove = function() {
       var i, l, deleted, removed;
 
-      deleted = Array.prototype.splice.call(that, start, count);
-
-      if (container && utils.is.browser()) {
-        l = deleted.length;
-        for (i = 0; i < l; i += 1) {
-          removed = deleted[i];
-          if (container.contains(removed.container)) {
-            container.removeChild(removed.container);
-          }
+      deleted = Array.prototype.splice.call(blocks, start, count);
+      for (i = 0, l = deleted.length; i < l; i += 1) {
+        removed = deleted[i];
+        if (container.contains(removed.container)) {
+          container.removeChild(removed.container);
         }
       }
 
       return deleted;
     };
 
-    update_indices = function() {
-      var i, l;
-
-      l = that.length;
-      for (i = start; i < l; i += 1) {
-        that[i].i = i;
-      }
-    };
-
     deleted = utils.is.undef(b) ? remove() : insert();
 
-    update_indices();
+    that.actualize();
 
     return deleted.map(function(removed) {
       return {
@@ -64,6 +47,10 @@ module.exports = function() {
   var that = {
     get blocks() {
       return blocks;
+    },
+
+    get text() {
+      return app.editor.doc.getSnapshot();
     },
 
     size: function() {
@@ -83,6 +70,17 @@ module.exports = function() {
       }
 
       that.blocks[i] = b;
+    },
+
+    actualize: function() {
+      var i, l;
+
+      blocks[0].i = 0;
+      blocks[0].start = 0;
+      for (i = 1, l = blocks.length; i < l; i += 1) {
+        blocks[i].i = i;
+        blocks[i].start = blocks[i - 1].end + 1;
+      }
     }
   };
 

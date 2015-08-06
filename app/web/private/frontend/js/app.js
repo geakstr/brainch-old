@@ -8,6 +8,7 @@ var app = module.exports = {
     container: null,
     model: null,
     events: null,
+    doc: null,
     state: {
       selection: null,
       char: null,

@@ -1,6 +1,7 @@
 'use strict';
 
-var selection = require('common/editor/selection').factory();
+var selection = require('common/editor/selection');
+var utils = require('common/utils');
 var protocol = require('common/protocol');
 
 var app = require('common/app');
@@ -8,7 +9,7 @@ var story = require('common/editor/model/history/story');
 var batch = require('common/editor/model/history/batch');
 
 module.exports = function() {
-  var that, model, state, push, restore;
+  var that, model, state, push_batch, restore_batch;
 
   model = null;
 
@@ -21,14 +22,12 @@ module.exports = function() {
     recording: false
   };
 
-  restore = function(i, direction, set_selection) {
+  restore_batch = function(i, direction, set_selection) {
     return state.batches[i].restore(direction, set_selection);
   };
 
-  push = function(new_batch) {
-    new_batch.time = Date.now();
+  push_batch = function(new_batch) {
     state.batches.splice(state.i, Number.MAX_VALUE, new_batch);
-    app.editor.state.model.history.batch.offset++;
   };
 
   that = {
@@ -46,12 +45,57 @@ module.exports = function() {
       }
     },
 
+    apply: function(op) {
+      var i, l, x, s, cursor;
+
+      cursor = 0;
+      app.editor.ot.can_op = false;
+      for (i = 0, l = op.length; i < l; i += 1) {
+        x = op[i];
+
+        s = Object.create(null);
+
+        s.start = Object.create(null);
+        s.start.block = model.get_by_cursor(cursor);
+        s.start.i = s.start.block.i;
+        s.start.text = s.start.block.text;
+        s.start.pos = cursor - s.start.block.start;
+
+        s.end = Object.create(null);
+        s.end.block = model.get_by_cursor(cursor);
+        s.end.i = s.end.block.i;
+        s.end.text = s.end.block.text;
+        s.end.pos = cursor - s.end.block.start;
+
+        s.is = Object.create(null);
+        s.is.range = s.start.pos !== s.end.pos;
+        s.is.caret = s.start.i === s.end.i && s.start.pos === s.end.pos;
+
+        s.clone = selection.clone;
+
+        if (utils.is.num(x)) {
+          cursor += x;
+        } else if (utils.is.str(x)) {
+          if (x === '\n') {
+            app.editor.inputs.new_line(s);
+          } else {
+            app.editor.model.insert(s.start.block, x, s.start.pos);
+          }
+          //model.insert(model.get_by_cursor(cursor), x, cursor);
+        } else {
+          model.remove(model.get_by_cursor(cursor), cursor, x.d);
+        }
+      }
+      app.editor.ot.can_op = true;
+      console.log(app.editor.ot.doc.getSnapshot());
+    },
+
     undo: function(selection) {
       that.batch.stop(selection);
       if (state.i === 0) {
         return;
       }
-      app.api.ws.send(restore(--state.i, -1, true).to_json());
+      restore_batch(--state.i, -1, true);
     },
 
     redo: function(selection) {
@@ -59,57 +103,7 @@ module.exports = function() {
       if (state.i === state.batches.length) {
         return;
       }
-      app.api.ws.send(restore(state.i++, +1, true).to_json());
-    },
-
-    apply: function(time, title, selections, raw_stories) {
-      var s, new_batch, start_selection, end_selection;
-
-      s = selection.get(model);
-
-      start_selection = Object.create(null);
-      start_selection.start = Object.create(null);
-      start_selection.start.i = selections[0];
-      start_selection.start.pos = selections[1];
-
-      end_selection = Object.create(null);
-      end_selection.start = Object.create(null);
-      end_selection.start.i = selections[2];
-      end_selection.start.pos = selections[3];
-
-      that.record.stop();
-      that.batch.stop();
-
-      new_batch = batch(model, title, start_selection);
-      new_batch.time = time;
-      new_batch.end_selection = end_selection;
-      new_batch.stories = raw_stories.map(function(cur_story) {
-        var new_story;
-
-        new_story = story(model);
-        cur_story.forEach(function(cur_action) {
-          new_story.push(cur_action);
-        });
-
-        return new_story;
-      });
-
-      push(new_batch);
-      restore(state.i, +1, false);
-
-      state.i++;
-
-      if (s !== null) {
-        try {
-          selection.set(s.start.block.container, s.start.pos);
-        } catch (e) {
-          try {
-            selection.set(model.get(s.start.i).container, s.start.pos);
-          } catch (e) {
-            throw e;
-          }
-        }
-      }
+      restore_batch(state.i++, +1, true);
     },
 
     batch: {
@@ -131,9 +125,8 @@ module.exports = function() {
         was_batching = state.batching;
         if (state.batching) {
           state.batch.end_selection = selection;
-          push(state.batch);
+          push_batch(state.batch);
           state.i += 1;
-          app.api.ws.send(state.batch.to_json());
         }
         state.batching = false;
 

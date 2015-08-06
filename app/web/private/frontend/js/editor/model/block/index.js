@@ -5,7 +5,7 @@ var utils = require('common/utils');
 var block = require('common/editor/model/block');
 
 module.exports = function() {
-  var that, container;
+  var that, container, pos;
 
   container = document.createElement('p');
 
@@ -18,8 +18,24 @@ module.exports = function() {
       container = c;
     },
 
+    get start() {
+      return pos;
+    },
+
+    set start(x) {
+      pos = x;
+    },
+
+    get end() {
+      return pos + that.text.length;
+    },
+
     get html() {
       return container.innerHTML;
+    },
+
+    get length() {
+      return that.text.length;
     },
 
     get text() {
