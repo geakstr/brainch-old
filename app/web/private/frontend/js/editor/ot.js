@@ -1,13 +1,15 @@
 'use strict';
 
-var app = require('common/app');
+var app = require('frontend/app');
 
 module.exports = function(doc) {
   var that, can_op;
 
+  doc = doc || {};
+  doc.on = doc.on || function() {};
   doc.on('op', function(op, local) {
     if (!local) {
-      app.editor.model.history.apply(op);
+      app.editor.history.apply(op);
     }
   });
 

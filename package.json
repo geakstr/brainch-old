@@ -14,12 +14,13 @@
   ],
   "namedModules": {
     "pathes": "configs/pathes.js",
-    "common": "app/common/js",
     "api": "app/api/js/",
     "frontend": "app/web/private/frontend/js/",
     "backend": "app/web/private/backend/js/"
   },
   "dependencies": {
+    "browserchannel": "^2.0.0",
+    "connect": "^3.4.0",
     "express": "^4.13.0",
     "livedb": "^0.5.13",
     "livedb-mongo": "^0.4.1",

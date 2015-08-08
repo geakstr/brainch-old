@@ -1,9 +1,8 @@
 'use strict';
 
-var utils = require('common/utils');
-
-var block_utils = require('./utils');
-var block_types = require('./types');
+var block_types = require('frontend/editor/model/block/types');
+var block_utils = require('frontend/editor/model/block/utils');
+var utils = require('frontend/utils');
 
 module.exports = function(text) {
   var that, container, pos;

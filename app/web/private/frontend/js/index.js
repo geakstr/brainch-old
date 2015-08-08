@@ -1,6 +1,6 @@
 'use strict';
 
-var app = require('common/app');
+var app = require('frontend/app');
 
 window.onload = function() {
   require('frontend/editor')(document.querySelector('#editor'));

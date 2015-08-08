@@ -1,20 +1,18 @@
 'use strict';
 
-var utils = require('common/utils');
+var app = require('frontend/app');
+var utils = require('frontend/utils');
 
-var app = require('common/app');
-
-module.exports = function(container) {
+module.exports = function() {
   var blocks;
 
-  container = container || app.editor.container;
   blocks = [];
 
   blocks.splice = function(start, count, b) {
     var insert, remove, deleted;
 
     insert = function() {
-      container.insertBefore(b.container, container.childNodes[start]);
+      app.editor.container.insertBefore(b.container, app.editor.container.childNodes[start]);
       return Array.prototype.splice.call(blocks, start, count, b);
     };
 
@@ -24,8 +22,8 @@ module.exports = function(container) {
       deleted = Array.prototype.splice.call(blocks, start, count);
       for (i = 0, l = deleted.length; i < l; i += 1) {
         removed = deleted[i];
-        if (container.contains(removed.container)) {
-          container.removeChild(removed.container);
+        if (app.editor.container.contains(removed.container)) {
+          app.editor.container.removeChild(removed.container);
         }
       }
 
@@ -36,13 +34,7 @@ module.exports = function(container) {
 
     that.actualize();
 
-    return deleted.map(function(removed) {
-      return {
-        i: removed.i,
-        start: removed.start,
-        text: removed.text
-      };
-    });
+    return deleted;
   };
 
   var that = {
@@ -63,10 +55,10 @@ module.exports = function(container) {
     },
 
     set: function(i, b) {
-      if (container && utils.is.browser()) {
+      if (app.editor.container && utils.is.browser()) {
         var old = that.get(i);
-        if (container.contains(old.container)) {
-          container.replaceChild(b.container, old.container);
+        if (app.editor.container.contains(old.container)) {
+          app.editor.container.replaceChild(b.container, old.container);
         }
       }
 
@@ -81,9 +73,14 @@ module.exports = function(container) {
     actualize: function() {
       var i, l;
 
+      l = blocks.length;
+      if (l === 0) {
+        return;
+      }
+
       blocks[0].i = 0;
       blocks[0].start = 0;
-      for (i = 1, l = blocks.length; i < l; i += 1) {
+      for (i = 1; i < l; i += 1) {
         blocks[i].i = i;
         blocks[i].start = blocks[i - 1].end + 1;
       }

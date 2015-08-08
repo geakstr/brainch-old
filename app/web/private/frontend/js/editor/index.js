@@ -1,6 +1,6 @@
 'use strict';
 
-var app = require('common/app');
+var app = require('frontend/app');
 
 module.exports = function(container) {
   var that;
@@ -32,8 +32,8 @@ module.exports = function(container) {
     app.editor.ot = require('frontend/editor/ot')(doc);
     app.editor.ot.can_op = false;
 
-    app.editor.model = require('common/editor/model')(doc.getSnapshot());
-    app.editor.model2 = require('frontend/editor/model/index')(app.editor.model.storage);
+    app.editor.model = require('frontend/editor/model')(doc.getSnapshot());
+    app.editor.history = require('frontend/editor/model/history')();
     app.editor.state.container.html.length = app.editor.container.innerHTML.length;
 
     app.editor.events = require('frontend/editor/actions/events')();

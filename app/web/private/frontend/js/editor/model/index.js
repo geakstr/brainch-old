@@ -1,18 +1,31 @@
-var block = require('common/editor/model/block').factory;
-var utils = require('common/utils');
+'use strict';
 
-module.exports = function(container) {
+var app = require('frontend/app');
+var block = require('frontend/editor/model/block');
+var utils = require('frontend/utils');
+
+module.exports = function(text) {
   var that, storage;
 
-  storage = require('common/editor/model/storage')(container);
+  storage = require('./storage')();
 
   that = {
     get length() {
       return storage.length;
     },
 
+    get storage() {
+      return storage;
+    },
+
+    init_with_text: function(text) {
+      storage.blocks.splice(0, that.length);
+      that.push_block(block(''));
+      that.insert_text(0, text);
+    },
+
     push_block: function(b) {
-      that.insert_block_by_i(storage.length, b);
+      that.insert_block_by_i(that.length, b);
     },
 
     insert_block_by_i: function(i, b) {
@@ -21,25 +34,18 @@ module.exports = function(container) {
       }
 
       storage.blocks.splice(i, 0, b);
-      storage.actualize();
+      app.editor.ot.op([b.start, b.text + '\n']);
     },
 
     remove_block_by_i: function(i) {
-      var last_i, b;
+      var last_i;
 
-      last_i = storage.length - 1;
+      last_i = that.length - 1;
       if (!utils.is.int(i) || i < 0 || i > last_i) {
         throw new Error('Op is not valid: i = ' + i + '; last_i (-1 if empty) = ' + last_i);
       }
 
-      b = storage.blocks.splice(i, 1)[0];
-
-      return {
-        text: b.text,
-        op: [b.start, {
-          d: b.length + 1
-        }]
-      };
+      storage.blocks.splice(i, 1);
     },
 
     get_block_by_retain: function(retain) {
@@ -50,7 +56,7 @@ module.exports = function(container) {
         throw new Error('Op is not valid: retain = ' + retain + '; doc_l = ' + doc_l);
       }
 
-      for (i = 0, l = storage.length; i < l; i += 1) {
+      for (i = 0, l = that.length; i < l; i += 1) {
         b = storage.get(i);
         if (retain >= b.start && retain <= b.end) {
           return b;
@@ -70,7 +76,7 @@ module.exports = function(container) {
     },
 
     get_last_block: function() {
-      return storage.get(storage.length - 1);
+      return storage.get(that.length - 1);
     },
 
     get_n_chars: function(orig_retain, n) {
@@ -113,7 +119,7 @@ module.exports = function(container) {
       if (!utils.is.int(retain) || (!utils.is.str(t) && !utils.is.num(t)) || retain < 0 || retain > doc_l) {
         throw new Error('Op is not valid: retain = ' + retain + '; doc_l = ' + doc_l + '; t = ' + t);
       } else if (t.length === 0) {
-        return [retain, t];
+        return;
       }
 
       insert_text_helper = function(retain, t) {
@@ -122,8 +128,8 @@ module.exports = function(container) {
         b = that.get_block_by_retain(retain);
         p = retain - b.start;
         b.text = b.text.substring(0, p) + t + b.text.substring(p);
-
         storage.actualize();
+        app.editor.ot.op([retain, t]);
       };
 
       splited = t.split('\n');
@@ -140,10 +146,10 @@ module.exports = function(container) {
             retain += splited[i].length + 1;
           }
           insert_text_helper(retain, splited[splited_l - 1]);
-        } else if (b.i === storage.length - 1 && retain === that.get_last_block().end) {
+        } else if (b.i === that.length - 1 && retain === that.get_last_block().end) {
           insert_text_helper(retain, splited[0]);
           retain += splited[0].length + 1;
-          for (i = 1, j = storage.length; i < splited_l; i += 1, j += 1) {
+          for (i = 1, j = that.length; i < splited_l; i += 1, j += 1) {
             that.insert_block_by_i(j, block(splited[i]));
             retain += splited[i].length + 1;
           }
@@ -162,21 +168,17 @@ module.exports = function(container) {
           that.insert_block_by_i(j, block(splited[splited_l - 1] + moved));
         }
       }
-
-      return [orig_retain, t];
     },
 
     remove_text: function(orig_retain, n) {
-      var i, retain, start_b, end_b, start_p, end_p, doc_l;
+      var retain, start_b, end_b, start_p, end_p, cnt, doc_l;
 
       retain = orig_retain;
       doc_l = that.get_last_block().end;
       if (!utils.is.int(retain) || !utils.is.int(n) || retain < 0 || n < 0 || retain + n > doc_l) {
         throw new Error('Op is not valid: retain = ' + retain + '; n = ' + n + '; doc_l = ' + doc_l);
       } else if (n === 0) {
-        return [retain, {
-          d: n
-        }];
+        return;
       }
 
       start_b = that.get_block_by_retain(retain);
@@ -187,16 +189,18 @@ module.exports = function(container) {
 
       start_b.text = start_b.text.substring(0, start_p) + end_b.text.substring(end_p);
       storage.actualize();
-
-      for (i = end_b.i; i > start_b.i; i -= 1) {
-        that.remove_block_by_i(i);
-      }
-
-      return [orig_retain, {
+      app.editor.ot.op([orig_retain, {
         d: n
-      }];
+      }]);
+
+      cnt = end_b.i - (start_b.i + 1);
+      while (cnt-- >= 0) {
+        that.remove_block_by_i(start_b.i + 1);
+      }
     }
   };
+
+  that.init_with_text(text || '');
 
   return that;
 };

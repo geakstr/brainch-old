@@ -1,8 +1,8 @@
 /*global describe, expect, it, beforeEach, afterEach */
 
-var block = require('common/editor/model/block').factory;
+var app = require('frontend/app');
+var block = require('frontend/editor/model/block');
 var chai = require('chai');
-
 var expect = chai.expect;
 
 describe('editor/model', function() {
@@ -16,11 +16,10 @@ describe('editor/model', function() {
       'opqr'
     ];
 
-    model = require('frontend/editor/model')(document.createElement('div'));
-    model.push_block(block(blocks_texts[0]));
-    model.push_block(block(blocks_texts[1]));
-    model.push_block(block(blocks_texts[2]));
-    model.push_block(block(blocks_texts[3]));
+    app.editor.ot = require('frontend/editor/ot')();
+    app.editor.container = document.createElement('div');
+    app.editor.storage = require('frontend/editor/model/storage')();
+    model = require('frontend/editor/model')(blocks_texts.join('\n'));
   };
 
   beforeEach(function() {
@@ -72,10 +71,13 @@ describe('editor/model', function() {
     });
   });
   describe('remove_block_by_i', function() {
-    it('text from removed block should equals', function() {
-      expect(model.remove_block_by_i(0).text).to.eql(blocks_texts[0]);
-      expect(model.remove_block_by_i(0).text).to.eql(blocks_texts[1]);
-      expect(model.remove_block_by_i(1).text).to.eql(blocks_texts[3]);
+    it('text in next block should equals', function() {
+      model.remove_block_by_i(0);
+      expect(model.get_block_by_i(0).text).to.eql(blocks_texts[1]);
+      model.remove_block_by_i(0);
+      expect(model.get_block_by_i(0).text).to.eql(blocks_texts[2]);
+      model.remove_block_by_i(0);
+      expect(model.get_block_by_i(0).text).to.eql(blocks_texts[3]);
     });
     it('should throw exception', function() {
       expect(model.remove_block_by_i.bind(model.remove_block_by_i, 1.1, {})).to.throw(/Op is not valid/);
@@ -338,6 +340,29 @@ describe('editor/model', function() {
     });
   });
   describe('insert_text', function() {
+    it('block text should equals (vol. 0)', function() {
+      model.insert_text(0, '\n');
+      expect(model.get_block_by_i(0).text).to.eql('');
+      expect(model.get_block_by_i(1).text).to.eql(blocks_texts[0]);
+
+      model.insert_text(2, '\n');
+      expect(model.get_block_by_i(0).text).to.eql('');
+      expect(model.get_block_by_i(1).text).to.eql('a');
+      expect(model.get_block_by_i(2).text).to.eql('bcde');
+
+      init();
+
+      model.insert_text(2, '\n');
+      expect(model.get_block_by_i(0).text).to.eql('ab');
+      expect(model.get_block_by_i(1).text).to.eql('cde');
+
+      init();
+
+      model.insert_text(5, '\n');
+      expect(model.get_block_by_i(0).text).to.eql(blocks_texts[0]);
+      expect(model.get_block_by_i(1).text).to.eql('');
+      expect(model.get_block_by_i(2).text).to.eql(blocks_texts[1]);
+    });
     it('block text should equals (vol. 1)', function() {
       model.insert_text(0, 's');
       expect(model.get_block_by_i(0).text).to.eql('s' + blocks_texts[0]);

@@ -1,6 +1,6 @@
 'use strict';
 
-var utils = require('common/utils');
+var utils = require('frontend/utils');
 
 module.exports = {
   normalize: function(x) {

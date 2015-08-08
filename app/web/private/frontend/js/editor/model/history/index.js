@@ -1,18 +1,12 @@
 'use strict';
 
-var selection = require('common/editor/selection');
-var utils = require('common/utils');
-var protocol = require('common/protocol');
-
-var app = require('common/app');
-var story = require('common/editor/model/history/story');
-var batch = require('common/editor/model/history/batch');
-var block = require('common/editor/model/block').factory;
+var app = require('frontend/app');
+var batch = require('frontend/editor/model/history/batch');
+var story = require('frontend/editor/model/history/story');
+var utils = require('frontend/utils');
 
 module.exports = function() {
-  var that, model, state, push_batch, restore_batch;
-
-  model = null;
+  var that, state, push_batch, restore_batch;
 
   state = {
     i: 0,
@@ -32,10 +26,6 @@ module.exports = function() {
   };
 
   that = {
-    set model(_model) {
-      model = _model;
-    },
-
     get batching() {
       return state.batching;
     },
@@ -47,40 +37,19 @@ module.exports = function() {
     },
 
     apply: function(op) {
-      var i, j, l, n, m, x, y, splited, retain;
+      var i, l, x, retain;
 
-      console.log(op);
       retain = 0;
       app.editor.ot.can_op = false;
       for (i = 0, l = op.length; i < l; i += 1) {
         x = op[i];
-
         if (utils.is.num(x)) {
           retain += x;
         } else if (utils.is.str(x)) {
-          splited = x.split('\n');
-          n = x.length;
-          m = splited.length;
-          if (m === 1) {
-            app.editor.model.insert(retain, x);
-            retain += n;
-          } else {
-            for (j = 0; j < m - 1; j += 1) {
-              y = splited[j];
-              app.editor.model.insert(retain, y);
-              retain += y.length;
-              app.editor.model.insert(retain, '\n');
-              retain += 1;
-            }
-            if (x[n - 1] !== '\n') {
-              y = splited[m - 1];
-              app.editor.model.insert(retain, y);
-              retain += y.length;
-            }
-          }
-
+          app.editor.model.insert_text(retain, x);
+          retain += x.length;
         } else {
-          app.editor.model.remove(retain, x);
+          app.editor.model.remove_text(retain, x.d);
         }
       }
       app.editor.ot.can_op = true;
@@ -105,14 +74,12 @@ module.exports = function() {
     batch: {
       start: function(title, selection) {
         state.recording = true;
-        state.story = story(model);
-        if (state.batching && state.batch.title === protocol.history.batch[title]) {
-          return;
-        } else if (state.batching) {
+        state.story = story();
+        if (state.batching) {
           that.batch.stop(selection.clone());
         }
         state.batching = true;
-        state.batch = batch(model, title, selection);
+        state.batch = batch(title, selection);
       },
 
       stop: function(selection) {

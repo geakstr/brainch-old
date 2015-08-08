@@ -1,46 +1,14 @@
 'use strict';
 
-var utils = require('common/utils');
-var selection = require('common/editor/selection').factory();
-var protocol = require('common/protocol');
+var utils = require('frontend/utils');
+var selection = require('frontend/editor/selection');
 
 module.exports = function(model, title, start_selection) {
   var that, stories, end_selection, compress;
 
   stories = [];
 
-  compress = function(story) {
-    var l, code, cur_actions, cur_action, prev_actions, prev_action;
-
-    l = stories.length;
-    if (l > 0) {
-      cur_actions = story.actions;
-      prev_actions = stories[l - 1].actions;
-
-      if (cur_actions.length === 1 && prev_actions.length === 1) {
-        cur_action = cur_actions[0];
-        prev_action = prev_actions[0];
-
-        code = cur_action[0];
-        if (code === protocol.history.story.insert_text) {
-          // Equals blocks indices and insert position
-          if (cur_action[1] === prev_action[1] &&
-            cur_action[3] === prev_action[2].length + prev_action[3]) {
-            prev_action[2] += cur_action[2];
-            return true;
-          }
-        }
-      }
-    }
-
-    return false;
-  };
-
   that = {
-    get title() {
-      return protocol.history.batch[title];
-    },
-
     get stories() {
       return stories;
     },

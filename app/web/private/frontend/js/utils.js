@@ -5,14 +5,14 @@ Function.prototype.method = function(name, f) {
   return this;
 };
 
-String.method('entitify', function() {
+String.method('entitify', (function() {
   return function() {
     return this.replace(/&/g, '&amp;')
       .replace(/</g, '&lt;')
       .replace(/>/g, '&gt;')
       .replace(/"/g, '&quot;');
   };
-}());
+})());
 
 if (!String.prototype.format) {
   String.prototype.format = function() {
