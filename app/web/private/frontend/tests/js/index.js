@@ -1,0 +1,1 @@
+require('./editor/model/index.test.js');

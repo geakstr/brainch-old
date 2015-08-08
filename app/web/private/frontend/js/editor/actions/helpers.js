@@ -1,10 +1,9 @@
 'use strict';
 
-var utils = require('common/utils');
-var keys = require('common/keys_map');
+var app = require('frontend/app');
 var config = require('frontend/configs');
-
-var app = require('common/app');
+var keys = require('frontend/keys_map');
+var utils = require('frontend/utils');
 
 var is = exports.is = {
   actions: {
@@ -26,7 +25,7 @@ var is = exports.is = {
       },
 
       char_under_selection: function(e, s) {
-        return s.is.range && is.events.char_keypress(e);
+        return s.n > 0 && is.events.char_keypress(e);
       }
     }
   },

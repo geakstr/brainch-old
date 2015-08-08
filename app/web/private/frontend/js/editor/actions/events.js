@@ -1,20 +1,16 @@
 'use strict';
 
-var utils = require('common/utils');
-var selection = require('common/editor/selection').factory();
-var protocol = require('common/protocol');
+var app = require('frontend/app');
 var config = require('frontend/configs');
-
-var app = require('common/app');
-var block = require('common/editor/model/block');
 var helpers = require('frontend/editor/actions/helpers');
+var selection = require('frontend/editor/selection');
+var utils = require('frontend/utils');
 
 module.exports = function() {
-  var that, model, fire, inputs;
-
-  model = app.editor.model;
+  var that, fire, inputs;
 
   inputs = require('frontend/editor/actions/inputs')();
+  app.editor.inputs = inputs;
 
   fire = function(title, e, s, callback) {
     try {
@@ -23,22 +19,23 @@ module.exports = function() {
       }
       return callback(utils.wrap.event(e), s);
     } catch (e) {
-      model.history.batch.cancel();
-      model.history.record.cancel();
+      app.editor.history.batch.cancel();
+      app.editor.history.record.cancel();
       utils.exceptions.log(e);
       return false;
     } finally {
-      model.history.record.stop();
+      app.editor.history.record.stop();
     }
   };
 
   that = {
     keydown: function(e) {
-      return fire('keydown', e, selection.get(model), function(e, s) {
+      return fire('keydown', e, selection.get(), function(e, s) {
         app.editor.state.events.prevent = false;
 
         if (s !== null) {
           app.editor.state.events.prevent = true;
+          app.editor.ot.can_op = true;
 
           if (helpers.is.actions.input.new_line(e)) {
             inputs.new_line(s);
@@ -53,10 +50,11 @@ module.exports = function() {
           } else if (helpers.is.events.undoredo(e, e.shift)) {
             that.redo(e);
           } else if (helpers.is.actions.input.char_under_selection(e, s)) {
-            inputs.char_under_selection(s);
+            inputs.char_under_selection(selection.get());
             app.editor.state.events.prevent = false;
           } else if (helpers.is.events.handled(s)) {
             app.editor.state.events.prevent = false;
+            app.editor.ot.can_op = false;
             return false;
           } else {
             app.editor.state.events.prevent = false;
@@ -75,18 +73,19 @@ module.exports = function() {
           }
         }
 
+        app.editor.ot.can_op = false;
         app.editor.state.events.keydown = true;
         app.editor.state.events.paste = false;
         app.editor.state.events.cut = false;
         app.editor.state.events.copy = false;
-        app.editor.state.container.html.length = model.container.innerHTML.length;
+        app.editor.state.container.html.length = app.editor.container.innerHTML.length;
 
         return !app.editor.state.events.prevent;
       });
     },
 
     keyup: function(e) {
-      return fire('keyup', e, selection.get(model), function(e, s) {
+      return fire('keyup', e, selection.get(), function(e, s) {
         if (app.editor.state.events.prevent) {
           app.editor.state.events.prevent = false;
           e.prevent.default();
@@ -97,6 +96,7 @@ module.exports = function() {
 
         if (app.editor.state.events.keydown) {
           app.editor.state.events.keydown = false;
+          app.editor.ot.can_op = true;
           inputs.just_char();
         }
 
@@ -105,67 +105,14 @@ module.exports = function() {
     },
 
     paste: function(e) {
-      fire('paste', e, selection.get(model), function(e, s) {
-        var i, l, pos, pasted, splited, offset;
-
+      fire('paste', e, selection.get(), function(e, s) {
         app.editor.state.events.paste = true;
         app.editor.state.events.cut = false;
         app.editor.state.events.copy = false;
         app.editor.state.events.prevent = true;
         e.prevent.default();
 
-        pasted = e.clipboard.get.text();
-        if (pasted.length === 0) {
-          return false;
-        }
-
-        pos = {
-          start: s.is.caret && s.start.pos === 0 && s.start.i === 0,
-          end: s.is.caret && s.end.pos === s.end.text.length && s.end.i === model.size() - 1
-        };
-
-        splited = pasted.split('\n');
-        l = splited.length;
-        offset = s.start.pos + pasted.length;
-
-        model.history.batch.start(protocol.history.batch.text, s.clone());
-        if (l === 1) {
-          model.insert(s.clone(), splited[0]);
-        } else {
-          if (pos.start) {
-            for (i = 0; i < l - 1; i += 1) {
-              model.insert(s.start.i, block.factory(splited[i]));
-              s.start.i++;
-              s.end.i++;
-            }
-
-            model.insert(s.clone(), splited[l - 1]);
-          } else if (pos.end) {
-            model.insert(s.clone(), splited[0]);
-
-            for (i = 1; i < l; i += 1) {
-              model.insert(++s.start.i, block.factory(splited[i]));
-            }
-          } else {
-            model.remove(s.start.block, s.start.pos, s.start.text.length);
-            model.insert(s.start.block, splited[0], s.start.pos);
-
-            if (s.is.range) {
-              model.remove(s.start.i + 1, s.end.i);
-            }
-
-            for (i = 1; i < l - 1; i += 1) {
-              model.insert(++s.start.i, block.factory(splited[i]));
-            }
-
-            model.insert(++s.start.i, block.factory(splited[l - 1] + s.end.text.substring(s.end.pos)));
-          }
-
-          offset = splited[l - 1].length;
-        }
-        model.history.record.stop();
-        selection.set(model.get(s.start.i).container, offset);
-        model.history.batch.stop(selection.get(model));
+        app.editor.model.insert_text(s.start, e.clipboard.get.text());
 
         return false;
       });
@@ -181,19 +128,7 @@ module.exports = function() {
       app.editor.state.events.copy = !is_cut;
       app.editor.state.events.prevent = true;
 
-      text = (function() {
-        var i, text;
-
-        if (s.start.i === s.end.i) {
-          return s.start.text.substring(s.start.pos, s.end.pos);
-        }
-
-        text = s.start.text.substring(s.start.pos) + '\n';
-        for (i = s.start.i + 1; i < s.end.i; i += 1) {
-          text += model.get(i).text + '\n';
-        }
-        return text + s.end.text.substring(0, s.end.pos);
-      })();
+      text = app.editor.model.get_n_chars(s.start, s.n);
 
       e.clipboard.set.text(text);
 
@@ -201,7 +136,8 @@ module.exports = function() {
     },
 
     cut: function(e) {
-      return fire('cut', e, selection.get(model), function(e, s) {
+      return fire('cut', e, selection.get(), function(e, s) {
+        app.editor.ot.can_op = true;
         that.cutcopy(e, s, true);
         inputs.backspace(s);
         return false;
@@ -209,22 +145,22 @@ module.exports = function() {
     },
 
     copy: function(e) {
-      return fire('copy', e, selection.get(model), function(e, s) {
+      return fire('copy', e, selection.get(), function(e, s) {
         that.cutcopy(e, s, false);
         return false;
       });
     },
 
     undo: function(e) {
-      return fire('undo', e, selection.get(model), function(e, s) {
-        model.history.undo(s);
+      return fire('undo', e, selection.get(), function(e, s) {
+        app.editor.history.undo(s);
         return false;
       });
     },
 
     redo: function(e) {
-      return fire('redo', e, selection.get(model), function(e, s) {
-        model.history.redo(s);
+      return fire('redo', e, selection.get(), function(e, s) {
+        app.editor.history.redo(s);
         return false;
       });
     }

@@ -7,7 +7,9 @@ var app = module.exports = {
   editor: {
     container: null,
     model: null,
+    history: null,
     events: null,
+    doc: null,
     state: {
       selection: null,
       char: null,

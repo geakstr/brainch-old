@@ -1,10 +1,8 @@
 'use strict';
 
-var utils = require('common/utils');
+var utils = require('frontend/utils');
 
 module.exports = {
-  type: require('./type'),
-
   normalize: function(x) {
     return x.replace(/(\r\n|\n|\r)/gm, '');
   },
@@ -24,7 +22,7 @@ module.exports = {
   clone: function(b) {
     var cloned;
 
-    cloned = require('./factory')();
+    cloned = require('./index')();
     if (utils.is.browser()) {
       cloned.container = b.container.cloneNode(true);
     } else {
@@ -41,6 +39,7 @@ module.exports = {
     ret += '\tIndex : ' + b.i + '\n';
     ret += '\tText : ' + b.text + '\n';
     ret += '\tType : ' + b.type + '\n';
+
     return ret;
   }
 };

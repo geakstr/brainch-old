@@ -1,64 +1,61 @@
-var WebSocketServer = require('ws').Server;
-var protocol = require('common/protocol');
+var Duplex = require('stream').Duplex;
+var livedbmongo = require('livedb-mongo');
+var livedb = require('livedb');
+var sharejs = require('share');
+var browserChannel = require('browserchannel').server;
+var connect = require('connect');
+var http = require('http');
 
-(function() {
-  var wss, port, sockets;
+var memory, db, mongo, share;
 
-  port = 8888;
+memory = true;
+if (memory) {
+  db = livedb.client(livedb.memory());
+} else {
+  mongo = livedbmongo('mongodb://localhost:27017/brainch');
+  db = livedb.client(mongo);
+}
+share = sharejs.server.createClient({
+  backend: db
+});
 
-  wss = new WebSocketServer({
-    port: port
+var server = connect();
+server.use(browserChannel({
+  webserver: server,
+  cors: '*'
+}, function(client) {
+  var stream = new Duplex({
+    objectMode: true
   });
 
-  sockets = [];
-
-  wss.broadcast = function(self_uid, data) {
-    sockets.forEach(function(ws) {
-      if (ws.uid !== self_uid) {
-        ws.send(data, function(error) {
-          if (typeof error === 'undefined') {
-            return;
-          }
-          console.log(error);
-        });
-      }
-    });
+  stream._read = function() {};
+  stream._write = function(chunk, encoding, callback) {
+    if (client.state !== 'closed') {
+      client.send(chunk);
+      client.send(JSON.stringify(chunk));
+    }
+    callback();
   };
-
-  wss.on('connection', function(ws) {
-    ws.uid = sockets.length;
-    sockets.push(ws);
-
-    console.log('Socket %s was connected', ws.uid);
-
-    ws.onclose = function() {
-      var i, l;
-
-      sockets.splice(ws.uid, 1);
-
-      l = sockets.length;
-      for (i = ws.uid; i < l; i += 1) {
-        sockets[i].uid = i;
-      }
-
-      console.log('Socket %s was closed', ws.uid);
-    };
-
-    ws.on('message', function(json) {
-      var data, type;
-
-      console.log(json);
-
-      data = JSON.parse(json);
-      type = data[1];
-
-      data[0] = Date.now();
-
-      switch (type) {
-        case protocol.message.batch_history:
-          wss.broadcast(ws.uid, JSON.stringify(data));
-          break;
-      }
-    });
+  stream.headers = client.headers;
+  stream.remoteAddress = stream.address;
+  stream.on('error', function(msg) {
+    client.stop();
   });
-})();
+  stream.on('end', function() {
+    client.close();
+  });
+  share.listen(stream);
+
+  client.on('message', function(data) {
+    console.log('c -> s ', data);
+    stream.push(data);
+  });
+  client.on('close', function(reason) {
+    stream.push(null);
+    stream.emit('close');
+    stream.emit('end');
+    stream.end();
+  });
+}));
+
+http.createServer(server).listen(8888);

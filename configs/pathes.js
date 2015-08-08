@@ -4,6 +4,9 @@ module.exports = {
   configs: {
     web: {
       frontend: {
+        test: {
+          webpack: require('./web/frontend/webpack.test.js')
+        },
         dev: {
           webpack: require('./web/frontend/webpack.dev.js')
         },

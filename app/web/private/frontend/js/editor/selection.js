@@ -1,10 +1,11 @@
 'use strict';
 
-var utils = require('common/utils');
-var selection = require('common/editor/selection');
+var app = require('frontend/app');
+var utils = require('frontend/utils');
 
-exports.get = function(model) {
-  var s, anchor, focus, info, position;
+exports.get = function() {
+  var info, s, anchor, focus, position;
+  var anchor_i, focus_i, anchor_p, focus_p, anchor_b, focus_b;
 
   try {
     s = window.getSelection();
@@ -16,7 +17,7 @@ exports.get = function(model) {
     anchor = s.anchorNode;
     focus = s.focusNode;
 
-    info = selection.build(model);
+    info = exports.build();
 
     if (anchor.id !== 'editor' && focus.id !== 'editor') {
       while (anchor.parentNode !== null && (anchor.nodeType !== 1 || !anchor.classList.contains('block'))) {
@@ -31,26 +32,26 @@ exports.get = function(model) {
         throw utils.exceptions['editor selection error']();
       }
 
-      info.start.i = +anchor.getAttribute('data-i');
-      info.end.i = +focus.getAttribute('data-i');
+      anchor_i = +anchor.getAttribute('data-i');
+      focus_i = +focus.getAttribute('data-i');
 
-      if (Number.isNaN(info.start.i) || Number.isNaN(info.end.i)) {
+      if (Number.isNaN(anchor_i) || Number.isNaN(focus_i)) {
         throw utils.exceptions['editor selection error']();
       }
 
-      if (info.start.i > info.end.i) {
-        info.end.i = [info.start.i, info.start.i = info.end.i][0];
+      if (anchor_i > focus_i) {
+        focus_i = [anchor_i, anchor_i = focus_i][0];
         focus = [anchor, anchor = focus][0];
       }
 
       position = function(node) {
-        var s, position, range, cloned;
+        var s, p, range, cloned;
 
         s = node.ownerDocument.defaultView.getSelection();
 
-        position = Object.create(null);
-        position.start = 0;
-        position.end = 0;
+        p = Object.create(null);
+        p.start = 0;
+        p.end = 0;
 
         if (s.rangeCount > 0) {
           range = s.getRangeAt(0);
@@ -58,38 +59,39 @@ exports.get = function(model) {
           cloned = range.cloneRange();
           cloned.selectNodeContents(node);
           cloned.setStart(range.startContainer, range.startOffset);
-          position.start = node.textContent.length - cloned.toString().length;
+          p.start = node.textContent.length - cloned.toString().length;
 
           cloned = range.cloneRange();
           cloned.selectNodeContents(node);
           cloned.setEnd(range.endContainer, range.endOffset);
-          position.end = cloned.toString().length;
+          p.end = cloned.toString().length;
         }
 
-        return position;
+        return p;
       };
 
-      info.start.pos = position(anchor).start;
-      info.end.pos = position(focus).end;
+      anchor_p = position(anchor).start;
+      focus_p = position(focus).end;
 
-      info.start.block = model.get(info.start.i);
-      info.start.text = info.start.block.text;
+      anchor_b = app.editor.model.get_block_by_i(anchor_i);
+      focus_b = app.editor.model.get_block_by_i(focus_i);
 
-      info.end.block = model.get(info.end.i);
-      info.end.text = info.end.block.text;
+      info.n = focus_p - anchor_p;
+      if (anchor_i !== focus_i) {
+        info.n += focus_b.start - anchor_b.start;
+      }
+      info.start = anchor_b.start + anchor_p;
+      info.end = info.start + info.n;
+      info.anchor_p = anchor_p;
+      info.focus_p = focus_p;
+      info.anchor_i = anchor_i;
+      info.focus_i = focus_i;
     }
-
-    info.is = {
-      range: info.start.i !== info.end.i || info.start.pos !== info.end.pos,
-      caret: info.start.i === info.end.i && info.start.pos === info.end.pos
-    };
-
-    info.clone = selection.clone;
 
     return info;
   } catch (e) {
     if (e.name === 'EditorError') {
-      return null;
+      return undefined;
     } else {
       throw e;
     }
@@ -126,4 +128,34 @@ exports.set = function(node, offset) {
 
   s.removeAllRanges();
   s.addRange(range);
+};
+
+exports.build = function() {
+  var info;
+
+  info = Object.create(null);
+  info.n = 0;
+  info.start = 0;
+  info.end = app.editor.model.get_last_block().end;
+  info.anchor_p = 0;
+  info.focus_p = app.editor.model.get_last_block().length;
+  info.anchor_i = 0;
+  info.focus_i = app.editor.model.length - 1;
+
+  return info;
+};
+
+exports.clone = function(s) {
+  var info;
+
+  info = Object.create(null);
+  info.n = s.n;
+  info.start = s.start;
+  info.end = s.end;
+  info.anchor_p = s.anchor_p;
+  info.focus_p = s.focus_p;
+  info.anchor_i = s.anchor_i;
+  info.focus_i = s.focus_i;
+
+  return info;
 };
