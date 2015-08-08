@@ -47,7 +47,7 @@ module.exports = function() {
     },
 
     apply: function(op) {
-      var i, j, l, n, m, k, x, y, s, splited, retain;
+      var i, j, l, n, m, x, y, splited, retain;
 
       console.log(op);
       retain = 0;
@@ -55,39 +55,28 @@ module.exports = function() {
       for (i = 0, l = op.length; i < l; i += 1) {
         x = op[i];
 
-        s = Object.create(null);
-
-        s.start = Object.create(null);
-        s.start.block = model.get_by_retain(retain);
-        s.start.i = s.start.block.i;
-        s.start.text = s.start.block.text;
-        s.start.pos = retain - s.start.block.start;
-
-        s.end = Object.create(null);
-        s.end.block = model.get_by_retain(retain);
-        s.end.i = s.end.block.i;
-        s.end.text = s.end.block.text;
-        s.end.pos = retain - s.end.block.start;
-
-        s.is = Object.create(null);
-        s.is.range = s.start.pos !== s.end.pos;
-        s.is.caret = s.start.i === s.end.i && s.start.pos === s.end.pos;
-
-        s.clone = selection.clone;
-
         if (utils.is.num(x)) {
           retain += x;
         } else if (utils.is.str(x)) {
           splited = x.split('\n');
           n = x.length;
           m = splited.length;
-          if (x[n - 1] === '\n') {
-            app.editor.inputs.new_line(s);
-            app.editor.model.insert(retain, x.substring(0, n - 1));
-            retain += n;
-          } else {
+          if (m === 1) {
             app.editor.model.insert(retain, x);
             retain += n;
+          } else {
+            for (j = 0; j < m - 1; j += 1) {
+              y = splited[j];
+              app.editor.model.insert(retain, y);
+              retain += y.length;
+              app.editor.model.insert(retain, '\n');
+              retain += 1;
+            }
+            if (x[n - 1] !== '\n') {
+              y = splited[m - 1];
+              app.editor.model.insert(retain, y);
+              retain += y.length;
+            }
           }
 
         } else {
@@ -95,7 +84,6 @@ module.exports = function() {
         }
       }
       app.editor.ot.can_op = true;
-      console.log(app.editor.ot.doc.getSnapshot());
     },
 
     undo: function(selection) {

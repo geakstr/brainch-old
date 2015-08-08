@@ -5,6 +5,8 @@ var selection = require('common/editor/selection').factory();
 var protocol = require('common/protocol');
 var config = require('frontend/configs');
 
+var sel2 = require('frontend/editor/selection2');
+
 var app = require('common/app');
 
 module.exports = function() {
@@ -91,6 +93,46 @@ module.exports = function() {
     char_under_selection: function(s) {
       model.history.batch.start(protocol.history.batch.delete, s.clone());
       resolve_batch(model.remove(s.clone(), keys.delete));
+    },
+
+    just_char2: function() {
+      var s, b, c, store_char;
+
+      if (app.editor.state.events.clipboard()) {
+        return;
+      } else if (app.editor.state.container.html.length === model.container.innerHTML.length) {
+        return;
+      } else {
+        app.editor.state.container.html.length = model.container.innerHTML.length;
+      }
+
+      s = sel2.get(app.editor.model2);
+      b = app.editor.model2.get_block_by_retain(s.retain);
+      c = b.text.substring(s.start.pos - 1, s.start.pos);
+
+      store_char = function() {
+        console.log(c);
+      };
+
+      if (need_stop_batch(s)) {
+        store_char();
+      } else if (app.editor.state.char !== null && app.editor.state.char !== c) {
+        if (app.editor.state.char !== ' ' && c === ' ') {
+          store_char();
+        } else if (app.editor.state.char === ' ' && c !== ' ') {
+          store_char();
+        } else {
+          store_char();
+          batch_timer_factory();
+        }
+      } else {
+        store_char();
+        batch_timer_factory();
+      }
+
+      app.editor.state.char = c;
+      app.editor.state.selection = s.clone();
+      app.editor.state.cancel.char = false;
     },
 
     just_char: function() {

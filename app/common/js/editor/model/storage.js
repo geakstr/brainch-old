@@ -4,10 +4,10 @@ var utils = require('common/utils');
 
 var app = require('common/app');
 
-module.exports = function() {
-  var blocks, container;
+module.exports = function(container) {
+  var blocks;
 
-  container = app.editor.container;
+  container = container || app.editor.container;
   blocks = [];
 
   blocks.splice = function(start, count, b) {
@@ -54,7 +54,7 @@ module.exports = function() {
       return app.editor.doc.getSnapshot();
     },
 
-    size: function() {
+    get length() {
       return that.blocks.length;
     },
 
@@ -73,6 +73,11 @@ module.exports = function() {
       that.blocks[i] = b;
     },
 
+    push: function(b) {
+      blocks.push(b);
+      that.actualize();
+    },
+
     actualize: function() {
       var i, l;
 
@@ -80,7 +85,7 @@ module.exports = function() {
       blocks[0].start = 0;
       for (i = 1, l = blocks.length; i < l; i += 1) {
         blocks[i].i = i;
-        blocks[i].start = blocks[i - 1].end + (i < l - 1 ? 1 : 0);
+        blocks[i].start = blocks[i - 1].end + 1;
       }
     }
   };

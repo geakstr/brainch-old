@@ -1,13 +1,12 @@
 'use strict';
 
-var utils = require('common/utils');
-var selection = require('common/editor/selection').factory();
-var protocol = require('common/protocol');
-var config = require('frontend/configs');
-
 var app = require('common/app');
-var block = require('common/editor/model/block');
+var block = require('frontend/editor/model/block');
+var config = require('frontend/configs');
 var helpers = require('frontend/editor/actions/helpers');
+var protocol = require('common/protocol');
+var selection = require('common/editor/selection').factory();
+var utils = require('common/utils');
 
 module.exports = function() {
   var that, model, fire, inputs;
@@ -139,7 +138,7 @@ module.exports = function() {
         } else {
           if (pos.start) {
             for (i = 0; i < l - 1; i += 1) {
-              model.insert(s.start.i, block.factory(splited[i]));
+              model.insert(s.start.i, block(splited[i]));
               s.start.i++;
               s.end.i++;
             }
@@ -149,7 +148,7 @@ module.exports = function() {
             model.insert(s.clone(), splited[0]);
 
             for (i = 1; i < l; i += 1) {
-              model.insert(++s.start.i, block.factory(splited[i]));
+              model.insert(++s.start.i, block(splited[i]));
             }
           } else {
             model.remove(s.start.block, s.start.pos, s.start.text.length);
@@ -160,10 +159,10 @@ module.exports = function() {
             }
 
             for (i = 1; i < l - 1; i += 1) {
-              model.insert(++s.start.i, block.factory(splited[i]));
+              model.insert(++s.start.i, block(splited[i]));
             }
 
-            model.insert(++s.start.i, block.factory(splited[l - 1] + s.end.text.substring(s.end.pos)));
+            model.insert(++s.start.i, block(splited[l - 1] + s.end.text.substring(s.end.pos)));
           }
 
           offset = splited[l - 1].length;

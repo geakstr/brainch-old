@@ -61,8 +61,10 @@ gulp.task('webpack-dev-web-frontend', function(done) {
 });
 
 gulp.task('watch-dev-web-frontend', function() {
-  gulp.watch(path.join(pathes.configs.web.frontend.dev.webpack.context, '/**/*.js'), ['webpack-dev-web-frontend']);
-  gulp.watch(path.join(pathes.app.common.js, '/**/*.js'), ['webpack-dev-web-frontend']);
+  gulp.watch([
+    path.join(pathes.configs.web.frontend.dev.webpack.context, '/**/*.js'),
+    path.join(pathes.app.common.js, '/**/*.js')
+  ], ['webpack-dev-web-frontend']);
   gulp.watch(path.join(pathes.app.web.private.frontend.stylus, '/**/*.styl'), ['css-dev-web-frontend']);
 });
 

@@ -27,6 +27,10 @@ module.exports = function(initial_text) {
       return app.editor.container;
     },
 
+    get storage() {
+      return storage;
+    },
+
     get history() {
       return history;
     },
@@ -36,7 +40,7 @@ module.exports = function(initial_text) {
     },
 
     size: function() {
-      return storage.size();
+      return storage.length;
     },
 
     get: function(i) {
@@ -46,7 +50,7 @@ module.exports = function(initial_text) {
     get_by_retain: function(retain) {
       var i, l, b;
 
-      for (i = 0, l = storage.size(); i < l; i += 1) {
+      for (i = 0, l = storage.length; i < l; i += 1) {
         b = that.get(i);
 
         if (retain >= b.start && retain <= b.end) {
@@ -112,12 +116,17 @@ module.exports = function(initial_text) {
             },
 
             ot_style: function(retain, text) {
-              var b, t, start;
+              var b, sub;
 
               b = that.get_by_retain(retain);
 
               if (text === '\n') {
-                that.remove(b, retain, b.length);
+                sub = b.text.substring(retain - b.start);
+                that.remove(retain, {
+                  d: b.end - retain
+                });
+                that.insert(b.i + 1, block.factory(sub));
+                that.actualize();
               } else {
                 opts.in_block(b, text, retain - b.start);
               }
@@ -131,7 +140,6 @@ module.exports = function(initial_text) {
 
               b.text = left + text + right;
               that.actualize();
-
               history.push([protocol.history.story.insert_text, b.i, text, pos]);
               app.editor.ot.op([b.start + pos, text]);
             }
