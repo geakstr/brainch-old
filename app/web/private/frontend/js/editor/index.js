@@ -20,7 +20,7 @@ module.exports = function(container) {
         t += '- Добавление точки в конце последнего предложения (по умолчанию выключено).\n';
         t += '- Расстановка апострофа в английских и русских словах..\n';
         t += 'Удаление повторяющихся знаков препинания (восклицательные море точек до многоточия)';
-        doc.create('text', t);
+        doc.create('text', t + '\n');
       }
       onopen(doc);
     });
@@ -33,7 +33,6 @@ module.exports = function(container) {
     app.editor.ot.can_op = false;
 
     app.editor.model = require('frontend/editor/model')(doc.getSnapshot());
-    app.editor.history = require('frontend/editor/model/history')();
     app.editor.state.container.html.length = app.editor.container.innerHTML.length;
 
     app.editor.events = require('frontend/editor/actions/events')();

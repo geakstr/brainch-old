@@ -5,7 +5,7 @@ var block_utils = require('frontend/editor/model/block/utils');
 var utils = require('frontend/utils');
 
 module.exports = function(text) {
-  var that, container, pos;
+  var that, container, start;
 
   container = document.createElement('p');
 
@@ -19,15 +19,15 @@ module.exports = function(text) {
     },
 
     get start() {
-      return pos;
+      return start;
     },
 
     set start(x) {
-      pos = x;
+      start = x;
     },
 
     get end() {
-      return pos + that.text.length;
+      return start + that.text.length;
     },
 
     get html() {

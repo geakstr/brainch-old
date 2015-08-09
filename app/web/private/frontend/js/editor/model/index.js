@@ -7,6 +7,7 @@ var utils = require('frontend/utils');
 module.exports = function(text) {
   var that, storage;
 
+  app.editor.history = require('frontend/editor/model/history')();
   storage = require('./storage')();
 
   that = {

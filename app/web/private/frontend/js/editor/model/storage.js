@@ -63,6 +63,7 @@ module.exports = function() {
       }
 
       that.blocks[i] = b;
+      that.actualize();
     },
 
     push: function(b) {

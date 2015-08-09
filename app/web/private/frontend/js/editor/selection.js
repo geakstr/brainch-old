@@ -1,7 +1,6 @@
 'use strict';
 
 var app = require('frontend/app');
-var utils = require('frontend/utils');
 
 exports.get = function() {
   var info, s, anchor, focus, position;
@@ -11,7 +10,7 @@ exports.get = function() {
     s = window.getSelection();
 
     if (!s.anchorNode || !s.focusNode) {
-      throw utils.exceptions['editor selection error']();
+      throw new Error('Editor selection error');
     }
 
     anchor = s.anchorNode;
@@ -29,14 +28,14 @@ exports.get = function() {
       }
 
       if (anchor === null || focus === null) {
-        throw utils.exceptions['editor selection error']();
+        throw new Error('Editor selection error');
       }
 
       anchor_i = +anchor.getAttribute('data-i');
       focus_i = +focus.getAttribute('data-i');
 
       if (Number.isNaN(anchor_i) || Number.isNaN(focus_i)) {
-        throw utils.exceptions['editor selection error']();
+        throw new Error('Editor selection error');
       }
 
       if (anchor_i > focus_i) {
@@ -90,7 +89,7 @@ exports.get = function() {
 
     return info;
   } catch (e) {
-    if (e.name === 'EditorError') {
+    if (e.message === 'Editor selection error') {
       return undefined;
     } else {
       throw e;

@@ -31,21 +31,6 @@ Number.isInteger = Number.isInteger || function(value) {
   return typeof value === 'number' && isFinite(value) && Math.floor(value) === value;
 };
 
-exports.clone = {
-  assoc: function(o) {
-    var r = Object.create(null);
-    for (var p in o) {
-      if (!o.hasOwnProperty || o.hasOwnProperty(p)) {
-        r[p] = o[p];
-      }
-    }
-    return r;
-  },
-  array: function(array) {
-    return array.slice(0);
-  }
-};
-
 exports.is = {
   undef: function(x) {
     return typeof x === 'undefined';
@@ -99,21 +84,6 @@ exports.is = {
 };
 
 exports.wrap = {
-  args: function(x) {
-    var args = Array.prototype.slice.apply(x);
-    var arity = args.length;
-    return {
-      i: function(i) {
-        return args[i];
-      },
-      get arity() {
-        return arity;
-      },
-      get raw() {
-        return args;
-      }
-    };
-  },
   event: function(event) {
     return {
       orig: event,

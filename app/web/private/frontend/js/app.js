@@ -9,6 +9,7 @@ var app = module.exports = {
     model: null,
     history: null,
     events: null,
+    inputs: null,
     doc: null,
     state: {
       selection: null,

@@ -39,9 +39,8 @@ module.exports = function() {
     apply: function(op) {
       var i, l, x, retain;
 
-      retain = 0;
       app.editor.ot.can_op = false;
-      for (i = 0, l = op.length; i < l; i += 1) {
+      for (i = 0, retain = 0, l = op.length; i < l; i += 1) {
         x = op[i];
         if (utils.is.num(x)) {
           retain += x;
@@ -52,7 +51,6 @@ module.exports = function() {
           app.editor.model.remove_text(retain, x.d);
         }
       }
-      app.editor.ot.can_op = true;
     },
 
     undo: function(selection) {

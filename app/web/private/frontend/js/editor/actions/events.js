@@ -7,10 +7,9 @@ var selection = require('frontend/editor/selection');
 var utils = require('frontend/utils');
 
 module.exports = function() {
-  var that, fire, inputs;
+  var that, fire;
 
-  inputs = require('frontend/editor/actions/inputs')();
-  app.editor.inputs = inputs;
+  app.editor.inputs = require('frontend/editor/actions/inputs')();
 
   fire = function(title, e, s, callback) {
     try {
@@ -21,7 +20,8 @@ module.exports = function() {
     } catch (e) {
       app.editor.history.batch.cancel();
       app.editor.history.record.cancel();
-      utils.exceptions.log(e);
+      console.log(e);
+      console.log(e.stack);
       return false;
     } finally {
       app.editor.history.record.stop();
@@ -31,35 +31,30 @@ module.exports = function() {
   that = {
     keydown: function(e) {
       return fire('keydown', e, selection.get(), function(e, s) {
-        app.editor.state.events.prevent = false;
+        app.editor.state.events.prevent = true;
+        app.editor.ot.can_op = true;
 
-        if (s !== null) {
-          app.editor.state.events.prevent = true;
-          app.editor.ot.can_op = true;
-
-          if (helpers.is.actions.input.new_line(e)) {
-            inputs.new_line(s);
-          } else if (helpers.is.actions.input.delete(e)) {
-            inputs.delete(s);
-          } else if (helpers.is.actions.input.backspace(e)) {
-            inputs.backspace(s);
-          } else if (helpers.is.actions.input.tab(e)) {
-            inputs.tab(s);
-          } else if (helpers.is.events.undoredo(e, !e.shift)) {
-            that.undo(e);
-          } else if (helpers.is.events.undoredo(e, e.shift)) {
-            that.redo(e);
-          } else if (helpers.is.actions.input.char_under_selection(e, s)) {
-            inputs.char_under_selection(selection.get());
-            app.editor.state.events.prevent = false;
-          } else if (helpers.is.events.handled(s)) {
-            app.editor.state.events.prevent = false;
-            app.editor.ot.can_op = false;
-            return false;
-          } else {
-            app.editor.state.events.prevent = false;
-          }
-
+        if (helpers.is.actions.input.new_line(e)) {
+          app.editor.inputs.new_line(s);
+        } else if (helpers.is.actions.input.delete(e)) {
+          app.editor.inputs.delete(s);
+        } else if (helpers.is.actions.input.backspace(e)) {
+          app.editor.inputs.backspace(s);
+        } else if (helpers.is.actions.input.tab(e)) {
+          app.editor.inputs.tab(s);
+        } else if (helpers.is.events.undoredo(e, !e.shift)) {
+          that.undo(e);
+        } else if (helpers.is.events.undoredo(e, e.shift)) {
+          that.redo(e);
+        } else if (helpers.is.actions.input.char_under_selection(e, s)) {
+          app.editor.inputs.char_under_selection(selection.get());
+          app.editor.state.events.prevent = false;
+        } else if (helpers.is.events.handled(s)) {
+          app.editor.state.events.prevent = false;
+          app.editor.ot.can_op = false;
+          return false;
+        } else {
+          app.editor.state.events.prevent = false;
         }
 
         if (app.editor.state.events.prevent) {
@@ -67,7 +62,7 @@ module.exports = function() {
         } else {
           if (app.editor.state.events.keydown) {
             if (!app.editor.state.cancel.char) {
-              inputs.just_char();
+              app.editor.inputs.just_char();
             }
             app.editor.state.cancel.char = false;
           }
@@ -97,7 +92,7 @@ module.exports = function() {
         if (app.editor.state.events.keydown) {
           app.editor.state.events.keydown = false;
           app.editor.ot.can_op = true;
-          inputs.just_char();
+          app.editor.inputs.just_char();
         }
 
         return true;
@@ -105,22 +100,33 @@ module.exports = function() {
     },
 
     paste: function(e) {
-      fire('paste', e, selection.get(), function(e, s) {
+      return fire('paste', e, selection.get(), function(e, s) {
+        var t, end_block, splited;
+
         app.editor.state.events.paste = true;
         app.editor.state.events.cut = false;
         app.editor.state.events.copy = false;
         app.editor.state.events.prevent = true;
         e.prevent.default();
 
-        app.editor.model.insert_text(s.start, e.clipboard.get.text());
+        t = e.clipboard.get.text();
+        app.editor.ot.can_op = true;
+        app.editor.model.remove_text(s.start, s.n);
+        app.editor.model.insert_text(s.start, t);
+
+        end_block = app.editor.model.get_block_by_retain(s.start + t.length);
+        splited = t.split('\n');
+        if (splited.length === 1) {
+          selection.set(end_block.container, s.anchor_p + t.length);
+        } else {
+          selection.set(end_block.container, splited[splited.length - 1].length);
+        }
 
         return false;
       });
     },
 
     cutcopy: function(e, s, is_cut) {
-      var text;
-
       e.prevent.default();
 
       app.editor.state.events.paste = false;
@@ -128,18 +134,14 @@ module.exports = function() {
       app.editor.state.events.copy = !is_cut;
       app.editor.state.events.prevent = true;
 
-      text = app.editor.model.get_n_chars(s.start, s.n);
-
-      e.clipboard.set.text(text);
-
-      return text;
+      e.clipboard.set.text(app.editor.model.get_n_chars(s.start, s.n));
     },
 
     cut: function(e) {
       return fire('cut', e, selection.get(), function(e, s) {
         app.editor.ot.can_op = true;
         that.cutcopy(e, s, true);
-        inputs.backspace(s);
+        app.editor.inputs.backspace(s);
         return false;
       });
     },
