@@ -9,6 +9,7 @@ var jscs = require('gulp-jscs');
 var eslint = require('gulp-eslint');
 
 require('./configs/api/gulp.dev.tasks.js');
+require('./configs/collaborator/gulp.dev.tasks.js');
 require('./configs/web/backend/gulp.dev.tasks.js');
 require('./configs/web/frontend/gulp.dev.tasks.js');
 require('./configs/web/frontend/gulp.dev.test.tasks.js');
@@ -33,6 +34,7 @@ gulp.task('jscs', function() {
   return gulp.src([
       path.join(pathes.app.web.private.backend.js, '/**/*.js'),
       path.join(pathes.app.web.private.frontend.js, '/**/*.js'),
+      path.join(pathes.app.collaborator.js, '/**/*.js'),
       path.join(pathes.app.api.js, '/**/*.js')
     ])
     .pipe(jscs());

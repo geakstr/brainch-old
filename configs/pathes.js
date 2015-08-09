@@ -23,6 +23,9 @@ module.exports = {
     api: {
       js: path.join(process.cwd(), 'app/api/js')
     },
+    collaborator: {
+      js: path.join(process.cwd(), 'app/collaborator/js')
+    },
     web: {
       private: {
         backend: {

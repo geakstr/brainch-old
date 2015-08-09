@@ -5,16 +5,16 @@ var notifier = require('node-notifier');
 
 var pathes = require('pathes');
 
-gulp.task('run-dev-api', function() {
+gulp.task('run-dev-collaborator', function() {
   nodemon({
-    script: path.join(pathes.app.api.js, '/index.js'),
+    script: path.join(pathes.app.collaborator.js, '/index.js'),
     watch: [
-      path.join(pathes.app.api.js, '/**/*.js')
+      path.join(pathes.app.collaborator.js, '/**/*.js')
     ],
     ext: 'js html',
     nodeArgs: ['--harmony']
   }).on('restart', function() {
-    console.log('Web server restarted');
+    console.log('API restarted');
   }).on('crash', function(error) {
     notifier.notify({
       title: 'Gulp',
