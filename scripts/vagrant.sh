@@ -16,5 +16,6 @@ nvm use 0.12.7
 nvm alias default stable
 
 cd /home/vagrant/brainch/
-npm install gulp -g
+cp app/web/private/frontend/js/configs.js.example app/web/private/frontend/js/configs.js
+npm install -g gulp
 npm install"
