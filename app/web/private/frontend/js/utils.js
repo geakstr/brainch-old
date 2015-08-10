@@ -23,12 +23,26 @@ if (!String.prototype.format) {
   };
 }
 
-Number.isNaN = function(value) {
-  return typeof value === 'number' && isNaN(value);
+exports.swap = function(x) {
+  return x;
 };
 
-Number.isInteger = Number.isInteger || function(value) {
-  return typeof value === 'number' && isFinite(value) && Math.floor(value) === value;
+exports.dom = {
+  node: {
+    has: {
+      class: function(node, cls) {
+        return (' ' + node.className + ' ').indexOf(' ' + cls + ' ') > -1;
+      }
+    },
+    get: {
+      data: function(node, data_name) {
+        return node.getAttribute('data-' + data_name);
+      },
+      attr: function(node, attr) {
+        return node.getAttribute(attr);
+      }
+    }
+  }
 };
 
 exports.is = {
@@ -42,6 +56,10 @@ exports.is = {
 
   num: function(x) {
     return Object.prototype.toString.call(x) === '[object Number]' && isFinite(x);
+  },
+
+  nan: function(x) {
+    return typeof x === 'number' && isNaN(x);
   },
 
   str: function(x) {
@@ -114,21 +132,41 @@ exports.wrap = {
   }
 };
 
-exports.exceptions = {
-  log: function(e) {
-    console.log(e.name + ' : ' + e.message);
-    console.log(e.stack);
-  },
-  'signature not supported': function() {
-    return {
-      name: 'TypeError',
-      message: 'This function signature not supported'
-    };
-  },
-  'editor selection error': function() {
-    return {
-      name: 'EditorError',
-      message: 'Something wrong with selection'
-    };
-  }
+exports.key_codes = {
+  backspace: 8,
+  tab: 9,
+  enter: 13,
+  shift: 16,
+  ctrl: 17,
+  alt: 18,
+  pausebreak: 19,
+  capslock: 20,
+  escape: 27,
+  pageup: 33,
+  pagedown: 34,
+  end: 35,
+  home: 36,
+  left: 37,
+  up: 38,
+  right: 39,
+  down: 40,
+  insert: 45,
+  delete: 46,
+  leftwindowkey: 91,
+  rightwindowkey: 92,
+  selectkey: 93,
+  f1: 112,
+  f2: 113,
+  f3: 114,
+  f4: 115,
+  f5: 116,
+  f6: 117,
+  f7: 118,
+  f8: 119,
+  f9: 120,
+  f10: 121,
+  f11: 122,
+  f12: 123,
+  numlock: 144,
+  scrolllock: 145
 };

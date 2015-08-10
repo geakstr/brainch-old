@@ -83,7 +83,7 @@ build/Release
 node_modules
 
 # Debug log from npm
-npm-debug.log
+npm-debug.log*
 
 #####=== SublimeText ===#####
 # cache files for sublime text

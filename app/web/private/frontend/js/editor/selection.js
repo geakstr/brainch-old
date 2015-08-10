@@ -1,13 +1,18 @@
 'use strict';
 
 var app = require('frontend/app');
+var utils = require('frontend/utils');
+
+var get_selection = function() {
+  return window.getSelection ? window.getSelection() : document.selection;
+};
 
 exports.get = function() {
   var info, s, anchor, focus, position;
   var anchor_i, focus_i, anchor_p, focus_p, anchor_b, focus_b;
 
   try {
-    s = window.getSelection();
+    s = get_selection();
 
     if (!s.anchorNode || !s.focusNode) {
       throw new Error('Editor selection error');
@@ -19,36 +24,34 @@ exports.get = function() {
     info = exports.build();
 
     if (anchor.id !== 'editor' && focus.id !== 'editor') {
-      while (anchor.parentNode !== null && (anchor.nodeType !== 1 || !anchor.classList.contains('block'))) {
+      while (anchor.parentNode && (anchor.nodeType !== 1 || !utils.dom.node.has.class(anchor, 'block'))) {
         anchor = anchor.parentNode;
       }
 
-      while (focus.parentNode !== null && (focus.nodeType !== 1 || !focus.classList.contains('block'))) {
+      while (focus.parentNode && (focus.nodeType !== 1 || !utils.dom.node.has.class(focus, 'block'))) {
         focus = focus.parentNode;
       }
 
-      if (anchor === null || focus === null) {
+      if (!anchor || !focus) {
         throw new Error('Editor selection error');
       }
 
-      anchor_i = +anchor.getAttribute('data-i');
-      focus_i = +focus.getAttribute('data-i');
+      anchor_i = +utils.dom.node.get.data(anchor, 'i');
+      focus_i = +utils.dom.node.get.data(focus, 'i');
 
-      if (Number.isNaN(anchor_i) || Number.isNaN(focus_i)) {
+      if (utils.is.nan(anchor_i) || utils.is.nan(focus_i)) {
         throw new Error('Editor selection error');
       }
 
       if (anchor_i > focus_i) {
-        focus_i = [anchor_i, anchor_i = focus_i][0];
-        focus = [anchor, anchor = focus][0];
+        focus_i = utils.swap(anchor_i, anchor_i = focus_i);
+        focus = utils.swap(anchor, anchor = focus);
       }
 
       position = function(node) {
-        var s, p, range, cloned;
+        var p, range, cloned;
 
-        s = node.ownerDocument.defaultView.getSelection();
-
-        p = Object.create(null);
+        p = {};
         p.start = 0;
         p.end = 0;
 
@@ -89,18 +92,14 @@ exports.get = function() {
 
     return info;
   } catch (e) {
-    if (e.message === 'Editor selection error') {
-      return undefined;
-    } else {
-      throw e;
-    }
+    throw e;
   }
 };
 
 exports.set = function(node, offset) {
   var s, tw, range, cur_node, cur_offset, was_range_set;
 
-  s = window.getSelection();
+  s = get_selection();
 
   tw = document.createTreeWalker(node, NodeFilter.SHOW_TEXT, null, null);
   range = document.createRange();
@@ -129,10 +128,31 @@ exports.set = function(node, offset) {
   s.addRange(range);
 };
 
+exports.set2 = function(node, offset) {
+  var s, rng;
+
+  if (document.createRange) {
+    rng = document.createRange();
+    s = get_selection();
+
+    rng.setStart(node.firstChild, offset);
+    rng.setEnd(node.firstChild, offset);
+
+    s.removeAllRanges();
+    s.addRange(rng);
+  } else if (document.selection) {
+    rng = document.body.createTextRange();
+    rng.moveToElementText(node);
+    rng.moveEnd('character', offset);
+    rng.moveStart('character', offset);
+    rng.select();
+  }
+};
+
 exports.build = function() {
   var info;
 
-  info = Object.create(null);
+  info = {};
   info.n = 0;
   info.start = 0;
   info.end = app.editor.model.get_last_block().end;
@@ -147,7 +167,7 @@ exports.build = function() {
 exports.clone = function(s) {
   var info;
 
-  info = Object.create(null);
+  info = {};
   info.n = s.n;
   info.start = s.start;
   info.end = s.end;

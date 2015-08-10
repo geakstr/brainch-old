@@ -1,12 +1,10 @@
 'use strict';
 
 var app = require('frontend/app');
-var batch = require('frontend/editor/model/history/batch');
-var story = require('frontend/editor/model/history/story');
 var utils = require('frontend/utils');
 
 module.exports = function() {
-  var that, state, push_batch, restore_batch;
+  var that, state;
 
   state = {
     i: 0,
@@ -15,14 +13,6 @@ module.exports = function() {
     story: null,
     batching: false,
     recording: false
-  };
-
-  restore_batch = function(i, direction, set_selection) {
-    return state.batches[i].restore(direction, set_selection);
-  };
-
-  push_batch = function(new_batch) {
-    state.batches.splice(state.i, Number.MAX_VALUE, new_batch);
   };
 
   that = {
@@ -53,41 +43,60 @@ module.exports = function() {
       }
     },
 
-    undo: function(selection) {
-      that.batch.stop(selection);
+    inverse_op: function(op) {
+
+    },
+
+    undo: function() {
+      var stories, actions, action, n, m, i, j;
+
+      that.batch.stop();
       if (state.i === 0) {
         return;
       }
-      restore_batch(--state.i, -1, true);
+
+      stories = state.batches[--state.i];
+      for (i = stories.length - 1; i >= 0; i -= 1) {
+        actions = stories[i];
+        for (j = actions.length - 1; j >= 0; j -= 1) {
+          action = actions[j];
+
+          console.log(action);
+        }
+      }
     },
 
-    redo: function(selection) {
-      that.batch.stop(selection);
+    redo: function() {
+      var restored_batch;
+
+      that.batch.stop();
       if (state.i === state.batches.length) {
         return;
       }
-      restore_batch(state.i++, +1, true);
+
+      restored_batch = state.batches[state.i++];
     },
 
     batch: {
-      start: function(title, selection) {
+      start: function(id) {
         state.recording = true;
-        state.story = story();
-        if (state.batching) {
-          that.batch.stop(selection.clone());
+        state.story = [];
+        if (state.batching && state.batch.id === id) {
+          return;
+        } else if (state.batching) {
+          that.batch.stop();
         }
         state.batching = true;
-        state.batch = batch(title, selection);
+        state.batch = [];
+        state.batch.id = id;
       },
 
-      stop: function(selection) {
+      stop: function() {
         var was_batching;
 
         was_batching = state.batching;
         if (state.batching) {
-          state.batch.end_selection = selection;
-          push_batch(state.batch);
-          state.i += 1;
+          state.batches.splice(state.i++, Number.MAX_VALUE, state.batch);
         }
         state.batching = false;
 

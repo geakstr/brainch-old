@@ -36,11 +36,11 @@ module.exports = function(container) {
     app.editor.state.container.html.length = app.editor.container.innerHTML.length;
 
     app.editor.events = require('frontend/editor/actions/events')();
-    app.editor.container.onkeydown = app.editor.events.keydown;
-    app.editor.container.onkeyup = app.editor.events.keyup;
-    app.editor.container.onpaste = app.editor.events.paste;
-    app.editor.container.oncut = app.editor.events.cut;
-    app.editor.container.oncopy = app.editor.events.copy;
+    app.editor.container.addEventListener('keydown', app.editor.events.keydown);
+    app.editor.container.addEventListener('keyup', app.editor.events.keyup);
+    app.editor.container.addEventListener('paste', app.editor.events.paste);
+    app.editor.container.addEventListener('cut', app.editor.events.cut);
+    app.editor.container.addEventListener('copy', app.editor.events.copy);
   });
 
   that = {};

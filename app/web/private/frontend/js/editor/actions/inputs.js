@@ -5,14 +5,13 @@ var selection = require('frontend/editor/selection');
 
 module.exports = function() {
   var that;
-  var stop_batch, resolve_batch;
-  var need_stop_batch, need_cancel_batch;
+  var stop_batch, need_stop_batch;
   var batch_timer_factory, batch_timer;
 
   batch_timer_factory = function() {
     clearInterval(batch_timer);
     batch_timer = setInterval(function() {
-      stop_batch(selection.get());
+      stop_batch();
     }, 1500);
   };
   batch_timer_factory();
@@ -21,40 +20,15 @@ module.exports = function() {
     return app.editor.state.selection !== null && app.editor.state.selection.anchor_i !== s.anchor_i;
   };
 
-  need_cancel_batch = function(info) {
-    return info.cancel_story && app.editor.state.cancel.story;
-  };
-
-  resolve_batch = function(info) {
-    var s;
-
-    s = selection.get();
-    if (info.cancel_story) {
-      app.editor.history.record.cancel();
-      if (need_cancel_batch(info)) {
-        app.editor.model.batch.cancel();
-      } else {
-        stop_batch(s);
-      }
-      app.editor.state.cancel.story = true;
-    } else {
-      app.editor.model.history.record.stop();
-      if (info.stop_batch || need_stop_batch(s)) {
-        stop_batch(s);
-      }
-      app.editor.state.cancel.story = false;
-    }
-    app.editor.state.selection = s.clone();
-  };
-
   stop_batch = function(s) {
-    if (app.editor.history.batch.stop(s).was_batching) {
+    if (app.editor.history.batch.stop().was_batching) {
       batch_timer_factory();
     }
   };
 
   that = {
     new_line: function(s) {
+      app.editor.model.remove_text(s.start, s.n);
       app.editor.model.insert_text(s.start, '\n');
       selection.set(app.editor.model.get_block_by_i(s.anchor_i + 1).container, 0);
     },
@@ -94,6 +68,7 @@ module.exports = function() {
     },
 
     tab: function(s) {
+      app.editor.model.remove_text(s.start, s.n);
       app.editor.model.insert_text(s.start, '\t');
       selection.set(app.editor.model.get_block_by_i(s.anchor_i).container, s.anchor_p + 1);
     },
@@ -110,26 +85,32 @@ module.exports = function() {
         return;
       } else if (app.editor.state.container.html.length === app.editor.container.innerHTML.length) {
         return;
-      } else {
-        app.editor.state.container.html.length = app.editor.container.innerHTML.length;
       }
 
       s = selection.get();
-      b = app.editor.model.get_block_by_i(s.anchor_i);
+      b = app.editor.model.get_block_by_i(s.anchor_i).normalize();
       c = b.text.substring(s.anchor_p - 1, s.focus_p);
 
       store_char = function() {
         app.editor.model.storage.actualize();
+
+        app.editor.history.batch.start('char');
+        app.editor.history.push([s.start - 1, c]);
+        app.editor.history.record.stop();
+
         app.editor.ot.op([s.start - 1, c]);
-        selection.set(b.normalize().container, s.anchor_p);
+        selection.set(b.container, s.anchor_p);
       };
 
       if (need_stop_batch(s)) {
+        stop_batch();
         store_char();
       } else if (app.editor.state.char !== null && app.editor.state.char !== c) {
         if (app.editor.state.char !== ' ' && c === ' ') {
           store_char();
+          stop_batch();
         } else if (app.editor.state.char === ' ' && c !== ' ') {
+          stop_batch();
           store_char();
         } else {
           store_char();
@@ -143,6 +124,7 @@ module.exports = function() {
       app.editor.state.char = c;
       app.editor.state.selection = selection.clone(s);
       app.editor.state.cancel.char = false;
+      app.editor.state.container.html.length = app.editor.container.innerHTML.length;
     }
   };
 

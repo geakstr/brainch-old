@@ -2,26 +2,25 @@
 
 var app = require('frontend/app');
 var config = require('frontend/configs');
-var keys = require('frontend/keys_map');
 var utils = require('frontend/utils');
 
 var is = exports.is = {
   actions: {
     input: {
       new_line: function(e) {
-        return e.key === keys.enter;
+        return e.key === utils.key_codes.enter;
       },
 
       delete: function(e) {
-        return e.key === keys.delete;
+        return e.key === utils.key_codes.delete;
       },
 
       backspace: function(e) {
-        return e.key === keys.backspace;
+        return e.key === utils.key_codes.backspace;
       },
 
       tab: function(e) {
-        return e.key === keys.tab && !e.shift;
+        return e.key === utils.key_codes.tab && !e.shift;
       },
 
       char_under_selection: function(e, s) {
@@ -41,10 +40,10 @@ var is = exports.is = {
     },
 
     navigation_keypress: function(e) {
-      var is_arrow = (e.key === keys.up ||
-        e.key === keys.down ||
-        e.key === keys.left ||
-        e.key === keys.right);
+      var is_arrow = (e.key === utils.key_codes.up ||
+        e.key === utils.key_codes.down ||
+        e.key === utils.key_codes.left ||
+        e.key === utils.key_codes.right);
 
       return (is_arrow && !e.ctrl && !e.shift && !e.alt && !e.meta) ||
         (is_arrow && (e.ctrl || e.shift || e.alt || e.meta));
@@ -57,8 +56,8 @@ var is = exports.is = {
     handled_key: function(key_code) {
       var handled_key;
 
-      for (handled_key in keys) {
-        if (key_code === keys[handled_key]) {
+      for (handled_key in utils.key_codes) {
+        if (key_code === utils.key_codes[handled_key]) {
           return false;
         }
       }

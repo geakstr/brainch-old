@@ -18,13 +18,12 @@ module.exports = function() {
       }
       return callback(utils.wrap.event(e), s);
     } catch (e) {
-      app.editor.history.batch.cancel();
-      app.editor.history.record.cancel();
-      console.log(e);
-      console.log(e.stack);
+      if (e.message !== 'Editor selection error') {
+        app.editor.history.batch.cancel();
+        console.log(e);
+        console.log(e.stack);
+      }
       return false;
-    } finally {
-      app.editor.history.record.stop();
     }
   };
 

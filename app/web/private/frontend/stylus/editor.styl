@@ -16,7 +16,7 @@
 
     .block {
       position: relative;
-      padding: 11px 3% 11px 3%;
+      padding: 11px 3% 16px 3%;
       white-space: pre-wrap;
       color: #999;
       border-radius: 3px 0 0 3px;
@@ -25,10 +25,19 @@
         display: none;
       }
       &.note {
-        color: #888;
+        color: #444;
+
+        + .note {
+          margin-top: -16px;
+        }
       }
       &.task {
-        color: #333;
+        color: #444;
+        font-weight: 700;
+
+        + .note {
+          margin-top: -16px;
+        }
       }
       .-date {
         padding: 3px 5px;

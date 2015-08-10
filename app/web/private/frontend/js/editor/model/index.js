@@ -1,7 +1,7 @@
 'use strict';
 
 var app = require('frontend/app');
-var block = require('frontend/editor/model/block');
+var block = require('frontend/editor/model/block').factory;
 var utils = require('frontend/utils');
 
 module.exports = function(text) {
