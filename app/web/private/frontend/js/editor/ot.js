@@ -1,6 +1,6 @@
 'use strict';
 
-var app = require('frontend/app');
+var app = require('brainch-frontend/app');
 
 module.exports = function(doc) {
   var that, can_op;

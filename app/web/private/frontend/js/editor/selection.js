@@ -1,7 +1,7 @@
 'use strict';
 
-var app = require('frontend/app');
-var utils = require('frontend/utils');
+var app = require('brainch-frontend/app');
+var utils = require('brainch-frontend/utils');
 
 var get_selection = function() {
   return window.getSelection ? window.getSelection() : document.selection;

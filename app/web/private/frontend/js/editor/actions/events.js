@@ -1,15 +1,15 @@
 'use strict';
 
-var app = require('frontend/app');
-var config = require('frontend/configs');
-var helpers = require('frontend/editor/actions/helpers');
-var selection = require('frontend/editor/selection');
-var utils = require('frontend/utils');
+var app = require('brainch-frontend/app');
+var config = require('brainch-frontend/configs');
+var helpers = require('brainch-frontend/editor/actions/helpers');
+var selection = require('brainch-frontend/editor/selection');
+var utils = require('brainch-frontend/utils');
 
 module.exports = function() {
   var that, fire;
 
-  app.editor.inputs = require('frontend/editor/actions/inputs')();
+  app.editor.inputs = require('brainch-frontend/editor/actions/inputs')();
 
   fire = function(title, e, s, callback) {
     try {

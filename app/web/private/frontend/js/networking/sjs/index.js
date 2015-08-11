@@ -1,8 +1,8 @@
 'use strict';
 
 require('script!browserchannel/dist/bcsocket');
-var app = require('frontend/app');
-var config = require('frontend/configs');
+var app = require('brainch-frontend/app');
+var config = require('brainch-frontend/configs');
 var sharejs = require('share/lib/client');
 
 /*global BCSocket*/

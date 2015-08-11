@@ -1,7 +1,7 @@
 'use strict';
 
-var app = require('frontend/app');
-var utils = require('frontend/utils');
+var app = require('brainch-frontend/app');
+var utils = require('brainch-frontend/utils');
 
 module.exports = function() {
   var blocks;

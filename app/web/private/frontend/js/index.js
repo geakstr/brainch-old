@@ -1,9 +1,9 @@
 'use strict';
 
-var app = require('frontend/app');
+var app = require('brainch-frontend/app');
 
 window.onload = function() {
-  require('frontend/editor')(document.querySelector('#editor'));
+  require('brainch-frontend/editor')(document.querySelector('#editor'));
 };
 
 window.onbeforeunload = function(e) {

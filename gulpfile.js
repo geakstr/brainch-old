@@ -14,7 +14,7 @@ require('./configs/web/backend/gulp.dev.tasks.js');
 require('./configs/web/frontend/gulp.dev.tasks.js');
 require('./configs/web/frontend/gulp.dev.test.tasks.js');
 
-var pathes = require('pathes');
+var pathes = require('brainch-pathes');
 
 gulp.task('common-watch-named-modules', function() {
   if (packageJson.namedModules) {

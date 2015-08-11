@@ -1,7 +1,7 @@
 'use strict';
 
-var app = require('frontend/app');
-var selection = require('frontend/editor/selection');
+var app = require('brainch-frontend/app');
+var selection = require('brainch-frontend/editor/selection');
 
 module.exports = function() {
   var that;

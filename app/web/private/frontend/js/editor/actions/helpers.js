@@ -1,8 +1,8 @@
 'use strict';
 
-var app = require('frontend/app');
-var config = require('frontend/configs');
-var utils = require('frontend/utils');
+var app = require('brainch-frontend/app');
+var config = require('brainch-frontend/configs');
+var utils = require('brainch-frontend/utils');
 
 var is = exports.is = {
   actions: {

@@ -6,7 +6,7 @@ var koutoSwiss = require('kouto-swiss');
 var autoprefixer = require('gulp-autoprefixer');
 var notifier = require('node-notifier');
 
-var pathes = require('pathes');
+var pathes = require('brainch-pathes');
 var sourcemaps = require('gulp-sourcemaps');
 
 gulp.task('css-dev-web-frontend', function() {

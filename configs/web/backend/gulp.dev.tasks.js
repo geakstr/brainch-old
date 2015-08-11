@@ -3,7 +3,7 @@ var gulp = require('gulp');
 var nodemon = require('nodemon');
 var notifier = require('node-notifier');
 
-var pathes = require('pathes');
+var pathes = require('brainch-pathes');
 
 gulp.task('run-dev-web-backend', function() {
   nodemon({

@@ -1,11 +1,11 @@
 'use strict';
 
-var app = require('frontend/app');
+var app = require('brainch-frontend/app');
 
 module.exports = function(container) {
   var that;
 
-  require('frontend/networking/sjs')(function(onopen) {
+  require('brainch-frontend/networking/sjs')(function(onopen) {
     var doc;
 
     doc = app.api.sjs.get('docs', 'first');
@@ -29,13 +29,13 @@ module.exports = function(container) {
     app.editor.container.setAttribute('spellcheck', false);
     app.editor.container.setAttribute('contenteditable', true);
 
-    app.editor.ot = require('frontend/editor/ot')(doc);
+    app.editor.ot = require('brainch-frontend/editor/ot')(doc);
     app.editor.ot.can_op = false;
 
-    app.editor.model = require('frontend/editor/model')(doc.getSnapshot());
+    app.editor.model = require('brainch-frontend/editor/model')(doc.getSnapshot());
     app.editor.state.container.html.length = app.editor.container.innerHTML.length;
 
-    app.editor.events = require('frontend/editor/actions/events')();
+    app.editor.events = require('brainch-frontend/editor/actions/events')();
     app.editor.container.addEventListener('keydown', app.editor.events.keydown);
     app.editor.container.addEventListener('keyup', app.editor.events.keyup);
     app.editor.container.addEventListener('paste', app.editor.events.paste);

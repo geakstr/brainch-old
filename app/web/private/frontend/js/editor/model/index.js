@@ -1,13 +1,13 @@
 'use strict';
 
-var app = require('frontend/app');
-var block = require('frontend/editor/model/block').factory;
-var utils = require('frontend/utils');
+var app = require('brainch-frontend/app');
+var block = require('brainch-frontend/editor/model/block').factory;
+var utils = require('brainch-frontend/utils');
 
 module.exports = function(text) {
   var that, storage;
 
-  app.editor.history = require('frontend/editor/model/history')();
+  app.editor.history = require('./history')();
   storage = require('./storage')();
 
   that = {

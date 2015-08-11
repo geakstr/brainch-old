@@ -3,7 +3,7 @@ var gulp = require('gulp');
 var webpack = require('webpack');
 var notifier = require('node-notifier');
 
-var pathes = require('pathes');
+var pathes = require('brainch-pathes');
 
 gulp.task('webpack-test-web-frontend', function(done) {
   webpack(pathes.configs.web.frontend.test.webpack,
