@@ -110,3 +110,4 @@ app/web/public/css/style.css
 app/web/public/css/*.map
 app/web/private/frontend/js/configs.js
 app/web/private/frontend/tests/bundle.js
+Vagrantfile
