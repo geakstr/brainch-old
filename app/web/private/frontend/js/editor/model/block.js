@@ -1,5 +1,7 @@
 'use strict';
 
+var utils = require('brainch-frontend/utils');
+
 var block_utils = exports.utils = {
   normalize: function(x) {
     return x.replace(/(\r\n|\n|\r)/gm, '');
@@ -94,7 +96,7 @@ exports.factory = function(text) {
 
     set type(x) {
       container.className = 'block';
-      container.classList.add(x);
+      utils.dom.node.add.class(x);
     },
 
     normalize: function() {

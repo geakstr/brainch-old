@@ -1,7 +1,7 @@
 /*global describe, expect, it, beforeEach, afterEach */
 
-var app = require('frontend/app');
-var block = require('frontend/editor/model/block');
+var app = require('brainch-frontend/app');
+var block = require('brainch-frontend/editor/model/block').factory;
 var chai = require('chai');
 var expect = chai.expect;
 
@@ -16,10 +16,9 @@ describe('editor/model', function() {
       'opqr'
     ];
 
-    app.editor.ot = require('frontend/editor/ot')();
+    app.editor.ot = require('brainch-frontend/editor/ot')();
     app.editor.container = document.createElement('div');
-    app.editor.storage = require('frontend/editor/model/storage')();
-    model = require('frontend/editor/model')(blocks_texts.join('\n'));
+    model = require('brainch-frontend/editor/model')(blocks_texts.join('\n'));
   };
 
   beforeEach(function() {

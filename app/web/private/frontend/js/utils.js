@@ -27,11 +27,19 @@ exports.swap = function(x) {
   return x;
 };
 
-exports.dom = {
+var dom = exports.dom = {
   node: {
     has: {
       class: function(node, cls) {
         return (' ' + node.className + ' ').indexOf(' ' + cls + ' ') > -1;
+      }
+    },
+    add: {
+      class: function(node, cls) {
+        if (dom.node.has.class(node, cls)) {
+          return;
+        }
+        node.className += ' ' + cls;
       }
     },
     get: {
