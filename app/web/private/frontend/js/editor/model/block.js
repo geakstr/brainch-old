@@ -96,7 +96,7 @@ exports.factory = function(text) {
 
     set type(x) {
       container.className = 'block';
-      utils.dom.node.add.class(x);
+      utils.dom.node.add.class(container, x);
     },
 
     normalize: function() {

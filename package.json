@@ -7,12 +7,12 @@
   "scripts": {
     "jscs": "gulp jscs",
     "lint": "gulp eslint",
-    "test": "./node_modules/mocha/bin/mocha --reporter nyan app/web/private/frontend/tests/js/index.js"
+    "mocha": "./node_modules/mocha/bin/mocha --reporter nyan app/web/private/frontend/tests/js/index.js"
   },
   "pre-commit": [
     "lint",
     "jscs",
-    "test"
+    "mocha"
   ],
   "namedModules": {
     "brainch-pathes": "configs/pathes.js",
@@ -41,7 +41,7 @@
     "gulp-jscs": "1.6.0",
     "gulp-sourcemaps": "1.5.2",
     "gulp-stylus": "2.0.5",
-    "jsdom": "6.1.0",
+    "jsdom": "3.1.2",
     "kouto-swiss": "0.11.13",
     "mocha": "2.2.5",
     "node-libs-browser": "0.5.2",
