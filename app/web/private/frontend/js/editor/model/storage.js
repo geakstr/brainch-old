@@ -32,61 +32,31 @@ module.exports = function() {
 
     deleted = utils.is.undef(b) ? remove() : insert();
 
-    that.actualize();
+    blocks.actualize();
 
     return deleted;
   };
 
-  var that = {
-    get blocks() {
-      return blocks;
-    },
+  blocks.actualize = function() {
+    var i, l;
 
-    get text() {
-      return app.editor.doc.getSnapshot();
-    },
+    l = blocks.length;
+    if (l === 0) {
+      return;
+    }
 
-    get length() {
-      return that.blocks.length;
-    },
-
-    get: function(i) {
-      return that.blocks[i];
-    },
-
-    set: function(i, b) {
-      if (app.editor.container && utils.is.browser()) {
-        var old = that.get(i);
-        if (app.editor.container.contains(old.container)) {
-          app.editor.container.replaceChild(b.container, old.container);
-        }
-      }
-
-      that.blocks[i] = b;
-      that.actualize();
-    },
-
-    push: function(b) {
-      blocks.push(b);
-      that.actualize();
-    },
-
-    actualize: function() {
-      var i, l;
-
-      l = blocks.length;
-      if (l === 0) {
-        return;
-      }
-
-      blocks[0].i = 0;
-      blocks[0].start = 0;
-      for (i = 1; i < l; i += 1) {
-        blocks[i].i = i;
-        blocks[i].start = blocks[i - 1].end + 1;
-      }
+    blocks[0].i = 0;
+    blocks[0].start = 0;
+    for (i = 1; i < l; i += 1) {
+      blocks[i].i = i;
+      blocks[i].start = blocks[i - 1].end + 1;
     }
   };
 
-  return that;
+  blocks.push = function(b) {
+    Array.prototype.push.call(blocks, b);
+    blocks.actualize();
+  };
+
+  return blocks;
 };

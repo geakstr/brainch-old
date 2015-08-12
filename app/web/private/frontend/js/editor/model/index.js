@@ -20,7 +20,7 @@ module.exports = function(text) {
     },
 
     init_with_text: function(text) {
-      storage.blocks.splice(0, that.length);
+      storage.splice(0, that.length);
       that.push_block(block(''));
       that.insert_text(0, text);
     },
@@ -34,7 +34,7 @@ module.exports = function(text) {
         throw new TypeError('Index must be int: i = ' + i + '. Block must be not null object: b = ' + b);
       }
 
-      storage.blocks.splice(i, 0, b);
+      storage.splice(i, 0, b);
       app.editor.ot.op([b.start, b.text + '\n']);
     },
 
@@ -46,7 +46,7 @@ module.exports = function(text) {
         throw new Error('Op is not valid: i = ' + i + '; last_i (-1 if empty) = ' + last_i);
       }
 
-      storage.blocks.splice(i, 1);
+      storage.splice(i, 1);
     },
 
     get_block_by_retain: function(retain) {
@@ -58,7 +58,7 @@ module.exports = function(text) {
       }
 
       for (i = 0, l = that.length; i < l; i += 1) {
-        b = storage.get(i);
+        b = storage[i];
         if (retain >= b.start && retain <= b.end) {
           return b;
         }
@@ -73,11 +73,11 @@ module.exports = function(text) {
         throw new Error('Op is not valid: i = ' + i + '; last_i (-1 if empty) = ' + last_i);
       }
 
-      return storage.get(i);
+      return storage[i];
     },
 
     get_last_block: function() {
-      return storage.get(that.length - 1);
+      return storage[that.length - 1];
     },
 
     get_n_chars: function(orig_retain, n) {
