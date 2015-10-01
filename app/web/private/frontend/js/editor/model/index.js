@@ -113,7 +113,7 @@ module.exports = function(text) {
     },
 
     insert_text: function(orig_retain, t) {
-      var b, retain, splited, i, j, moved, doc_l, splited_l, insert_text_helper;
+      var b, retain, splited, i, j, moved, doc_l, splited_l, helper;
 
       retain = orig_retain;
       doc_l = that.get_last_block().end;
@@ -123,7 +123,7 @@ module.exports = function(text) {
         return;
       }
 
-      insert_text_helper = function(retain, t) {
+      helper = function(retain, t) {
         var b, p;
 
         b = that.get_block_by_retain(retain);
@@ -137,7 +137,7 @@ module.exports = function(text) {
       splited_l = splited.length;
 
       if (splited_l === 1) {
-        insert_text_helper(retain, splited[0]);
+        helper(retain, splited[0]);
       } else {
         b = that.get_block_by_retain(retain);
 
@@ -146,9 +146,9 @@ module.exports = function(text) {
             that.insert_block_by_i(i, block(splited[i]));
             retain += splited[i].length + 1;
           }
-          insert_text_helper(retain, splited[splited_l - 1]);
+          helper(retain, splited[splited_l - 1]);
         } else if (b.i === that.length - 1 && retain === that.get_last_block().end) {
-          insert_text_helper(retain, splited[0]);
+          helper(retain, splited[0]);
           retain += splited[0].length + 1;
           for (i = 1, j = that.length; i < splited_l; i += 1, j += 1) {
             that.insert_block_by_i(j, block(splited[i]));
@@ -157,7 +157,7 @@ module.exports = function(text) {
         } else {
           b = that.get_block_by_retain(retain);
           moved = that.get_n_chars(retain, b.end - retain);
-          insert_text_helper(retain, splited[0]);
+          helper(retain, splited[0]);
           retain += splited[0].length + 1;
           that.remove_text(retain - 1, moved.length);
 
@@ -191,14 +191,14 @@ module.exports = function(text) {
       start_b.text = start_b.text.substring(0, start_p) + end_b.text.substring(end_p);
       storage.actualize();
       app.editor.ot.op([orig_retain, {
-        d: n
+        d: n,
       }]);
 
       cnt = end_b.i - (start_b.i + 1);
       while (cnt-- >= 0) {
         that.remove_block_by_i(start_b.i + 1);
       }
-    }
+    },
   };
 
   that.init_with_text(text || '');

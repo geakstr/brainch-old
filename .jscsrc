@@ -1,22 +1,23 @@
 {
   "preset": "airbnb",  
-  "esnext": false,
+    "esnext": false,
 
-  "fileExtensions": [".js"],
-  
-  "requireLineFeedAtFileEnd": null,
-  "requireCamelCaseOrUpperCaseIdentifiers": null,
-  "disallowMultipleVarDecl": null,
-  "requirePaddingNewLinesAfterBlocks": null,
-  "validateIndentation": 2,
-  "maximumLineLength": 120,
-  
-  "requireParenthesesAroundIIFE": true,
-  "validateLineBreaks": "LF",  
-  "disallowKeywords": ["with"],
-  "disallowSpacesInsideObjectBrackets": null,
-  "disallowImplicitTypeConversion": ["string"],
-  "safeContextKeyword": "_this",
+    "fileExtensions": [".js"],
 
-  "excludeFiles": ["node_modules/**"]
+    "requireLineFeedAtFileEnd": null,
+    "requireCamelCaseOrUpperCaseIdentifiers": null,
+    "disallowMultipleVarDecl": null,
+    "requirePaddingNewLinesAfterBlocks": null,
+    "validateIndentation": 2,
+    "requireTrailingComma": null,
+    "maximumLineLength": 120,
+
+    "requireParenthesesAroundIIFE": true,
+    "validateLineBreaks": "LF",  
+    "disallowKeywords": ["with"],
+    "disallowSpacesInsideObjectBrackets": null,
+    "disallowImplicitTypeConversion": ["string"],
+    "safeContextKeyword": "_this",
+
+    "excludeFiles": ["node_modules/**"]
 }

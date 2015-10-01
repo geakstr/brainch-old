@@ -42,10 +42,15 @@ var dom = exports.dom = {
         node.className += ' ' + cls;
       }
     },
-    get: {
-      data: function(node, data_name) {
+    data: {
+      get: function(node, data_name) {
         return node.getAttribute('data-' + data_name);
       },
+      set: function(node, data_name, val) {
+        return node.setAttribute('data-' + data_name, val);
+      }
+    },
+    get: {
       attr: function(node, attr) {
         return node.getAttribute(attr);
       }

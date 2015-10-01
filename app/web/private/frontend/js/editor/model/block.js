@@ -78,17 +78,17 @@ exports.factory = function(text) {
     },
 
     get i() {
-      return +container.getAttribute('data-i') || 0;
+      return +utils.dom.node.data.get(container, 'i') || 0;
     },
 
     set i(x) {
-      container.setAttribute('data-i', x);
+      utils.dom.node.data.set(container, 'i', x);
     },
 
     get type() {
-      if (container.classList.contains('task')) {
+      if (utils.dom.node.has.class(container, 'task')) {
         return 'task';
-      } else if (container.classList.contains('empty')) {
+      } else if (utils.dom.node.has.class(container, 'empty')) {
         return 'empty';
       }
       return 'note';

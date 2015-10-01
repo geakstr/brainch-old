@@ -36,8 +36,8 @@ exports.get = function() {
         throw new Error('Editor selection error');
       }
 
-      anchor_i = +utils.dom.node.get.data(anchor, 'i');
-      focus_i = +utils.dom.node.get.data(focus, 'i');
+      anchor_i = +utils.dom.node.data.get(anchor, 'i');
+      focus_i = +utils.dom.node.data.get(focus, 'i');
 
       if (utils.is.nan(anchor_i) || utils.is.nan(focus_i)) {
         throw new Error('Editor selection error');

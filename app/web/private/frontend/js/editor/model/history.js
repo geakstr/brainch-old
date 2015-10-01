@@ -48,7 +48,7 @@ module.exports = function() {
     },
 
     undo: function() {
-      var stories, actions, action, n, m, i, j;
+      var stories, actions, action, i, j;
 
       that.batch.stop();
       if (state.i === 0) {
@@ -67,14 +67,12 @@ module.exports = function() {
     },
 
     redo: function() {
-      var restored_batch;
-
       that.batch.stop();
       if (state.i === state.batches.length) {
         return;
       }
 
-      restored_batch = state.batches[state.i++];
+      //  state.batches[state.i++];
     },
 
     batch: {
@@ -101,14 +99,14 @@ module.exports = function() {
         state.batching = false;
 
         return {
-          was_batching: was_batching
+          was_batching: was_batching,
         };
       },
 
       cancel: function() {
         state.batching = false;
         state.batch = null;
-      }
+      },
     },
 
     record: {
